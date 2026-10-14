@@ -1,0 +1,94 @@
+# Weekly plan to the 4 December 2026 deadline (student ID 13130)
+
+Written on Wednesday 14 October 2026, teaching week 6. The 16 commits in the history are all dated 14 October 2026; their messages name the teaching-week milestone each one covers, and the dates are not changed. Each block below adds one real piece of work with its own tests, so the later commits carry later dates honestly. Message format: `TW<n>: <what changed and why>`. The git identity is already `13130 <13130@users.noreply.github.com>`.
+
+Checks before every push:
+
+```
+uv run ruff check src tests app
+uv run pytest -m "not slow"
+uv lock --check
+uv run python report/build_report.py --check
+```
+
+`uv run mlda-train --quick` and `--models` write into the committed `data/processed`, `models` and `reports`. After a trial run, look at `git status` and `git diff --stat reports/metrics`, and restore with `git restore data/processed models reports` unless the change is intended. Commit regenerated artefacts only from a full `uv run mlda-train` (about 95 minutes).
+
+## Before the first block (by Sunday 18 October)
+
+- [ ] You: post the dataset in the module Discussions forum (topic title, source URL https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp, one line on the target). Copy the topic title and URL.
+- [ ] You: create the GitHub account with an ID-based username and a public repository; `git remote add origin <url>` and `git push -u origin main`.
+- [ ] After the push, open the Actions tab and read all five jobs of the first `ci` run. Fix red jobs before adding features. The workflow has not run on GitHub before, so a first-run failure is likely to be an environment difference and not a code defect.
+
+## Week of 19 October (mid-term week): deploy
+
+Commit: `Deploy: Streamlit app on Community Cloud with measured memory and cold start`
+
+- [ ] `git status` shows nothing untracked under `app/`, `notebooks/` and `tests/` (on 14 October `app/`, `notebooks/`, `tests/test_app_smoke.py` and `tests/test_notebook.py` were untracked). Commit them first, with their tests.
+- [ ] You: deploy following README section "Deployment" (repository, branch `main`, entrypoint `app/streamlit_app.py`, Python 3.12 in Advanced settings).
+- [ ] Visit all seven pages on Cloud. Read the resident memory on the About page (it uses psutil) and time a cold start. Add both numbers to "Memory and speed budget" in `docs/architecture.md`, next to the 690 MB Cloud figure it cites. If memory is close to that figure, reduce the cached sample sizes in `app/_common.py` and measure again.
+- [ ] Replace the "Deployed at" line in `README.md` and set `repo_url` and `app_url` in `report/report_meta.json`.
+- [ ] You: replace `{{DISCUSSIONS_POST}}` in `report/sections/01_introduction.md` (line 66) with the topic title and URL from the forum post, then run `uv run python report/build_report.py`.
+- [ ] Confirm `report/sections/90_references.md` exists. The builder renders it as the reference list, and on 14 October the folder had no such file.
+
+## Week of 26 October (TW7): mine-profile view on the EDA page
+
+Commit: `TW7: k-means mine profiles on the exploratory analysis page`
+
+- [ ] Add a function to `src/mlda/eda.py` that clusters mine-year rows of the training split on standardised exposure and history features already in `features.parquet` (`prev_hours`, `prev_employees`, `prev_incidents`, `prev_lost_time_share`). Use a Pipeline of `StandardScaler` and `KMeans(n_init=10, random_state=42)`, fitted on training rows only.
+- [ ] Choose k from 2 to 8 by silhouette score on a 10,000-row sample (silhouette is quadratic in rows) and show the inertia curve beside it.
+- [ ] Show, on `app/pages/2_EDA.py`, the cluster sizes, the lost-time rate per cluster and a PCA scatter coloured by cluster, reusing the pattern in `plots.pca_projection`. The target describes the clusters and never builds them.
+- [ ] Tests in `tests/test_eda.py`: same labels for the same seed, the cluster count asked for, no test-split index used. `tests/test_app_smoke.py` must still visit the page without an exception.
+- [ ] Say on the page that the clusters are descriptive and not a model input. If the lost-time rates differ little between clusters, write that.
+
+## Week of 2 November (TW8): batch scoring on the inference page
+
+Commit: `TW8: batch scoring report with row validation and a review list by capacity`
+
+- [ ] Today the page offers a template CSV, an upload limited by `MAX_BATCH_ROWS`, three summary metrics and a download with `probability`, `flag_operating_point` and `flag_at_0_5`. `prepare_batch` (`app/_common.py`) refuses the whole file when a required column is missing, the file is too long or any `ACCIDENT_DT` is invalid. Change it to score the valid rows and show a table of the rejected rows with the reason (unparsable date, `MINE_ID` absent from the Mines table).
+- [ ] Add a capacity control: review the top k % of cases. Show the probability cut-off, the number of rows flagged and the recall at that flag rate from the stored held-out predictions, so the S5 trade-off is visible to the user.
+- [ ] Add `rank` and `flag_at_capacity` to the downloadable CSV.
+- [ ] Tests: `prepare_batch` on a frame with one bad date and one unknown mine; an `AppTest` run that uploads a three-row CSV. The page loads the saved pipeline and fits nothing.
+
+## Week of 9 November (TW9): class weights and SMOTE
+
+Commit: `TW9: class_weight and SMOTE comparison for the selected model, recorded in sensitivity.json`
+
+- [ ] Prevalence is 48.6 %, so little gain is expected. The commit records the measurement and states the result whatever it is.
+- [ ] Add an `imbalance` block to `mlda.sensitivity` for `hist_gb` (`class_weight="balanced"`) and for `logreg`, compared with the unweighted fit. SMOTE sits inside an `imblearn` Pipeline after the preprocessor, so it resamples training folds only; note that SMOTE on one-hot columns produces fractional dummy values.
+- [ ] Same protocol as the other variants: grouped five-fold cross-validation on the training rows, out-of-fold threshold for specificity 0.40, one scoring of the test rows. Report ROC-AUC, PR-AUC, recall at that threshold and Brier score; Brier shows the loss of calibration that resampling causes.
+- [ ] Test on the synthetic base in `tests/test_sensitivity.py`: SMOTE changes the training rows inside the pipeline and leaves the rows passed to `predict_proba` untouched.
+- [ ] Regenerate artefacts from one full `uv run mlda-train`, then add one sentence to README "Method in brief" and to the report if its numbers change.
+
+## Week of 16 November (TW10): MLP calibration study
+
+Commit: `TW10: calibration study for the multi-layer perceptron and its effect on the cost thresholds`
+
+- [ ] Evidence: the MLP is second on cross-validated PR-AUC, passes all seven criteria, and has a Brier score of 0.163 against 0.161 for `hist_gb`. Its out-of-fold cost-optimal threshold at 2:1 is 0.299 against 0.335 for `hist_gb`, so the two models place probabilities on different scales; the study tests whether calibration closes that gap.
+- [ ] Fit `CalibratedClassifierCV` with `method="sigmoid"` and `method="isotonic"` around the tuned MLP pipeline on training rows, with explicit mine-year-grouped splits (`CalibratedClassifierCV` is already used for the SVM in `models.py`).
+- [ ] Compare reliability tables (`evaluation.calibration_table`), Brier score, log loss and the out-of-fold cost-optimal thresholds before and after. A monotone sigmoid leaves ROC-AUC unchanged; isotonic can introduce ties, so report both.
+- [ ] Selection stays as it was: `hist_gb` is the final model. The calibrated MLP is reported as an extra, post hoc candidate. Do not change the final model after seeing test scores.
+- [ ] Regenerate `F19_calibration.png`, rebuild and execute the notebook in default mode (`uv run python notebooks/build_notebook.py`, then `uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_end_to_end.ipynb`), and refresh the HTML export with `uv run jupyter nbconvert --to html notebooks/01_end_to_end.ipynb`.
+
+## Week of 23 November (TW11): Docker verified in CI, README
+
+Commit: `TW11: Docker image verified in CI, README run instructions checked on clean clones`
+
+- [ ] The image has never been built (no Docker on the development machine). Read the `docker` job log and fix failures. One thing to check: `.dockerignore` excludes `data/raw/*.txt`, while the Dockerfile copies `data/raw/*_Definition_File.txt`; add `!data/raw/*_Definition_File.txt` to `.dockerignore` or drop the pattern from the `COPY` line.
+- [ ] Extend the job: after the health check run `docker run --rm mlda-cw1 python -c "import mlda; print(mlda.__version__)"` and print `docker image ls mlda-cw1`. Add the CI badge to the README title block once the repository URL is known.
+- [ ] Clone the repository into a new folder on Windows and follow README Route A and Route B line by line, then Route C where Docker is available. Fix any line that fails and update the test counts and run times if they changed.
+- [ ] Write `report/viva_prep.md` from the 25 questions in `docs/report_plan.md` section 7, one number and one table or figure per answer.
+- [ ] You: build the docx (`uv run python report/build_report.py`), open it in Word and read it once for layout, page count and figure placement.
+
+## Week of 30 November (TW12): final sync, v1.0.0, zip. Deadline Friday 4 December
+
+Commit: `TW12: final metric and figure sync; README and report numbers checked against reports/metrics`
+
+- [ ] If code or data changed since the last full run, run `uv run mlda-train` once more so that `models/manifest.json` and every metric come from one run.
+- [ ] Rebuild and execute the notebook, refresh its HTML export, then check each number in `README.md` (introduction, success-criteria table, test counts, run times) against `reports/metrics` and `uv run pytest --collect-only -q`.
+- [ ] `uv lock --check`; `make export` leaves `requirements.txt` and `app/requirements.txt` unchanged; the last `ci` run on `main` is green.
+- [ ] Tag: `git tag -a v1.0.0 -m "CW1 submission, student ID 13130"` and `git push origin main v1.0.0`.
+- [ ] You: open `report/MLDA_CW1_13130_report.docx` in Word, update the table of contents and the lists of figures and tables (right-click, Update Field, Update entire table), and check File, Info for an author name in the document properties. Export the PDF to `report/MLDA_CW1_13130_report.pdf`.
+- [ ] You: run the anti-plagiarism check on the report and keep the similarity report.
+- [ ] Commit the docx and the PDF, then build the archive. Set `MLDA_FORBIDDEN` to the strings that must not appear (comma-separated, supplied at run time and never written to a file), run `uv run mlda-zip`, and list the archive to confirm it holds the README, notebook, HTML export, docx, PDF and data archives. `.github/` is excluded from it by design.
+- [ ] You: upload `MLDA.CW1.13130.zip` to the intranet by Wednesday 2 December, two days before the deadline.
+- [ ] You: open the live app the day before marking and again 30 minutes before the viva, because a Cloud app sleeps after about 12 hours idle. Fallback if it will not wake: `uv run streamlit run app/streamlit_app.py` or the Docker route on the presenting machine.

@@ -4,7 +4,9 @@
 .ruff_cache
 **/__pycache__
 **/.ipynb_checkpoints
-data/raw/*.txt
+data/raw/Accidents.txt
+data/raw/Mines.txt
+data/raw/MinesProdYearly.txt
 data/raw/*.zip
 report/
 tests/

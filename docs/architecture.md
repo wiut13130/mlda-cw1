@@ -4,7 +4,7 @@
 
 | Decision | Reason |
 |---|---|
-| uv-managed CPython 3.12 (`.python-version`, `requires-python >=3.12,<3.15`) | Streamlit Community Cloud documents 3.12 as default and ignores `.python-version`; the user selects 3.12 in the deploy dialog. Wheels for 3.14 exist for everything, so the lock stays universal. |
+| uv-managed CPython 3.12 (`.python-version`, `requires-python >=3.12,<3.13`) | Streamlit Community Cloud documents 3.12 as default and ignores `.python-version`; the user selects 3.12 in the deploy dialog. Wheels for 3.14 exist for everything, so the lock stays universal. |
 | `uv.lock` committed, `requirements.txt` exported from it, `Dockerfile` with uv | Satisfies "requirements.txt" (2 marks) and "native locking or full containerization" (3 marks); Docker is built only in CI (no Docker on this machine). |
 | `pandas>=2.2,<3` | seaborn 0.13.2 has no released pandas-3 support. |
 | Boosting = scikit-learn `HistGradientBoostingClassifier` | No xgboost (57 MB GPU wheel + NCCL on Linux). |
