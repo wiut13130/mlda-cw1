@@ -27,14 +27,33 @@ def download() -> None:
 
 
 def train_all() -> None:
+    from mlda.models import MODEL_ZOO
     from mlda.pipeline import train_all as _train_all
 
     _configure_logging()
-    _train_all()
+    parser = argparse.ArgumentParser(description="Rebuild processed data, models and report artefacts.")
+    parser.add_argument("--quick", action="store_true", help="two-point grids, 10,000 training rows, 3 folds")
+    parser.add_argument(
+        "--models", nargs="+", choices=list(MODEL_ZOO), metavar="NAME",
+        help=f"subset of the model zoo (default: all of {', '.join(MODEL_ZOO)})",
+    )
+    args = parser.parse_args()
+    manifest = _train_all(quick=args.quick, models=args.models)
+    print(f"finished in {manifest['total_seconds']} s; best model {manifest['best_model']}")
 
 
 def zip_submission() -> None:
-    from mlda.submission import build_zip
+    """Build the submission archive, or say plainly that the builder does not exist yet.
+
+    ``mlda.submission`` is outside the module contracts of docs/interfaces.md (sections 1-11).
+    Until it is written, the command exits with a one-line message instead of a traceback.
+    """
+    try:
+        from mlda.submission import build_zip
+    except ModuleNotFoundError as error:
+        if error.name != "mlda.submission":
+            raise
+        raise SystemExit("mlda-zip is not available yet: mlda.submission has not been written") from error
 
     _configure_logging()
     print(build_zip())
