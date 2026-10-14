@@ -1,0 +1,30 @@
+{
+  "student_id": "13130",
+  "university": "Westminster International University in Tashkent",
+  "school": "BSc (Hons) Business Information Systems",
+  "module_code": "6COSC017C",
+  "module_title": "Machine Learning and Data Analytics",
+  "assessment": "Coursework 1 (50% of the module mark)",
+  "title": "Predicting lost-time mine injuries from MSHA open data",
+  "subtitle": "An end-to-end machine learning study with a deployed decision-support application",
+  "marker": "Ruslan Isaev",
+  "submission_date": "December 2026",
+  "repo_url": "to be added after the repository is published",
+  "app_url": "to be added after deployment",
+  "abbreviations": {
+    "AUC": "Area under the receiver operating characteristic curve",
+    "CV": "Cross-validation",
+    "DART": "Days away, restricted or transferred (an injury-severity grouping used by US regulators)",
+    "FN / FP": "False negative / false positive",
+    "IQR": "Interquartile range",
+    "KNN": "K-nearest neighbours",
+    "MCC": "Matthews correlation coefficient",
+    "MSHA": "Mine Safety and Health Administration (US Department of Labor)",
+    "OOF": "Out-of-fold (predictions made for training rows by models that did not see them)",
+    "PR-AUC": "Area under the precision-recall curve (average precision)",
+    "SMOTE": "Synthetic minority over-sampling technique",
+    "TNR": "True negative rate (specificity)",
+    "TPR": "True positive rate (recall)",
+    "VIF": "Variance inflation factor"
+  }
+}
