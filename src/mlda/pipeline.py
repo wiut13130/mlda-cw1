@@ -390,15 +390,25 @@ def run_eda(data: StudyData, clean: pd.DataFrame, dirs: ArtefactDirs, quick: boo
     top_numeric = biserial["feature"].head(5).tolist()
     top_categorical = cramers["feature"].head(8).tolist()
     _save_figure(plots.target_distribution(data.y), dirs, "target")
-    _save_figure(plots.histograms_grid(drawn, numeric, hue=TARGET), dirs, "histograms")
-    _save_figure(plots.class_boxplots(drawn, numeric, TARGET, showfliers=False), dirs, "boxplots")
+    # four columns and short panels so the 20-panel grids print at full text width on one page
+    _save_figure(
+        plots.histograms_grid(drawn, numeric, hue=TARGET, ncols=4, panel_height=1.6, label_width=22),
+        dirs, "histograms",
+    )
+    _save_figure(
+        plots.class_boxplots(drawn, numeric, TARGET, showfliers=False, ncols=4, panel_height=1.6, label_width=22),
+        dirs, "boxplots",
+    )
     _save_figure(plots.pairplot_top(frame, top_numeric, TARGET), dirs, "pairplot")
     _save_figure(plots.correlation_heatmaps(corr.pearson, corr.spearman), dirs, "correlations")
     _save_figure(plots.categorical_vs_target(frame, top_categorical, TARGET), dirs, "categorical")
     _save_figure(plots.missingness(base_train), dirs, "missingness")
     _save_figure(plots.qq_plots(frame, list(QQ_COLUMNS)), dirs, "qq")
     after = pd.DataFrame({raw: frame[logged].to_numpy() for raw, logged in OUTLIER_COLUMNS.items()})
-    _save_figure(plots.outlier_fences(frame, list(OUTLIER_COLUMNS), after=after), dirs, "outliers")
+    _save_figure(
+        plots.outlier_fences(frame, list(OUTLIER_COLUMNS), after=after, after_labels=OUTLIER_COLUMNS),
+        dirs, "outliers",
+    )
     _save_figure(plots.pca_projection(X_train[numeric], y_train), dirs, "pca")
     return {
         "rows_described": int(len(train_idx)),

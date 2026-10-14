@@ -308,14 +308,18 @@ def histograms_grid(
     kde: bool = True,
     hue: str | None = None,
     ncols: int = 3,
+    panel_height: float = 2.2,
+    label_width: int = 34,
     save: str | None = None,
 ) -> Figure:
     """F3: density histograms (with KDE) of numeric columns, optionally split by the target.
 
     Density rather than frequency keeps the two classes comparable when their
     sizes differ, and the KDE smooths the bin-count sensitivity of the histogram.
+    ``panel_height`` and ``label_width`` let a caller fit more columns on one page
+    without the wrapped axis labels of neighbouring panels running into each other.
     """
-    fig, axes = _grid(len(cols), ncols, 2.2)
+    fig, axes = _grid(len(cols), ncols, panel_height)
     frame = df
     palette = None
     if hue is not None and set(df[hue].dropna().unique()) <= {0, 1}:
@@ -340,7 +344,7 @@ def histograms_grid(
             line_kws={"linewidth": 1.2},
         )
         _compact_ticks(ax, pd.to_numeric(df[col], errors="coerce").to_numpy(dtype=float))
-        ax.set_xlabel(_wrap(axis_label(col)))
+        ax.set_xlabel(_wrap(axis_label(col), label_width))
         ax.set_ylabel("Density")
     if hue is not None and axes[0].get_legend() is not None:
         axes[0].get_legend().set_title(axis_label(hue))
@@ -354,6 +358,8 @@ def class_boxplots(
     target: str,
     ncols: int = 3,
     showfliers: bool = True,
+    panel_height: float = 2.3,
+    label_width: int = 30,
     save: str | None = None,
 ) -> Figure:
     """F4: box plots of each numeric column by outcome class.
@@ -363,7 +369,7 @@ def class_boxplots(
     IQR fences stay readable.
     """
     frame = _class_frame(df, cols, target)
-    fig, axes = _grid(len(cols), ncols, 2.3)
+    fig, axes = _grid(len(cols), ncols, panel_height)
     for ax, col in zip(axes, cols, strict=True):
         sns.boxplot(
             data=frame,
@@ -382,7 +388,10 @@ def class_boxplots(
         )
         _compact_ticks(ax, pd.to_numeric(df[col], errors="coerce").to_numpy(dtype=float), axis="y")
         ax.set_xlabel("")
-        ax.set_ylabel(_wrap(axis_label(col), 30))
+        # two-line class names keep neighbouring tick labels apart in narrow panels
+        ax.set_xticks(ax.get_xticks(), [_wrap(tick.get_text(), 8) for tick in ax.get_xticklabels()])
+        ax.tick_params(axis="x", labelsize=7)
+        ax.set_ylabel(_wrap(axis_label(col), label_width))
         ax.grid(axis="x", visible=False)
     return _finish(fig, save)
 
@@ -392,6 +401,7 @@ def pairplot_top(
     cols: Sequence[str],
     target: str,
     sample_n: int = 5000,
+    label_width: int = 16,
     save: str | None = None,
 ) -> Figure:
     """F5: corner pair plot of the strongest numeric features, coloured by outcome.
@@ -419,9 +429,9 @@ def pairplot_top(
         if ax is None:
             continue
         if ax.get_xlabel():
-            ax.set_xlabel(_wrap(axis_label(ax.get_xlabel()), 28))
+            ax.set_xlabel(_wrap(axis_label(ax.get_xlabel()), label_width), fontsize=7)
         if ax.get_ylabel():
-            ax.set_ylabel(_wrap(axis_label(ax.get_ylabel()), 28))
+            ax.set_ylabel(_wrap(axis_label(ax.get_ylabel()), label_width), fontsize=7)
     fig = grid.figure
     if grid.legend is not None:
         # seaborn hangs the legend outside the grid and widens the figure to fit it; the
@@ -431,7 +441,7 @@ def pairplot_top(
         labels = [text.get_text() for text in grid.legend.get_texts()]
         grid.legend.remove()
         fig.set_size_inches(WIDTH, WIDTH)
-        fig.subplots_adjust(left=0.1, right=0.98, top=0.98, bottom=0.1)
+        fig.subplots_adjust(left=0.16, right=0.98, top=0.98, bottom=0.16)
         fig.legend(
             handles,
             labels,
@@ -649,6 +659,7 @@ def outlier_fences(
     z: float = 3.0,
     after: pd.DataFrame | None = None,
     bins: int = 60,
+    after_labels: Mapping[str, str] | None = None,
     save: str | None = None,
 ) -> Figure:
     """F10: histograms with IQR (Q1 - k IQR, Q3 + k IQR) and Z-score (mean +/- z sd) fences.
@@ -656,6 +667,9 @@ def outlier_fences(
     When `after` is given (the same columns after cleaning or a log transform) each
     variable gets a before/after pair, which shows why the IQR rule is preferred on
     skewed variables: the Z-score fences move with the tail they are meant to detect.
+    ``after_labels`` maps each column to the column whose axis label the "After" panel
+    takes (for example TOT_EXPER -> log1p_tot_exper), so a log-scale panel is not
+    labelled in the original units.
     """
     frames = [("Before", df)] + ([("After", after)] if after is not None else [])
     ncols = len(frames)
@@ -688,7 +702,8 @@ def outlier_fences(
                     label=f"{label}: {flagged:,} flagged ({100 * flagged / n:.1f} %)",
                 )
             _compact_ticks(ax, values)
-            ax.set_xlabel(_wrap(axis_label(col), 48))
+            label_col = after_labels.get(col, col) if (after_labels and stage == "After") else col
+            ax.set_xlabel(_wrap(axis_label(label_col), 48))
             ax.set_ylabel("Cases (count)")
             ax.legend(fontsize=6, loc="upper right")
             if r == 0 and ncols > 1:
