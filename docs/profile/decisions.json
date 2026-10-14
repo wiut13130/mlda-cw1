@@ -1,7 +1,7 @@
 {
   "meta": {
     "generated": "2026-10-14",
-    "revised": "2026-10-14 after review; see docs/data_profile.md section 10 (Review log): 20 findings accepted, 0 rejected",
+    "revised": "2026-10-14 after review; see docs/data_profile.md section 10 (Review log): 20 findings accepted, 0 rejected; revised again after implementation review F1 (section 11): strict filing-date counts, 103(i) rule, E28 realisation, deterministic levels, temporal protocol",
     "snapshot_files_dated": "2026-10-09",
     "snapshot_json": "data/raw/SNAPSHOT.json",
     "source_docs": [
@@ -102,7 +102,8 @@
         "incidents": "count of such rows (any DEGREE_INJURY_CD)",
         "valid": "count of such rows with DEGREE_INJURY_CD in 01-06",
         "lost_time": "count of such rows with DEGREE_INJURY_CD in 01-04",
-        "strictness_evidence": "1.87% of t-1 cases filed after the row's ACCIDENT_DT (11.7% of rows with prior cases, 21.2% of Q1 rows); filed-before cut changes prev_lost_time_share for 7,743 rows, AUC 0.6708 vs 0.6710 for year totals; resolved-before variant (filing, RTW and closing document all before ACCIDENT_DT) changes 28,789 rows, AUC 0.668, kept as sensitivity variant only"
+        "strictness_evidence_note": "implemented in review F1: base columns prev_incidents_resolved, prev_valid_cases_resolved, prev_lost_time_cases_resolved (30505 rows differ from the default) and prev_year_incomplete_at_filing (1643 rows filed by 15 January); sensitivity refits in sensitivity.json",
+          "strictness_evidence": "1.87% of t-1 cases filed after the row's ACCIDENT_DT (11.7% of rows with prior cases, 21.2% of Q1 rows); filed-before cut changes prev_lost_time_share for 7,743 rows, AUC 0.6708 vs 0.6710 for year totals; resolved-before variant (filing, RTW and closing document all before ACCIDENT_DT) changes 28,789 rows, AUC 0.668, kept as sensitivity variant only"
       },
       "left_on": ["MINE_ID", "CAL_YR - 1"], "right_on": ["MINE_ID", "CALENDAR_YR"], "how": "left",
       "validate": "many_to_one", "indicator": "_m_prev", "expected_match_rate": 0.98813,
@@ -161,13 +162,13 @@
       {"name": "prev_hours_per_employee", "formula": "prev_hours / prev_employees (NaN if employees == 0)", "source_cols": ["prev_hours", "prev_employees"], "known_at_filing": true},
       {"name": "log1p_prev_hours", "formula": "log1p(prev_hours)", "source_cols": ["prev_hours"], "known_at_filing": true},
       {"name": "mine_size_band", "formula": "pd.cut(prev_employees, [0, 5, 20, 50, 200, np.inf], right=False, labels=['1-4', '5-19', '20-49', '50-199', '200+'])", "source_cols": ["prev_employees"], "known_at_filing": true, "counts": {"1-4": 2285, "5-19": 14180, "20-49": 16654, "50-199": 30483, "200+": 36801}, "note": "left-closed bins; 2,211 matched rows sit exactly on 5/20/50/200 and change band under the pandas default right=True"},
-      {"name": "prev_incidents", "formula": "count of Accidents rows (any code) at (MINE_ID, CAL_YR-1) with filing date < ACCIDENT_DT; 0 if t-1 production exists but no such case; NaN if no t-1 production", "source_cols": ["MINE_ID", "CAL_YR", "ACCIDENT_DT", "accidents.DOCUMENT_NO"], "known_at_filing": true, "rows_available": 100403, "true_zeros": 17820, "r": 0.102},
+      {"name": "prev_incidents", "formula": "count of Accidents rows (any code) at (MINE_ID, CAL_YR-1) with filing date < ACCIDENT_DT; 0 if t-1 production exists but no such case; NaN if no t-1 production", "source_cols": ["MINE_ID", "CAL_YR", "ACCIDENT_DT", "accidents.DOCUMENT_NO"], "known_at_filing": true, "rows_available": 100403, "true_zeros": 17822, "true_zeros_note": "strict filing_date < ACCIDENT_DT; a <= cut gives 17820 (272 (row, case) pairs are filed on the accident date)", "r": 0.102},
       {"name": "prev_incident_rate_200k", "formula": "log1p(min(prev_incidents / prev_hours * 200000, 50))", "source_cols": ["prev_incidents", "prev_hours"], "known_at_filing": true, "r_log1p": 0.075},
       {"name": "prev_lost_time_rate_200k", "formula": "log1p(min(prev_lost_time_cases / prev_hours * 200000, 50)) where prev_lost_time_cases = count of codes 01-04 at t-1 filed before ACCIDENT_DT", "source_cols": ["accidents.DEGREE_INJURY_CD", "ACCIDENT_DT", "prev_hours"], "known_at_filing": true, "r_log1p": 0.207},
-      {"name": "prev_lost_time_share", "formula": "prev_lost_time_cases / prev_valid_cases (codes 01-06 at t-1 filed before ACCIDENT_DT); NaN if prev_valid_cases == 0", "source_cols": ["accidents.DEGREE_INJURY_CD", "ACCIDENT_DT"], "known_at_filing": true, "rows_available": 81525, "roc_auc_alone": 0.671, "r": 0.295, "r_by_sector": {"C": 0.240, "M": 0.197}},
+      {"name": "prev_lost_time_share", "formula": "prev_lost_time_cases / prev_valid_cases (codes 01-06 at t-1 filed before ACCIDENT_DT); NaN if prev_valid_cases == 0", "source_cols": ["accidents.DEGREE_INJURY_CD", "ACCIDENT_DT"], "known_at_filing": true, "rows_available": 81469, "rows_missing": 20140, "rows_available_note": "strict filing_date < ACCIDENT_DT; the earlier <= cut gave 81525 present (20084 missing)", "roc_auc_alone": 0.671, "r": 0.295, "r_by_sector": {"C": 0.240, "M": 0.197}},
       {"name": "prev_year_matched", "formula": "_m_prev == 'both'", "source_cols": ["_m_prev"], "known_at_filing": true},
       {"name": "ytd_lost_time_share", "formula": "lost-time share of same-MINE_ID cases with CAL_YR == row CAL_YR, codes 01-06, filing date < ACCIDENT_DT; NaN if none", "source_cols": ["MINE_ID", "CAL_YR", "ACCIDENT_DT", "accidents.DEGREE_INJURY_CD", "accidents.DOCUMENT_NO"], "known_at_filing": true, "optional": true, "default_on": false, "rows_available": 65321, "roc_auc_alone": 0.664, "r": 0.290, "note": "explicit time-safe form of same-year mine history; the only permitted route for it (see split)"},
-      {"name": "status_103i_at_accident", "formula": "'Never had 103I' if CURRENT_103I == 'Never Had 103I Status'; elif CURRENT_103I_DT <= ACCIDENT_DT: ('Formerly 103I' if CURRENT_103I == 'Removed From 103I Status' else 'In 103I at accident'); elif CURRENT_103I == 'Removed From 103I Status' and CURRENT_103I_DT > ACCIDENT_DT: 'In 103I at accident'; else 'Unknown' (status set after the accident, or blank)", "source_cols": ["CURRENT_103I", "CURRENT_103I_DT", "ACCIDENT_DT"], "known_at_filing": true, "levels": {"Never had 103I": {"n": 61397, "lost_time_pct": 42.27}, "In 103I at accident": {"n": 17435, "lost_time_pct": 65.55}, "Formerly 103I": {"n": 8500, "lost_time_pct": 56.60}, "Unknown": {"n": 14277, "lost_time_pct": 50.26}}, "cramers_v": 0.178, "caveat": "Unknown is a training-only level: 13.5% of 2010-2019 rows, 15.4% of 2020-2025 rows, 0% at deployment; report temporal-split metrics with and without the feature"},
+      {"name": "status_103i_at_accident", "formula": "'Never had 103I' if CURRENT_103I == 'Never Had 103I Status'; elif CURRENT_103I is present and CURRENT_103I_DT <= ACCIDENT_DT: ('Formerly 103I' if CURRENT_103I == 'Removed From 103I Status' else 'In 103I at accident'); else 'Unknown' (any status dated after the accident, 'Removed From 103I Status' included, or blank). Review F1: the former branch that sent removed-after rows to 'In 103I at accident' used a fact dated a median 4.3 years after the accident and an unknown placement date", "source_cols": ["CURRENT_103I", "CURRENT_103I_DT", "ACCIDENT_DT"], "known_at_filing": true, "levels": {"Never had 103I": {"n": 61397, "lost_time_pct": 42.27}, "In 103I at accident": {"n": 9344, "lost_time_pct": 69.03}, "Formerly 103I": {"n": 8500, "lost_time_pct": 56.60}, "Unknown": {"n": 22368, "lost_time_pct": 54.34, "composition": {"removed_after_accident": 8091, "other_status_dated_after_accident": 7135, "blank": 7142}}}, "cramers_v": 0.173, "caveat": "Unknown mixes later-dated and blank statuses in training (24.1% of 2010-2019 rows, 16.9% of 2020-2025 rows) but only blank statuses at deployment; metrics with and without the feature are reported on the primary and the temporal split (sensitivity.json, temporal_split.json); dropping the feature from FEATURE_SPEC would change interfaces.md section 3; the without-feature refits differ by less than 0.001 AUC"},
       {"name": "latitude", "formula": "LATITUDE if 17.5<=lat<=72 and -180<=lon<=-64 (or STATE == 'AS') else NaN", "source_cols": ["LATITUDE", "LONGITUDE", "STATE"], "known_at_filing": true},
       {"name": "longitude", "formula": "LONGITUDE under the same validity rule", "source_cols": ["LATITUDE", "LONGITUDE", "STATE"], "known_at_filing": true}
     ],
@@ -245,11 +246,11 @@
     {"name": "E21_no_injuries_cap", "condition": "NO_INJURIES > 10", "action": "cap at 10", "rows_affected": 33},
     {"name": "E22_dates", "condition": "ACCIDENT_DT unparsable or after snapshot; CAL_YR/CAL_QTR != derived", "action": "assert none", "rows_affected": 0},
     {"name": "E23_coordinates", "condition": "not (17.5<=lat<=72 and -180<=lon<=-64) and STATE != 'AS'", "action": "NaN", "rows_affected": 3, "rows_missing_or_invalid_after_rule": 199},
-    {"name": "E24_mine_attr_not_in_force", "condition": "CURRENT_103I_DT > ACCIDENT_DT and not 'Never Had'; (CURRENT_CONTROLLER_BEGIN_DT > ACCIDENT_DT)", "action": "103I: 'Removed From 103I Status' with removal after the accident (8,091 rows) -> 'In 103I at accident'; other post-accident statuses or blank (14,277 rows, 14.05%) -> 'Unknown'; COMPANY_TYPE: feature dropped", "rows_affected": "22368 (of which 8091 -> In 103I at accident) / 27142 (dropped feature)"},
+    {"name": "E24_mine_attr_not_in_force", "condition": "CURRENT_103I_DT > ACCIDENT_DT and not 'Never Had'; (CURRENT_CONTROLLER_BEGIN_DT > ACCIDENT_DT)", "action": "103I: any status dated after the accident ('Removed From 103I Status' included, 8,091 rows) or blank -> 'Unknown' (22,368 rows, 22.01%); COMPANY_TYPE: feature dropped", "rows_affected": "22368 (all -> Unknown) / 27142 (dropped feature)"},
     {"name": "E25_unstable_rates", "condition": "prev_hours < 2000", "action": "winsorise rates at 50 per 200k h then log1p; keep raw counts", "rows_affected": 764},
     {"name": "E26_type_coercion", "condition": "NUMBER columns read as str", "action": "pd.to_numeric; codes stay zero-padded str", "rows_affected": "all"},
     {"name": "E27_whitespace", "condition": "leading/trailing spaces", "action": "str.strip() at load", "rows_affected": "all"},
-    {"name": "E28_discontinued_occupation", "condition": "OCCUPATION_CD == '054' / OCCUPATION starts with 'Discontinued 1/31/2014'", "action": "map to the infrequent bucket (successor codes not identified in the codebook)", "rows_affected": 533},
+    {"name": "E28_discontinued_occupation", "condition": "OCCUPATION_CD == '054' / OCCUPATION starts with 'Discontinued 1/31/2014'", "action": "map to the 'missing' level of OCCUPATION (successor codes not identified in the codebook); a stateless step cannot reach the one-hot infrequent bucket because 533 rows (0.66%) exceed min_frequency, so the level becomes the one-hot column OCCUPATION_missing, non-zero in 2010-2014 only and reported in temporal_split.json level_drift (e28_retired_occupation_column_all_zero)", "rows_affected": 533},
     {"name": "E29_immed_notify_13", "condition": "IMMED_NOTIFY_CD == '13' ('Not marked', 2010-2012 only)", "action": "immed_reportable = 0", "rows_affected": 77},
     {"name": "E30_zero_denominator", "condition": "TOT_EXPER <= 0 or NaN in exper_ratio_mine / exper_ratio_job", "action": "ratio NaN (inference guard)", "rows_affected": 0}
   ],
@@ -260,8 +261,8 @@
                           "prev_year_matched", "prev_share_missing", "coords_missing"],
     "missing_pct_final_base": {"TOT_EXPER": 1.20, "MINE_EXPER": 1.26, "JOB_EXPER": 0.86, "accident_hour": 3.04,
                                "shift_begin_hour": 0.51, "hours_into_shift": 3.80, "prev_exposure": 1.19,
-                               "prev_lost_time_share": 19.77, "coordinates": 0.20,
-                               "status_103i_at_accident_unknown": 14.05}
+                               "prev_lost_time_share": 19.82, "coordinates": 0.20,
+                               "status_103i_at_accident_unknown": 22.01}
   },
   "duplicates": {"exact_rows": 0, "excluding_DOCUMENT_NO": 0, "excluding_DOCUMENT_NO_CLOSED_DOC_NO_NARRATIVE": 5, "action": "keep all rows (one form per injured person)"},
   "group_key": "MINE_ID + '_' + CAL_YR",
@@ -276,8 +277,19 @@
     "tests": ["no group_id in both train and test", "class share within 1 pp of 48.585% in each split", "no nested MINE_ID + ACCIDENT_DT group split across sets"],
     "temporal_split": {"train": "CAL_YR 2010-2019, 71877 rows (coal 31533, metal 40344)", "test": "CAL_YR 2020-2025, 29732 rows (coal 9928, metal 19804)", "test_rows_at_mines_seen_in_train_pct": 91.88, "role": "reported side by side with the primary split for S1-S6; carries the level-drift and label-drift checks; metrics and calibration by sector; with and without status_103i_at_accident"},
     "robustness_variants": ["group by MINE_ID (8303 groups)", "temporal split above"],
+    "robustness_variants_implemented": {"group by MINE_ID": "mlda.sensitivity.mine_grouped_robustness -> reports/metrics/sensitivity.json mine_grouped_split and success_criteria.json robustness_mine_grouped_split", "temporal split": "mlda.pipeline.temporal_evaluation -> reports/metrics/temporal_split.json"},
+    "temporal_protocol": "the primary protocol repeated on CAL_YR 2010-2019: every model re-tuned with the same grids and grouped CV, the two best by pre-2020 cross-validated average precision kept, thresholds from pre-2020 out-of-fold probabilities, 2020-2025 labels used only for the final scores (79.5% of the 2020-2025 rows are training rows of the primary split, so primary-split thresholds, grid choices or rankings would carry their labels)",
     "persist": "data/processed/split_indices.json"
   },
+  "known_deterministic_levels": [
+    {
+      "column": "NATURE_INJURY_CD", "level": "100", "label": "AMPUTATION OR ENUCLEATION", "n": 925, "lost_time_rate": 1.0,
+      "degree_codes": {"02": 923, "01": 2}, "train_rows_primary_split": 750, "test_rows_primary_split": 175,
+      "known_at_filing": true, "decision": "kept: definitional (an amputation is a permanent impairment) and known at filing, but deterministic",
+      "reporting": "held-out metrics with and without these rows at the fixed thresholds (reports/metrics/sensitivity.json excluding_pure_levels)",
+      "guard": "tests/test_leakage.py asserts that the set of levels with at least 100 rows that are 100% one class equals {NATURE_INJURY_CD=100}"
+    }
+  ],
   "cost_ratio_fn_fp": 20,
   "cost": {
     "C_FP_usd": 200, "C_FN_usd": 4000,
@@ -329,6 +341,6 @@
     "brier_max": 0.20,
     "brier_note": "overall and within each sector on the temporal split",
     "statistical_tests": ["McNemar vs lookup_nature_bodypart_coal on test", "paired test across CV folds between top two models"],
-    "additional_reporting": ["metrics with and without immed_reportable", "metrics with and without status_103i_at_accident on the temporal split", "optional: metrics for rows with RETURN_TO_WORK_DT <= filing date (44.96%, positive rate 20.35%) vs after (71.64%)", "one-hot columns all-zero in the temporal test period (level drift)"]
+    "additional_reporting": ["metrics with and without immed_reportable (sensitivity.json primary_split_variants, temporal_split.json)", "metrics with and without status_103i_at_accident on the primary and the temporal split", "held-out metrics with and without the rows of deterministic levels (sensitivity.json excluding_pure_levels; known_deterministic_levels)", "resolved-before lag counts and blanked early-January exposure refits (sensitivity.json primary_split_variants)", "bootstrap intervals and McNemar tests clustered by mine-year, beside the row-wise versions (statistical_tests.json)", "optional: metrics for rows with RETURN_TO_WORK_DT <= filing date (44.96%, positive rate 20.35%) vs after (71.64%)", "one-hot columns all-zero in the temporal test period (level drift)"]
   }
 }
