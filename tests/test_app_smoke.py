@@ -176,6 +176,21 @@ def test_training_page_runs_a_live_search() -> None:
     assert any("Best parameters" in markdown.value for markdown in app.markdown)
 
 
+def test_training_page_tunes_with_the_preprocessing_page_choice() -> None:
+    app = new_app().run()
+    app.switch_page("pages/3_Preprocessing.py").run()
+    app.selectbox(key="pp_encoder").select("ordinal").run()
+    app.switch_page("pages/4_Model_Training.py").run()
+    app.selectbox(key="mt_model").select("logreg")
+    app.slider(key="mt_rows").set_value(2_000)
+    app.toggle(key="mt_use_pp").set_value(True).run()
+    assert any("encoder = ordinal" in caption.value for caption in app.caption)
+    app.button(key="mt_run").click().run()
+    assert not app.exception
+    change = metrics_of(app)["PR-AUC change from the Preprocessing page choice"]
+    assert change != "+0.000"   # ordinal codes read as magnitudes change what logistic regression learns
+
+
 def test_mine_history_lookup_reproduces_the_training_join(
     sample_rows: tuple[pd.DataFrame, pd.DataFrame],
 ) -> None:

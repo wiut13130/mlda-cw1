@@ -16,13 +16,15 @@ from _common import (
     live_tuning,
     metrics_csv,
     model_label,
+    preprocessing_choice,
     require_files,
     run_manifest,
     stamp,
 )
 
-from mlda.config import RANDOM_STATE
+from mlda.config import ONE_HOT_MIN_FREQUENCY, RANDOM_STATE
 from mlda.models import MODEL_ZOO
+from mlda.preprocessing import DEFAULTS
 
 ensure_entrypoint(__file__)
 
@@ -80,20 +82,49 @@ if caps and min(caps) < n_rows:
         f"faster than linearly with rows."
     )
 
+use_choice = st.toggle(
+    "Use the preprocessing chosen on the Preprocessing page",
+    key="mt_use_pp",
+    help="Off: the model's own preprocessing, as in the full run. On: the imputer, scaler, encoder, outlier rule "
+    "and min_frequency last chosen on the Preprocessing page, and the result is compared with the model's own.",
+)
+choice = preprocessing_choice(st.session_state)
+if use_choice:
+    if choice is None:
+        st.info("The Preprocessing page has not been opened in this session, so its default options are used.")
+        choice = {**DEFAULTS, "min_frequency": ONE_HOT_MIN_FREQUENCY}
+    st.caption(
+        "Preprocessing for this run: "
+        + ", ".join(f"{name} = {'none' if value is None else value}" for name, value in choice.items())
+    )
+preprocessing = tuple(sorted(choice.items())) if use_choice and choice else None
+
 if st.button("Run tuning", type="primary", key="mt_run"):
-    st.session_state["mt_request"] = (model_name, n_rows, seed)
+    st.session_state["mt_request"] = (model_name, n_rows, seed, preprocessing)
 request = st.session_state.get("mt_request")
 if request is None:
-    st.info("Press **Run tuning** to start. Results are cached per (model, sample size, seed).")
+    st.info("Press **Run tuning** to start. Results are cached per (model, sample size, seed, preprocessing).")
     st.stop()
 
+version = stamp(FEATURES_PATH, SPLIT_PATH)
 with st.spinner(
     f"Tuning {model_label(request[0])} on {request[1]:,} training rows ({LIVE_CV_FOLDS} folds)"
 ):
-    result = live_tuning(*request, stamp(FEATURES_PATH, SPLIT_PATH))
+    result = live_tuning(request[0], request[1], request[2], version, request[3])
+    own = None if request[3] is None else live_tuning(request[0], request[1], request[2], version)
 cv_results = result["cv_results"]
 best = cv_results.sort_values("rank_test_average_precision").iloc[0]
 st.subheader(f"Result for {model_label(request[0])}, {request[1]:,} rows, seed {request[2]}")
+if own is not None:
+    own_best = own["cv_results"].sort_values("rank_test_average_precision").iloc[0]
+    change = best["mean_test_average_precision"] - own_best["mean_test_average_precision"]
+    st.metric(
+        "PR-AUC change from the Preprocessing page choice",
+        f"{change:+.3f}",
+        help=f"Best CV PR-AUC with the chosen preprocessing ({best['mean_test_average_precision']:.3f}) minus the best "
+        f"with the model's own preprocessing ({own_best['mean_test_average_precision']:.3f}), same rows, folds and grid.",
+        border=True,
+    )
 best_col, fit_col, time_col = st.columns(3)
 best_col.metric(
     "Best PR-AUC (CV mean)",

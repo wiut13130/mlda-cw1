@@ -1,11 +1,11 @@
 # Weekly plan to the 4 December 2026 deadline (student ID 13130)
 
-Written on Wednesday 14 October 2026, teaching week 6. The 16 commits in the history are all dated 14 October 2026; their messages name the teaching-week milestone each one covers, and the dates are not changed. Each block below adds one real piece of work with its own tests, so the later commits carry later dates honestly. Message format: `TW<n>: <what changed and why>`. The git identity is already `13130 <13130@users.noreply.github.com>`.
+Written on Wednesday 14 October 2026, teaching week 6. The commits made so far are dated 14 and 15 October 2026; their messages name the teaching-week milestone each one covers (so TW7, TW11 and TW12 labels appear before some TW3 and TW6 ones), and the dates are not changed. The README section "Commit history" says so. Tag each milestone when its block is committed (for example `git tag tw8-batch-scoring`) and push the tags. Each block below adds one real piece of work with its own tests, so the later commits carry later dates honestly. Message format: `TW<n>: <what changed and why>`. The git identity is the GitHub account `cyberencrypted1608-cyber <cyberencrypted1608@gmail.com>` (set in .git/config); keep it for every commit.
 
 Checks before every push:
 
 ```
-uv run ruff check src tests app
+uv run ruff check src tests app report notebooks
 uv run pytest -m "not slow"
 uv lock --check
 uv run python report/build_report.py --check

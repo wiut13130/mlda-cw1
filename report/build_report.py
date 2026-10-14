@@ -14,9 +14,10 @@ Supported Markdown subset:
     # / ## / ### headings            paragraphs            - bullets   1. numbered items
     **bold** and *italic* inline    pipe tables (| a | b |) preceded by an optional
     'Table: caption text {#tab:key}' line
-    ![Caption text](reports/figures/file.png){#fig:key width=6.3}
+    ![Caption text](reports/figures/file.png){#fig:key width=6.3}   (the caption is also the alt text)
     {fig:key} / {tab:key} cross-references replaced by the assigned numbers
     \\pagebreak                        > quote (rendered as an indented paragraph)
+    \\landscape / \\portrait          start a landscape or a portrait section (for a wide table)
 Front matter (cover page, table of contents, lists of figures and tables, abbreviations) is generated
 from report/report_meta.json; sections render in file-name order; files whose name starts with
 "9" are treated as references (90_references.md) or appendices (9A_, 9B_, ...).
@@ -32,7 +33,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from docx import Document
-from docx.enum.section import WD_ORIENT
+from docx.enum.section import WD_ORIENT, WD_SECTION
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
@@ -45,7 +46,9 @@ SECTIONS_DIR = REPORT_DIR / "sections"
 META_PATH = REPORT_DIR / "report_meta.json"
 FONT = "Times New Roman"
 BODY_PT = 12
-TABLE_PT = 10.5
+CAPTION_PT = 12
+TABLE_PT = 11
+MARGIN_CM = 2.54
 TEXT_WIDTH_IN = 6.27  # A4 width 21.0 cm minus 2 x 2.54 cm margins
 
 FIG_RE = re.compile(r"^!\[(?P<caption>.*?)\]\((?P<path>[^)]+)\)(?:\{(?P<attrs>[^}]*)\})?\s*$")
@@ -62,6 +65,9 @@ class Counters:
     figure_captions: list[str] = field(default_factory=list)
     table_captions: list[str] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)
+    # True right after a page or section break, so that a level-1 heading does not add a second
+    # break and leave a blank page (the front matter ends with a break before the first section).
+    fresh_page: bool = False
 
 
 # ----------------------------------------------------------------------------- helpers: OOXML
@@ -139,7 +145,7 @@ def configure_styles(document) -> None:
         style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
     caption = styles["Caption"]
     caption.font.name = FONT
-    caption.font.size = Pt(11)
+    caption.font.size = Pt(CAPTION_PT)
     caption.font.bold = False
     caption.font.italic = False
     caption.font.color.rgb = RGBColor(0, 0, 0)
@@ -151,13 +157,30 @@ def configure_styles(document) -> None:
         style.font.size = Pt(BODY_PT)
 
 
+def set_page_geometry(section, landscape: bool = False) -> None:
+    """A4 in portrait or landscape orientation with 2.54 cm margins."""
+    section.orientation = WD_ORIENT.LANDSCAPE if landscape else WD_ORIENT.PORTRAIT
+    long_side, short_side = Cm(29.7), Cm(21.0)
+    section.page_width, section.page_height = (long_side, short_side) if landscape else (short_side, long_side)
+    for side in ("left_margin", "right_margin", "top_margin", "bottom_margin"):
+        setattr(section, side, Cm(MARGIN_CM))
+
+
+def start_section(document, landscape: bool, counters: Counters) -> None:
+    """Start a new page in a new section; its header and footer are inherited from the first section."""
+    section = document.add_section(WD_SECTION.NEW_PAGE)
+    set_page_geometry(section, landscape)
+    counters.fresh_page = True
+
+
+def page_break(document, counters: Counters) -> None:
+    document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+    counters.fresh_page = True
+
+
 def configure_page(document, student_id: str) -> None:
     section = document.sections[0]
-    section.orientation = WD_ORIENT.PORTRAIT
-    section.page_width = Cm(21.0)
-    section.page_height = Cm(29.7)
-    for side in ("left_margin", "right_margin", "top_margin", "bottom_margin"):
-        setattr(section, side, Cm(2.54))
+    set_page_geometry(section, landscape=False)
     section.different_first_page_header_footer = False
     header = section.header.paragraphs[0]
     header.text = ""
@@ -210,6 +233,19 @@ def _resolve_xref(match: re.Match, counters: Counters) -> str:
         counters.problems.append(f"unresolved cross-reference {{{kind}:{key}}}")
         return f"{'Figure' if kind == 'fig' else 'Table'} ??"
     return f"{'Figure' if kind == 'fig' else 'Table'} {table[key]}"
+
+
+def plain_text(text: str, counters: Counters) -> str:
+    """Caption text with cross-references resolved and Markdown emphasis removed (for alt text)."""
+    resolved = XREF_RE.sub(lambda m: _resolve_xref(m, counters), text)
+    return re.sub(r"(\*\*|\*|`)", "", resolved)
+
+
+def set_alt_text(picture, description: str) -> None:
+    """Write the alternative text of an inline picture (Word: Format Picture, Alt Text)."""
+    doc_pr = picture._inline.docPr
+    doc_pr.set("descr", description)
+    doc_pr.set("title", description.split(". ", 1)[0])
 
 
 # ----------------------------------------------------------------------------- first pass: numbering
@@ -284,12 +320,12 @@ def add_caption(document, label: str, number: int, text: str, counters: Counters
     paragraph = document.add_paragraph(style="Caption")
     lead = paragraph.add_run(f"{label} ")
     lead.font.name = FONT
-    lead.font.size = Pt(11)
+    lead.font.size = Pt(CAPTION_PT)
     add_field(paragraph, f"SEQ {label} \\* ARABIC", str(number))
     tail = paragraph.add_run(". ")
     tail.font.name = FONT
-    tail.font.size = Pt(11)
-    add_inline(paragraph, text, counters, size=11)
+    tail.font.size = Pt(CAPTION_PT)
+    add_inline(paragraph, text, counters, size=CAPTION_PT)
 
 
 def render_table(document, header: list[str], rows: list[list[str]], counters: Counters) -> None:
@@ -337,14 +373,19 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
             index += 1
             continue
         if stripped == "\\pagebreak":
-            document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+            page_break(document, counters)
+            index += 1
+            continue
+        if stripped in ("\\landscape", "\\portrait"):
+            start_section(document, stripped == "\\landscape", counters)
             index += 1
             continue
         heading = re.match(r"^(#{1,3})\s+(.*)$", stripped)
         if heading:
             level = len(heading.group(1))
-            if level == 1:
-                document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+            if level == 1 and not counters.fresh_page:
+                page_break(document, counters)
+            counters.fresh_page = False
             paragraph = document.add_heading(level=level)
             add_inline(paragraph, heading.group(2), counters, size={1: 16, 2: 14, 3: 12}[level])
             for run in paragraph.runs:
@@ -367,8 +408,10 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
             paragraph = document.add_paragraph()
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             keep_with_next(paragraph)
+            counters.fresh_page = False
             if image_path.exists():
-                paragraph.add_run().add_picture(str(image_path), width=Cm(width * 2.54))
+                picture = paragraph.add_run().add_picture(str(image_path), width=Cm(width * 2.54))
+                set_alt_text(picture, f"Figure {number}. {plain_text(fig.group('caption'), counters)}")
             else:
                 counters.problems.append(f"missing figure file {image_path}")
                 paragraph.add_run(f"[missing figure: {fig.group('path')}]")
@@ -380,6 +423,7 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
             pending_table_caption = (tab.group("caption"), tab.group("key"))
             index += 1
             continue
+        counters.fresh_page = False
         if stripped.startswith("|"):
             block = []
             while index < len(lines) and lines[index].strip().startswith("|"):
@@ -422,7 +466,7 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
         index += 1
         while index < len(lines):
             nxt = lines[index].strip()
-            if (not nxt or nxt.startswith(("#", "|", "![", "- ", "* ", ">", "Table:", "\\pagebreak"))
+            if (not nxt or nxt.startswith(("#", "|", "![", "- ", "* ", ">", "Table:", "\\pagebreak", "\\landscape", "\\portrait"))
                     or re.match(r"^\d+[.)]\s", nxt)):
                 break
             block.append(nxt)
@@ -459,7 +503,8 @@ def add_cover(document, meta: dict, word_count: int) -> None:
         ("Student ID", "student_id"),
         ("Marker", "marker"),
         ("Submission date", "submission_date"),
-        ("Word count (sections 1 to 5)", None),
+        ("Word count (executive summary and sections 1 to 5 with headings; tables, captions, references "
+         "and appendices excluded)", None),
         ("Repository", "repo_url"),
         ("Deployed application", "app_url"),
     ):
@@ -489,9 +534,9 @@ def add_toc(document, counters: Counters) -> None:
             item.paragraph_format.space_after = Pt(2)
             item.paragraph_format.left_indent = Cm(0.8)
             item.paragraph_format.first_line_indent = Cm(-0.8)
-            add_inline(item, f"{'Figure' if label.startswith('List of f') else 'Table'} {number}. {caption}", counters, size=11)
+            add_inline(item, f"{'Figure' if label.startswith('List of f') else 'Table'} {number}. {caption}", counters, size=CAPTION_PT)
         document.add_paragraph()
-    document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+    page_break(document, counters)
 
 
 def add_abbreviations(document, meta: dict, counters: Counters) -> None:
@@ -511,7 +556,7 @@ def add_abbreviations(document, meta: dict, counters: Counters) -> None:
             cell.text = ""
             add_inline(cell.paragraphs[0], text, counters, size=TABLE_PT)
             cell.paragraphs[0].paragraph_format.space_after = Pt(0)
-    document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+    page_break(document, counters)
 
 
 # ----------------------------------------------------------------------------- main

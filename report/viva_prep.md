@@ -59,7 +59,7 @@ The decision tree and the SVM swap places between cross-validation and the test 
 | Review-everything floor | USD 102,829 per 1,000 cases (102,825 on the test set); cost-optimal from about 10:1 upwards |
 | HGB cost per 1,000 at 2:1 / 3:1 / 5:1 | USD 65,896 / 77,697 / 87,638 |
 | Lookup baseline at 2:1 / 3:1 / 5:1 | USD 73,553 / 85,472 / 98,061 |
-| Lost-time cases missed per 1,000 filings | HGB 27.6; lookup 40.8; adjusters' hand rule 49.5 (Table 20) |
+| Lost-time cases missed per 1,000 filings | HGB 27.6; lookup 40.8; one-field hand rule built for this study 49.5 (Table 20) |
 
 **Tests and run.** HGB against the MLP on the five folds: paired t-test p = 0.012, corrected resampled t-test p = 0.044, Wilcoxon p = 0.0625 (the smallest value possible with five folds). HGB against the lookup baseline: clustered McNemar p below 0.001. The full run took 5,675 s (about 95 minutes).
 
@@ -221,7 +221,7 @@ The decision tree and the SVM swap places between cross-validation and the test 
 
 **Where to show it.** Report: Table 10 (KNN block), Figure 13 (validation curves), Table 12. Notebook: "D.1 Hyper-parameter search", "D.2 Validation curves and the learning curve". App: Model training (select KNN; the page shows the reduced grid and the training score against the validation score of the live run).
 
-**Follow-up.** *Why is your best K the largest value on the grid?* The validation score was still rising at K = 51, so a wider grid might have helped; the step from 25 to 51 gained 0.006 PR-AUC (0.758 to 0.764). KNN is 0.074 below HGB, and I judge that a wider grid is unlikely to close a gap of that size; Section 4.3 states the limit.
+**Follow-up.** *Why is your best K the largest value on the grid?* The validation score was still rising at K = 51, so after the test scoring I searched K = 101 and 151 as a follow-up check: they scored 0.763 and 0.761 against 0.764 at K = 51, so 51 was the peak (Table 10, follow-up row; reports/metrics/followup_checks.json). The check changed no choice.
 
 ### 19. Naive Bayes assumes independence; your heatmap shows correlation; why keep it?
 
@@ -237,7 +237,7 @@ The decision tree and the SVM swap places between cross-validation and the test 
 
 **Where to show it.** Report: Table 10 (decision tree and random forest blocks), Table 11, Figure 13. Notebook: "D.1 Hyper-parameter search", "D.2 Validation curves and the learning curve". App: Model training (run the decision tree and the random forest at the same sample size and compare the training and validation columns).
 
-**Follow-up.** *Why did boosting beat bagging here?* HGB adds shallow trees in stages, each fitted to the gradient of the log loss, so it also reduces bias, and it scored 0.838 against the forest's 0.821 in cross-validation. The forest's search covered only 4 of 24 grid points, so its score is a lower bound (see the weak points below).
+**Follow-up.** *Why did boosting beat bagging here?* HGB adds shallow trees in stages, each fitted to the gradient of the log loss, so it also reduces bias, and it scored 0.838 against the forest's 0.821 in cross-validation. The forest's search covered only 4 of 24 grid points; the full grid, searched afterwards as a check, reached 0.822 with 200 trees, so the gap to HGB stands (Table 10).
 
 ### 21. Walk through one hyperparameter: meaning, range, validation curve.
 
@@ -273,7 +273,7 @@ The decision tree and the SVM swap places between cross-validation and the test 
 
 **Where to show it.** Report: Table 14 (stats), Table 15 (decision), Table 17 (criteria results). Notebook: "E.9 Is the best model really better? Statistical tests", "E.11 The final-model decision". App: Evaluation > Criteria and tests (McNemar table and bootstrap intervals).
 
-**Follow-up.** *The MLP passes S5 and HGB does not; why not pick the MLP?* The MLP reaches 0.790 on S5 only by flagging 52.5% of reports instead of 50%, and its threshold transferred less faithfully (test specificity 0.373 against the 0.40 target). HGB also needs no scaler, scores the test set in under a second, and has SHAP values for the app's explanations.
+**Follow-up.** *The MLP passes S5 and HGB does not; why not pick the MLP?* The MLP reaches 0.790 on S5 only by flagging 52.5% of reports instead of 50%; among the top half of test scores, the planned form of S5, it finds 0.768 against 0.769 for HGB, so neither passes (Table 17). HGB was selected by the rule fixed before testing, the highest cross-validated PR-AUC; Table 15 checks that choice and did not make it. The MLP's threshold also transferred less faithfully (test specificity 0.373 against the 0.40 target). HGB also needs no scaler, scores the test set in under a second, and has SHAP values for the app's explanations.
 
 ### 25. What harm could the model cause, who bears it, what mitigates it, how would you detect drift?
 
@@ -290,19 +290,19 @@ The decision tree and the SVM swap places between cross-validation and the test 
 State the fact first, give the evidence second, then say what you did and what you would do next. Do not defend a weak point by changing the subject.
 
 **1. S5 is missed (0.775 against 0.78).**
-*Answer.* "HGB finds 0.775 of lost-time cases among the half of reports with the highest scores, against my pre-set target of 0.78, a shortfall of about two cases per 1,000 reports. The miss repeats on the temporal split (0.749) and the mine-grouped split (0.762), so it is not a quirk of one test fold. I left the target where it was and recommend the capacity threshold, where S3 passes with recall 0.943. The MLP passes S5 at 0.790, but only by flagging 52.5% of reports."
-*Show.* Table 17 (S5 rows), Table 21 (last row); notebook "E.10 Success criteria"; app Evaluation > Criteria and tests.
+*Answer.* "HGB finds 0.775 of lost-time cases at the out-of-fold threshold for a 50% flag rate, against my pre-set target of 0.78, a shortfall of about two cases per 1,000 reports; among the top half of test scores, the planned wording, it finds 0.769. The miss repeats on the temporal split (0.749) and the mine-grouped split (0.762), so it is not a quirk of one test fold. I left the target where it was and recommend the capacity threshold, where S3 passes with recall 0.943. The MLP passes S5 at 0.790, but only by flagging 52.5% of reports, and at exactly half it finds 0.768."
+*Show.* Table 17 (S5 rows), Table 21 (S5 row); notebook "E.10 Success criteria"; app Evaluation > Criteria and tests.
 
 **2. The label depends on restricted-duty practice.**
 *Answer.* "Yes. Coal is 63.0% lost-time and metal and non-metal 38.6%, while the DART label hardly differs by sector (Cramer's V 0.015 against 0.240), so part of what the model learns is how employers code restricted duty and not only severity. I disclosed this in Sections 1.2 and 5.3, report all results by sector, and rule out using the score to rank mines. The limit I cannot remove is that this data does not separate severity from practice."
 *Show.* Table 2; Table 19 (limitations, out-of-scope uses); notebook "B.12 Evidence for three claims that later sections use" and "E.8 Results by commodity"; app About > Limits and ethics.
 
 **3. The random forest search covered 4 of 24 grid points.**
-*Answer.* "That is right. RandomizedSearchCV sampled four candidates because each forest is costly, and it never tried 200 trees or the log2 feature subset, so the forest's 0.821 is a lower bound (Table 10, 'not sampled'). The forest is third, 0.017 PR-AUC behind HGB, so I think a full grid is unlikely to change the choice, but I have not run it to prove that. The four candidates took 140 s (Table 15), so the full grid would take roughly 14 minutes or more, and it is the first thing I would run with more time."
+*Answer.* "That is right. RandomizedSearchCV sampled four candidates because each forest is costly, and it never tried 200 trees or the log2 feature subset, so the forest's 0.821 was a lower bound. After the test scoring I ran the full 24-point grid as a check (559 s): its best, 200 trees with the other settings unchanged, reached 0.822, still 0.016 behind HGB, so the choice stands (Table 10, follow-up row)."
 *Show.* Table 10 (random forest block); `src/mlda/models.py` (`n_iter=4`); app Model training with the random forest selected ("Full search: 4 candidates (random)").
 
 **4. KNN's best K sits at the grid edge.**
-*Answer.* "K = 51 was the largest value I tried (11, 25, 51), and the validation score was still rising, so a wider grid might have scored higher. The last step gained only 0.006 PR-AUC and KNN sits 0.074 below HGB, so I do not expect it to change the ranking. I fitted KNN on a 39,999-row sample of whole mine-years because scoring cost grows with the rows stored. The report names the edge-of-grid limit in Section 4.3."
+*Answer.* "K = 51 was the largest value in the planned grid (11, 25, 51), and the validation score was still rising, so I searched K = 101 and 151 afterwards as a check: 0.763 and 0.761 against 0.764, so 51 was the peak (Table 10, follow-up row). I fitted KNN on a 39,999-row sample of whole mine-years because scoring cost grows with the rows stored. Section 4.3 reports the check."
 *Show.* Table 10 (KNN block); Figure 13.
 
 **5. The SVM was fitted on a 10,000-row subsample.**

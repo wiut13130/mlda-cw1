@@ -457,7 +457,19 @@ interface contract:
    They are zero when the mine had production but no such case and missing when there is no
    previous-year production.
 
-The log lines printed below are written by the join code while it runs.
+The first cell prints the two merge functions from `src/mlda/data/join.py`, so the join
+statements themselves (left joins with `validate="many_to_one"`, an indicator column and an
+asserted row count) can be read here. The log lines printed by the second cell are written by
+the join code while it runs.
+"""
+    )
+    code(
+        r"""
+import inspect
+
+# The merge statements of joins J1 (Mines) and J2/J3 (production of the previous and the same year).
+for merge_function in (join._join_mines, join._join_production):
+    print(inspect.getsource(merge_function))
 """
     )
     code(
@@ -766,7 +778,7 @@ with timer.stage("B.5 histograms and box plots"):
 is the right coefficient for numeric-versus-binary. **Pearson** measures linear association and
 **Spearman** rank (monotone) association; where they disagree by more than 0.1 the relation is
 monotone but not linear, or outliers pull Pearson, which is a hint to transform or to prefer a
-rank-based or tree model. The pair plot shows the four numeric inputs with the largest
+rank-based or tree model. The pair plot shows the five numeric inputs with the largest
 |point-biserial r| against each other, coloured by outcome.
 """
     )
@@ -783,7 +795,7 @@ show(plots.correlation_heatmaps(corr.pearson, corr.spearman), "Pearson and Spear
 show_table(corr.disagreements.head(12), "Pairs where |Pearson - Spearman| exceeds 0.1 (largest gap first)")
 print(f"{len(corr.disagreements)} pairs disagree by more than 0.1")
 
-top_numeric = biserial["feature"].head(4).tolist()
+top_numeric = biserial["feature"].head(5).tolist()     # the same five as the report figure (mlda.pipeline.run_eda)
 with timer.stage("B.6 pair plot"):
     show(plots.pairplot_top(frame_train, top_numeric, TARGET), "Pair plot of the numeric inputs most correlated with the target, coloured by outcome")
 """
@@ -1525,6 +1537,63 @@ print("split rebuilt from the seed equals the persisted split:",
 print(f"X_train {X_train.shape}, y_train {y_train.shape}, X_test {X_test.shape}, y_test {y_test.shape}")
 """
     )
+    md(
+        """
+**Why mine-years and not rows or mines.** Section 3.9 of the report rests on three measurements,
+computed here on all in-scope rows. (1) The mean label of the rows of the same mine-year filed on
+a *later* date ranks a row by ROC-AUC: a random row split would hand the model these outcomes.
+(2) Four planned numeric inputs (coordinates and the previous year's hours and employees) are
+almost a mine-year fingerprint, so KNN and tree ensembles could memorise the mine-year. (3) A
+split grouped by mine alone would test only unseen mines, yet most reports of 2020-2025 come from
+mines that had already filed before 2020. The labels serve only to measure the leak; none of these
+quantities is a model input.
+"""
+    )
+    code(
+        r"""
+from sklearn.metrics import roc_auc_score
+
+# (1) mean label of the later-dated rows of the same mine-year
+by_day = pd.DataFrame({"g": groups, "day": base["ACCIDENT_DT"].to_numpy(), "y": y})
+per_day = (
+    by_day.groupby(["g", "day"])["y"].agg(["sum", "count"]).reset_index()
+    .sort_values(["g", "day"], ascending=[True, False])
+)
+per_day["later_sum"] = per_day.groupby("g")["sum"].cumsum() - per_day["sum"]
+per_day["later_n"] = per_day.groupby("g")["count"].cumsum() - per_day["count"]
+siblings = by_day.merge(per_day[["g", "day", "later_sum", "later_n"]], on=["g", "day"], how="left", validate="many_to_one")
+has_later = siblings["later_n"].to_numpy() > 0
+sibling_score = (siblings["later_sum"] / siblings["later_n"]).to_numpy()[has_later]
+sibling_auc = roc_auc_score(siblings["y"].to_numpy()[has_later], sibling_score)
+
+# (2) share of rows whose (latitude, longitude, prev_hours, prev_employees) tuple belongs to one mine-year only
+fingerprint = X[["latitude", "longitude", "prev_hours", "prev_employees"]].astype(str).agg("|".join, axis=1).to_numpy()
+mine_years_per_tuple = pd.Series(groups).groupby(fingerprint).nunique()
+identified = float(pd.Series(fingerprint).map(mine_years_per_tuple).eq(1).mean())
+
+# (3) share of 2020-2025 rows at mines that filed at least one in-scope report in 2010-2019
+years = pd.to_numeric(base["CAL_YR"]).to_numpy()
+mine_ids = base["MINE_ID"].astype(str).to_numpy()
+seen_share = float(np.isin(mine_ids[years >= 2020], np.unique(mine_ids[years < 2020])).mean())
+
+leak_checks = pd.DataFrame(
+    {
+        "value": [sibling_auc, int(has_later.sum()), identified, len(np.unique(fingerprint)), len(np.unique(groups)), seen_share],
+    },
+    index=[
+        "ROC-AUC of the later-dated siblings' mean label",
+        "rows with at least one later-dated sibling",
+        "share of rows whose four-feature tuple identifies one mine-year",
+        "distinct four-feature tuples",
+        "mine-years",
+        "share of 2020-2025 rows at mines seen in 2010-2019",
+    ],
+)
+show_table(leak_checks, "Three measurements behind the mine-year grouping (all in-scope rows)")
+print(f"later-dated siblings rank a row with ROC-AUC {sibling_auc:.3f}; the four-feature tuple identifies the mine-year "
+      f"for {identified:.1%} of rows; {seen_share:.1%} of 2020-2025 rows come from mines seen before 2020")
+"""
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1666,29 +1735,33 @@ for name in MODEL_NAMES:
         cv_tables[name] = read_cv_table(name)
         best_params[name] = as_tuple_params(manifest[name]["best_params"])
 
-if not FULL_RUN:
-    quick_flags = [name for name in MODEL_NAMES if manifest[name]["extra"].get("quick")]
-    if quick_flags:
-        print("NOTE: the stored results of", quick_flags, "come from a quick run (two candidates, 3 folds); "
-              "run `uv run mlda-train` for the full search")
-    print(f"searched in this notebook: {', '.join(tuned) or 'none'}; loaded from reports/cv and models/manifest.json: "
-          f"{', '.join(n for n in MODEL_NAMES if n not in tuned) or 'none'}")
-    agreement = {}
-    for name in tuned:                      # the live search must reproduce the stored table, candidate by candidate
-        live, stored = tuned[name].cv_results_df, read_cv_table(name)
-        both = live.merge(stored, on="params", suffixes=("", "_stored"), validate="one_to_one")
-        score_columns = [c for c in live.columns if c.startswith("mean_test_")]
-        agreement[name] = {
-            "candidates (live)": len(live),
-            "candidates (stored)": len(stored),
-            "same candidates": len(both) == len(live) == len(stored),
-            "largest difference in a mean validation score": max(float((both[c] - both[f"{c}_stored"]).abs().max()) for c in score_columns),
-            "same selected parameters": as_tuple_params(manifest[name]["best_params"]) == tuned[name].best_params,
-        }
-    agreement = pd.DataFrame(agreement).T
-    show_table(agreement, "The live search against the table that mlda-train stored")
-    assert agreement["same candidates"].astype(bool).all() and agreement["same selected parameters"].astype(bool).all()
-    assert (agreement["largest difference in a mean validation score"].astype(float) < 1e-6).all(), "the live search differs from the stored table"
+quick_flags = [name for name in MODEL_NAMES if manifest[name]["extra"].get("quick")]
+if quick_flags:
+    print("NOTE: the stored results of", quick_flags, "come from a quick run (two candidates, 3 folds); "
+          "run `uv run mlda-train` for the full search")
+print(f"searched in this notebook: {', '.join(tuned) or 'none'}; loaded from reports/cv and models/manifest.json: "
+      f"{', '.join(n for n in MODEL_NAMES if n not in tuned) or 'none'}")
+agreement = {}
+for name in tuned:                          # the live search should reproduce the stored table, candidate by candidate
+    live, stored = tuned[name].cv_results_df, read_cv_table(name)
+    both = live.merge(stored, on="params", suffixes=("", "_stored"), validate="one_to_one")
+    score_columns = [c for c in live.columns if c.startswith("mean_test_")]
+    agreement[name] = {
+        "candidates (live)": len(live),
+        "candidates (stored)": len(stored),
+        "same candidates": len(both) == len(live) == len(stored),
+        "largest difference in a mean validation score": max(float((both[c] - both[f"{c}_stored"]).abs().max()) for c in score_columns),
+        "same selected parameters": as_tuple_params(manifest[name]["best_params"]) == tuned[name].best_params,
+    }
+agreement = pd.DataFrame(agreement).T
+show_table(agreement, "The live search against the table that mlda-train stored")
+reproduced = bool(
+    agreement["same candidates"].astype(bool).all() and agreement["same selected parameters"].astype(bool).all()
+    and (agreement["largest difference in a mean validation score"].astype(float) < 1e-6).all()
+)
+print(f"every search run in this notebook reproduces the stored table and the selected parameters: {reproduced}")
+if not FULL_RUN:                            # the cheap searches are deterministic, so a difference is an error
+    assert reproduced, "the live search differs from the stored table"
 """
     )
     md(
@@ -1756,18 +1829,17 @@ if best_params.get("knn", {}).get("clf__weights") == "distance":
          f"nearest neighbour at distance zero and its training average precision is {cv_tables['knn'].iloc[0]['mean_train_average_precision']:.3f} by "
          f"construction. Compare its validation score with the others, not its gap.")
 
-if not FULL_RUN:
-    run_rows = {}
-    for name in MODEL_NAMES:
-        stored = json.loads((METRICS_DIR / f"{name}.json").read_text(encoding="utf-8"))
-        run_rows[name] = {
-            "candidates": stored["n_candidates"],
-            "rows in the search": stored["n_fit_rows"],
-            "folds": stored["cv_folds"],
-            "search seconds (mlda-train)": stored["tuning_seconds"],
-            "search seconds (this notebook)": tuned[name].elapsed_seconds if name in tuned else np.nan,
-        }
-    show_table(pd.DataFrame(run_rows).T.astype({"candidates": int, "rows in the search": int, "folds": int}), "Cost of the search: stored by mlda-train (reports/metrics/<model>.json) and repeated here")
+run_rows = {}
+for name in MODEL_NAMES:
+    stored = json.loads((METRICS_DIR / f"{name}.json").read_text(encoding="utf-8"))
+    run_rows[name] = {
+        "candidates": stored["n_candidates"],
+        "rows in the search": stored["n_fit_rows"],
+        "folds": stored["cv_folds"],
+        "search seconds (mlda-train)": stored["tuning_seconds"],
+        "search seconds (this notebook)": tuned[name].elapsed_seconds if name in tuned else np.nan,
+    }
+show_table(pd.DataFrame(run_rows).T.astype({"candidates": int, "rows in the search": int, "folds": int}), "Cost of the search: stored by mlda-train (reports/metrics/<model>.json) and repeated here")
 """
     )
     md(
@@ -2463,15 +2535,22 @@ if comparable:
 else:
     print(f"{first} and {second} were not fitted on the same rows (sample cap), so their folds are not comparable; no p-value is given")
 
+# 1,000 resamples with the seed of mlda-train, so the intervals equal those of statistical_tests.json and of the report.
+N_BOOT = 1000
+stored_boot = stored_tests["bootstrap_best_model"]
 bootstrap_rows = []
 for metric, threshold in (("roc_auc", 0.5), ("pr_auc", 0.5), ("recall", thresholds[best][OPERATING_KEY])):
-    for resampling, cluster in (("rows", None), ("mine-years", g_test)):
-        interval = bootstrap_ci(y_test, proba[best], metric, threshold, n_boot=200, groups=cluster)
+    for resampling, cluster, stored_key in (("rows", None, "rows"), ("mine-years", g_test, "mine_years")):
+        interval = bootstrap_ci(y_test, proba[best], metric, threshold, n_boot=N_BOOT, groups=cluster)
+        stored_metric = metric if metric != "recall" else f"recall_at_{OPERATING_KEY}"
+        stored_interval = stored_boot["metrics"].get(stored_metric, {}).get(stored_key, {}) if stored_boot["model"] == best else {}
         bootstrap_rows.append(
             {"metric": metric if metric != "recall" else "recall at specificity 0.40", "resampled units": resampling,
-             "estimate": interval["estimate"], "95 % lower": interval["lower"], "95 % upper": interval["upper"]}
+             "estimate": interval["estimate"], "95 % lower": interval["lower"], "95 % upper": interval["upper"],
+             "stored lower": stored_interval.get("lower", np.nan), "stored upper": stored_interval.get("upper", np.nan)}
         )
-show_table(pd.DataFrame(bootstrap_rows).set_index(["metric", "resampled units"]), f"Bootstrap 95 % intervals of {best} (200 resamples)")
+show_table(pd.DataFrame(bootstrap_rows).set_index(["metric", "resampled units"]),
+           f"Bootstrap 95 % intervals of {best} ({N_BOOT:,} resamples), beside the intervals stored by mlda-train")
 """
     )
     md(
@@ -2530,6 +2609,21 @@ differences = [
     if criteria[name][key]["pass"] != stored_criteria["models"][name][key]["pass"]
 ]
 print("verdicts recomputed here against success_criteria.json:", "identical" if not differences else f"differ for {differences}")
+
+# S5 was planned as recall among the half of the cases with the highest scores and is scored above at the
+# out-of-fold threshold for a 50 % flag rate. The cut-off below comes from the test scores alone (labels only
+# count the hits), so it shows how much of each S5 result depends on flagging more or less than half.
+s5_rows = {}
+for name in [*MODEL_NAMES, lookup]:
+    top_half = classification_metrics(y_test, proba[name], threshold_for_flag_rate(y_test, proba[name], 0.5))
+    s5_rows[name] = {
+        "S5 as scored: recall": criteria[name]["S5"]["value"],
+        "flag rate": criteria[name]["S5"]["flag_rate_achieved"],
+        "S5 as planned (top half of test scores): recall": top_half["recall"],
+        "flag rate ": top_half["flag_rate"],
+    }
+show_table(pd.DataFrame(s5_rows).T.sort_values("S5 as planned (top half of test scores): recall", ascending=False),
+           "S5 two ways: at the out-of-fold threshold for a 50 % flag rate, and among the top half of the test scores")
 """
     )
     md(
@@ -2759,7 +2853,9 @@ note(
 Four questions about the **result's dependence on choices** are answered with the selected model.
 (a) **Deterministic levels:** a level that is 100 % one class (here a nature-of-injury code) makes
 rows trivially easy; removing those rows from the test fold shows how much of the score they
-provide. (b) **Altered inputs:** the model is refitted without the immediate-notification flag
+provide. `mlda-train` searched all in-scope rows for such levels; the cell repeats the search on
+the training rows only and checks that it finds the same level, so no test label decides which
+test rows the check removes. (b) **Altered inputs:** the model is refitted without the immediate-notification flag
 (a near copy of the fatality code) and without the 103(i) status, with previous-year case counts
 restricted to cases that were already resolved at the accident date, and with previous-year hours
 blanked for forms filed before the fourth-quarter report was due. (c) **Grouping by mine:** the
@@ -2770,8 +2866,16 @@ mines. A small change means the model has not learnt mine identities.
     )
     code(
         r"""
+from mlda.sensitivity import pure_levels
+
 sensitivity = json.loads((METRICS_DIR / "sensitivity.json").read_text(encoding="utf-8"))
-show_table(pd.DataFrame(sensitivity["pure_levels"]["found"]), "Levels that are 100 % one class (at least 100 rows)")
+show_table(pd.DataFrame(sensitivity["pure_levels"]["found"]), "Levels that are 100 % one class (at least 100 rows), searched on all rows")
+training_levels = pure_levels(X_train, y_train)
+show_table(training_levels, "The same search on the training rows only")
+same_levels = sorted(zip(training_levels["column"], training_levels["level"], strict=True)) == sorted(
+    (r["column"], r["level"]) for r in sensitivity["pure_levels"]["found"]
+)
+print(f"the training rows alone give the same deterministic levels as all rows: {same_levels}")
 
 excluded = sensitivity["excluding_pure_levels"]
 pure_rows = []

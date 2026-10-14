@@ -620,13 +620,37 @@ def live_grid(spec: ModelSpec) -> list[dict[str, list[Any]]]:
     return [{key: [value] for key, value in points[i].items()} for i in picks]
 
 
+PREPROCESSING_CHOICE_KEY = "preprocessing_choice"  # set by page 3, read by page 4 (not a widget key)
+PREPROCESSING_OPTION_NAMES = ("numeric_imputer", "scaler", "encoder", "outlier_rule", "min_frequency")
+
+
+def preprocessing_choice(session_state: Any) -> dict[str, Any] | None:
+    """The options last chosen on the Preprocessing page, or None if that page has not been opened.
+
+    Streamlit drops the state of widgets that a page no longer renders, so page 3 copies its choice
+    into a plain session key that survives the switch to the training page.
+    """
+    choice = session_state.get(PREPROCESSING_CHOICE_KEY)
+    if not choice:
+        return None
+    return {name: choice[name] for name in PREPROCESSING_OPTION_NAMES if name in choice}
+
+
 @st.cache_data(show_spinner=False, max_entries=24)
-def live_tuning(model_name: str, n_rows: int, seed: int, version: float) -> dict[str, Any]:
+def live_tuning(
+    model_name: str,
+    n_rows: int,
+    seed: int,
+    version: float,
+    preprocessing: tuple[tuple[str, Any], ...] | None = None,
+) -> dict[str, Any]:
     """Tune one model on a training sample with 3 grouped folds and the reduced grid.
 
     The reduced grid is ``live_grid`` (at most ``live_limit`` points of the full grid). The search
-    runs with LIVE_N_JOBS workers. The result holds plain tables and numbers so that it can be cached by
-    (model, sample size, seed) without pickling a fitted pipeline.
+    runs with LIVE_N_JOBS workers. ``preprocessing`` holds ``build_preprocessor`` options as (name,
+    value) pairs, for example the choice made on the Preprocessing page; None keeps the model's own
+    preprocessing. The result holds plain tables and numbers so that it can be cached by (model,
+    sample size, seed, preprocessing) without pickling a fitted pipeline.
     """
     spec = MODEL_ZOO[model_name]
     X, y, groups = training_sample(n_rows, seed, True, version)
@@ -635,7 +659,8 @@ def live_tuning(model_name: str, n_rows: int, seed: int, version: float) -> dict
         spec, param_grid=live_grid(spec), search="grid", sample_cap=min(caps) if caps else None
     )
     cv = cv_splitter(n_splits=LIVE_CV_FOLDS, random_state=seed)
-    result = tune(live_spec, X, y, groups, cv, quick=False, n_jobs=LIVE_N_JOBS)
+    preprocessor = None if preprocessing is None else build_preprocessor(**dict(preprocessing))
+    result = tune(live_spec, X, y, groups, cv, quick=False, n_jobs=LIVE_N_JOBS, preprocessor=preprocessor)
     return {
         "cv_results": result.cv_results_df,
         "best_params": estimator_params(result),

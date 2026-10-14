@@ -8,7 +8,7 @@ Preparation followed the order of {tab:decisionlog}, whose last column gives the
 
 ## 3.2 Integration and error correction
 
-I read every column as text, because type inference would strip the leading zeros from MINE_ID, and asserted every join's row count ({tab:sources}). The error rules learn nothing, so they ran on all rows before the split. Job experience exceeded total experience on 3,731 rows by a median of six years, too much for rounding ({tab:decisionlog}). Clipping assumes the job field is overstated and a swap assumes a data-entry exchange; I set the value to missing with a flag, because neither assumption can be checked (Han et al., 2022). A blank stops invented tenure from moving a case across the review threshold, where errors cost USD 200 or USD 4,000 ({tab:costs}).
+I read every column as text, because type inference would strip the leading zeros from MINE_ID, and asserted every join's row count ({tab:sources}). The error rules learn nothing, so they ran on all rows before the split. Job experience exceeded total experience on 3,731 rows by a median of six years, too much for rounding ({tab:decisionlog}). Clipping assumes the job field is overstated and a swap assumes a data-entry exchange; I set the value to missing with a flag, because neither assumption can be checked (Han et al., 2022). A blank stops invented tenure from moving a case across the review threshold.
 
 ## 3.3 Duplicates and multi-victim accidents
 
@@ -22,7 +22,7 @@ Listwise deletion needs MCAR, mean imputation presumes symmetry, and KNNImputer 
 
 ## 3.5 Outliers
 
-Total experience has a skewness of 1.37 and previous-year hours 4.27 ({tab:descriptives}). Right skew inflates the standard deviation behind the Z-score rule and puts its lower fence below zero. Tukey's IQR fences rest on quartiles (Tukey, 1977) but assume symmetric tails, so at this skew they flag over five times as many experience rows as the Z-score rule ({fig:outliers}), all plausible veteran careers. I kept the values, added log1p versions and left clipping as an application option. Lagged rates from the smallest mines were winsorised, since their extremes would add needless USD 200 reviews. Linear, distance-based and Gaussian models react to such extremes, while tree splits use only rank.
+Total experience has a skewness of 1.37 and previous-year hours 4.27 ({tab:descriptives}). Right skew inflates the standard deviation behind the Z-score rule and puts its lower fence below zero. Tukey's IQR fences rest on quartiles (Tukey, 1977) but assume symmetric tails, so at this skew they flag over five times as many experience rows as the Z-score rule ({fig:outliers}), all plausible veteran careers. I kept the values, added log1p versions and left clipping as an application option. Lagged rates were winsorised, since at the smallest mines a single case gives an extreme rate. Linear, distance-based and Gaussian models react to such extremes, while tree splits use only rank.
 
 ## 3.6 Instance selection and class balance
 
@@ -30,7 +30,7 @@ Scope filtering was the only instance selection and left a training prevalence o
 
 ## 3.7 Feature engineering
 
-Every engineered feature uses fields known at filing ({tab:dictionary}). Clock and calendar features give accident and shift-start hours, a night flag, hours into shift, weekday, weekend and month. Experience features add log1p of total experience, mine and job shares of the total and a new-to-mine flag. Exposure features give hours per employee and size bands, and history features turn previous-year cases filed before the accident date into rates per 200,000 hours and a lost-time share. Same-year hours were rejected because quarterly hours reports arrive after the quarter (Legal Information Institute, no date b), and accident-date counting because 1.9% of prior cases were filed after the accident ({tab:decisionlog}; Kaufman et al., 2012; Kuhn and Johnson, 2019). Leakage would overstate test recall, and each case then missed in deployment costs an assumed USD 4,000 ({tab:costs}).
+Every engineered feature uses fields known at filing ({tab:dictionary}). Clock and calendar features give accident and shift-start hours, a night flag, hours into shift, weekday, weekend and month. Experience features add log1p of total experience, mine and job shares of the total and a new-to-mine flag. Exposure features give hours per employee and size bands, and history features turn previous-year cases filed before the accident date into rates per 200,000 hours and a lost-time share. Same-year hours were rejected because quarterly hours reports arrive after the quarter (Legal Information Institute, no date b), and accident-date counting because 1.9% of prior cases were filed after the accident ({tab:decisionlog}; Kaufman et al., 2012; Kuhn and Johnson, 2019). Leakage would overstate the test recall on which review capacity is planned.
 
 ## 3.8 Encoding and scaling
 
@@ -38,9 +38,11 @@ Most categorical features are nominal codes with up to 193 levels ({tab:decision
 
 ## 3.9 Train, validation and test split
 
-A stratified random split would treat rows as independent, but the mean label of a row's later-dated mine-year siblings ranks it with a ROC-AUC of 0.667, near the best planned feature ({tab:decisionlog}). The numeric features also identify the mine-year for 99.9% of rows, letting KNN and tree ensembles memorise outcomes. Grouping by mine alone would test unseen mines, yet mines seen before 2020 filed 91.9% of later reports.
+A stratified random split would treat rows as independent. Yet the mean label of later accidents in the same mine-year ranks a row with a ROC-AUC of 0.667, near the best planned feature ({tab:decisionlog}). Four numeric features, the coordinates and previous-year hours and employees, identify the mine-year for 99.9% of rows, so KNN and tree ensembles could memorise outcomes. Grouping by mine alone would test only unseen mines, yet 91.9% of reports from 2020 came from mines that had filed before.
 
 I held out one StratifiedGroupKFold fold of mine-year groups (random_state 42) as the test set, with five-fold StratifiedGroupKFold on the training rows for validation (Kohavi, 1995). Assertions confirm disjoint groups and prevalence within one percentage point of the whole. The insurer therefore sees recall on unseen mine-years, with temporal and mine-grouped splits as secondary checks.
+
+\landscape
 
 Table: Preprocessing decision log in execution order, giving for each step the problem found, the options considered, the choice and the data shape afterwards; counts in steps 1 to 9 refer to all 101,609 in-scope rows and counts in steps 10 to 14 to the 81,289 training rows of the grouped split unless a cell says otherwise, E codes name the error rules logged in reports/metrics/error_rules.csv, and a table is used so that every step is judged on the same six attributes. Source: author's analysis of MSHA open data. {#tab:decisionlog}
 
@@ -60,3 +62,5 @@ Table: Preprocessing decision log in execution order, giving for each step the p
 | 12 Outliers and skew | Skewness TOT_EXPER 1.37, prev_hours 4.27; TOT_EXPER flagged by IQR fences 4,020 (5.0%) vs Z-score 714 (0.9%); prev_hours 3,872 (4.8%) vs 1,454 (1.8%) | IQR clip; Z-score clip; log1p; keep | Keep values; add log1p of both (log1p TOT_EXPER flags 0 under both rules); clipping as an application option | Flagged values are real veterans and large mines; impossible values handled by E3 and E25 | 81,289 x 55 |
 | 13 Encoding | 23 nominal features; OCCUPATION 193 titles, EQUIP_MFR_NAME 132, INJURY_SOURCE_CD 124 on training rows; unseen levels possible at inference | One-hot; ordinal; target encoding; label encoding | OneHotEncoder(handle_unknown="infrequent_if_exist", min_frequency=0.001); OrdinalEncoder as application option; label encoding for the target only | No false order; levels below about 81 training rows and unseen levels pooled | 81,289 x 552 |
 | 14 Scaling | prev_hours from 1 to 7,735,308 h (median 246,979); experience 0.02 to 60 years | StandardScaler; MinMaxScaler; RobustScaler; Normalizer; none | StandardScaler for logistic regression, KNN, SVM, MLP and Gaussian naive Bayes; none for decision tree, random forest and histogram-based gradient boosting | Distance, gradient and variance-based models need comparable scales; tree splits are invariant to monotone rescaling | 81,289 x 552 |
+
+\portrait

@@ -9,7 +9,7 @@
   "subtitle": "An end-to-end machine learning study with a deployed decision-support application",
   "marker": "Ruslan Isaev",
   "submission_date": "December 2026",
-  "repo_url": "to be added after the repository is published",
+  "repo_url": "https://github.com/cyberencrypted1608-cyber/mlda-cw1",
   "app_url": "to be added after deployment",
   "abbreviations": {
     "ARIMA": "Autoregressive integrated moving average (a time-series model)",

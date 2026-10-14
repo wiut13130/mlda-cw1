@@ -13,7 +13,7 @@ export:          ## export pinned requirements for pip users and for Streamlit C
 	uv export --format requirements-txt --no-dev --no-hashes --no-emit-project -o app/requirements.txt
 
 lint:
-	uv run ruff check src tests app
+	uv run ruff check src tests app report notebooks
 
 test:            ## fast unit and app smoke tests
 	uv run pytest -m "not slow"

@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 from _common import (
     FEATURES_PATH,
+    PREPROCESSING_CHOICE_KEY,
     SPLIT_PATH,
     axis_label,
     ensure_entrypoint,
@@ -60,6 +61,15 @@ min_frequency = freq_col.slider(
 n_rows = size_col.slider(
     "Training rows in the sample", 1_000, MAX_SAMPLE, 5_000, step=1_000, key="pp_rows"
 )
+# Kept under a plain key so that the Model training page can tune with this choice.
+st.session_state[PREPROCESSING_CHOICE_KEY] = {
+    "numeric_imputer": imputer,
+    "scaler": scaler,
+    "encoder": encoder,
+    "outlier_rule": outlier_rule,
+    "min_frequency": float(min_frequency),
+}
+st.caption("The **Model training** page can tune a model with these choices (switch on its preprocessing option).")
 
 with st.expander("Why each option exists", expanded=True):
     for name, choice in (

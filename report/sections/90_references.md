@@ -54,8 +54,6 @@ Kohavi, R. (1995) 'A study of cross-validation and bootstrap for accuracy estima
 
 Kuhn, M. and Johnson, K. (2019) *Feature Engineering and Selection: A Practical Approach for Predictive Models*. Boca Raton, FL: CRC Press.
 
-Kun.uz (2024) 'Employment ministry names Uzbekistan's largest employment providers', 2 May. Available at: https://kun.uz/en/news/2024/05/02/employment-ministry-names-uzbekistans-largest-employment-providers (Accessed: 14 October 2026).
-
 Kun.uz (2026) 'Workplace accidents kill 248 people in Uzbekistan in 2025', 13 January. Available at: https://kun.uz/en/news/2026/01/13/workplace-accidents-kill-248-people-in-uzbekistan-in-2025over-240-people (Accessed: 14 October 2026).
 
 Legal Information Institute (no date a) *30 CFR 50.20 - Preparation and submission of MSHA Report Form 7000-1*. Available at: https://www.law.cornell.edu/cfr/text/30/50.20 (Accessed: 14 October 2026).
