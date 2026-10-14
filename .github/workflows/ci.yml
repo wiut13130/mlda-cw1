@@ -35,10 +35,12 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv lock --check
       - run: |
+          # the first two lines of an export are a comment naming the output path, so compare the rest
           uv export --format requirements-txt --all-groups --no-hashes --no-emit-project -o /tmp/req.txt
-          diff -u requirements.txt /tmp/req.txt
+          diff -u <(grep -v '^#' requirements.txt) <(grep -v '^#' /tmp/req.txt)
           uv export --format requirements-txt --no-dev --no-hashes --no-emit-project -o /tmp/app-req.txt
-          diff -u app/requirements.txt /tmp/app-req.txt
+          diff -u <(grep -v '^#' app/requirements.txt) <(grep -v '^#' /tmp/app-req.txt)
+        shell: bash
 
   pip-fresh-venv:
     name: plain pip install from requirements.txt (${{ matrix.os }})
