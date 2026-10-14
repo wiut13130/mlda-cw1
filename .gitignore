@@ -5,14 +5,13 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .ipynb_checkpoints/
-# raw data: large text extracts are re-created by `uv run mlda-download`
+# raw data: the pinned MSHA archives are committed (exact snapshot); the extracted
+# text files are re-created from them by `uv run mlda-download`
 data/raw/Accidents.txt
 data/raw/Mines.txt
 data/raw/MinesProdYearly.txt
-data/raw/*.zip
 # local artefacts
-*.zip
-!data/raw/*.zip.sha256
+MLDA.CW1.*.zip
 .streamlit/secrets.toml
 report/~$*
 *.log

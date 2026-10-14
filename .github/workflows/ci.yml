@@ -24,6 +24,7 @@ jobs:
       - run: uv python install 3.12
       - run: uv sync --locked --all-groups
       - run: uv run ruff check src tests app
+      - run: uv run mlda-download
       - run: uv run pytest -m "not slow"
 
   lock-and-exports:
@@ -69,6 +70,7 @@ jobs:
           enable-cache: true
       - run: uv python install 3.12
       - run: uv sync --locked --all-groups
+      - run: uv run mlda-download   # extracts the committed archives, verifies SHA-256
       - run: uv run pytest -m slow
 
   docker:

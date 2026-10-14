@@ -21,8 +21,7 @@ RUN uv sync --locked --no-dev --no-editable
 COPY .streamlit ./.streamlit
 COPY app ./app
 COPY data/processed ./data/processed
-COPY data/raw/*.txt ./data/raw/
-COPY data/raw/SNAPSHOT.json ./data/raw/
+COPY data/raw/SNAPSHOT.json data/raw/*_Definition_File.txt ./data/raw/
 COPY models ./models
 COPY reports ./reports
 
