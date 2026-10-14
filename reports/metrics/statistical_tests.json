@@ -1,0 +1,181 @@
+{
+  "ranking_rule": "cross-validated mean average_precision of the selected candidate",
+  "ranking": [
+    {
+      "model": "hist_gb",
+      "cv_mean_average_precision": 0.8380739791988644
+    },
+    {
+      "model": "mlp",
+      "cv_mean_average_precision": 0.8326847211600379
+    },
+    {
+      "model": "random_forest",
+      "cv_mean_average_precision": 0.8213709767060952
+    },
+    {
+      "model": "logreg",
+      "cv_mean_average_precision": 0.8202464536516206
+    },
+    {
+      "model": "decision_tree",
+      "cv_mean_average_precision": 0.8034487320981676
+    },
+    {
+      "model": "svc_rbf",
+      "cv_mean_average_precision": 0.794507259717365
+    },
+    {
+      "model": "knn",
+      "cv_mean_average_precision": 0.7642938309687711
+    },
+    {
+      "model": "gaussian_nb",
+      "cv_mean_average_precision": 0.7344533661757339
+    }
+  ],
+  "mcnemar_best_vs_lookup": {
+    "at_0.5": {
+      "statistic": 131.74306205176177,
+      "p_value": 1.7029329621290245e-30,
+      "n_both_correct": 13553,
+      "n_a_only": 1929,
+      "n_b_only": 1278,
+      "n_neither": 3560,
+      "accuracy_a": 0.7619094488188977,
+      "accuracy_b": 0.7298720472440945,
+      "method": "chi-square with continuity correction",
+      "clustered_statistic": 78.49620300055565,
+      "clustered_p_value": 8.015215213446284e-19,
+      "n_clusters": 6724,
+      "n_discordant_clusters": 1910,
+      "clustered_method": "Durkalski et al. (2003) clustered McNemar, chi-square on 1 df",
+      "model_a": "hist_gb",
+      "model_b": "lookup_nature_bodypart_coal",
+      "threshold_a": 0.5,
+      "threshold_b": 0.5
+    },
+    "at_specificity_0.40": {
+      "statistic": 35.174880069777586,
+      "p_value": 3.013861703284694e-09,
+      "n_both_correct": 12238,
+      "n_a_only": 1289,
+      "n_b_only": 1004,
+      "n_neither": 5789,
+      "accuracy_a": 0.6656988188976378,
+      "accuracy_b": 0.6516732283464567,
+      "method": "chi-square with continuity correction",
+      "clustered_statistic": 24.443274149864582,
+      "clustered_p_value": 7.65302152295729e-07,
+      "n_clusters": 6724,
+      "n_discordant_clusters": 1489,
+      "clustered_method": "Durkalski et al. (2003) clustered McNemar, chi-square on 1 df",
+      "model_a": "hist_gb",
+      "model_b": "lookup_nature_bodypart_coal",
+      "threshold_a": 0.21028013793420935,
+      "threshold_b": 0.225
+    }
+  },
+  "clustering": "group_id (mine-year) of the held-out rows",
+  "bootstrap_best_model": {
+    "model": "hist_gb",
+    "n_boot": 1000,
+    "metrics": {
+      "roc_auc": {
+        "rows": {
+          "metric": "roc_auc",
+          "estimate": 0.8430423369227206,
+          "lower": 0.8377118174740834,
+          "upper": 0.8482346606786684,
+          "n_boot": 1000,
+          "alpha": 0.05,
+          "resampling": "rows"
+        },
+        "mine_years": {
+          "metric": "roc_auc",
+          "estimate": 0.8430423369227206,
+          "lower": 0.8350343046759194,
+          "upper": 0.851285288392877,
+          "n_boot": 1000,
+          "alpha": 0.05,
+          "resampling": "6724 clusters"
+        }
+      },
+      "pr_auc": {
+        "rows": {
+          "metric": "pr_auc",
+          "estimate": 0.8414021427599513,
+          "lower": 0.8345552129765597,
+          "upper": 0.848440343785034,
+          "n_boot": 1000,
+          "alpha": 0.05,
+          "resampling": "rows"
+        },
+        "mine_years": {
+          "metric": "pr_auc",
+          "estimate": 0.8414021427599513,
+          "lower": 0.825228878007825,
+          "upper": 0.8558218598492298,
+          "n_boot": 1000,
+          "alpha": 0.05,
+          "resampling": "6724 clusters"
+        }
+      },
+      "recall_at_specificity_0.40": {
+        "rows": {
+          "metric": "recall",
+          "estimate": 0.9431783652385293,
+          "lower": 0.9389932029902471,
+          "upper": 0.9474530455131626,
+          "n_boot": 1000,
+          "alpha": 0.05,
+          "resampling": "rows"
+        },
+        "mine_years": {
+          "metric": "recall",
+          "estimate": 0.9431783652385293,
+          "lower": 0.9379944430350693,
+          "upper": 0.9488204151882349,
+          "n_boot": 1000,
+          "alpha": 0.05,
+          "resampling": "6724 clusters"
+        }
+      }
+    }
+  },
+  "paired_fold_test_top_two": {
+    "models": [
+      "hist_gb",
+      "mlp"
+    ],
+    "metric": "average_precision",
+    "same_fit_rows": true,
+    "note": null,
+    "scores_a": [
+      0.8336527573447058,
+      0.8359522982909282,
+      0.8399310362667148,
+      0.8395984681956963,
+      0.8412353358962763
+    ],
+    "scores_b": [
+      0.8283344230167231,
+      0.8266963663493426,
+      0.8372309133575542,
+      0.8367376070563839,
+      0.8344242960201852
+    ],
+    "n_folds": 5,
+    "mean_a": 0.8380739791988644,
+    "mean_b": 0.8326847211600379,
+    "mean_difference": 0.005389258038826483,
+    "std_difference": 0.002765949179887847,
+    "t_statistic": 4.356821669294678,
+    "t_p_value": 0.012092214799014159,
+    "test_train_ratio": 0.25,
+    "corrected_t_statistic": 2.9045477795297856,
+    "corrected_t_p_value": 0.04391730476251742,
+    "wilcoxon_statistic": 0.0,
+    "wilcoxon_p_value": 0.0625
+  }
+}

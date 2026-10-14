@@ -1,0 +1,330 @@
+{
+  "decision_tree": {
+    "best_params": {
+      "clf__criterion": "gini",
+      "clf__max_depth": 12,
+      "clf__min_samples_leaf": 50
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "DecisionTreeClassifier",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 81289,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.8046173991064273,
+      "test_roc_auc": 0.8170511160349437,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.012987012987012988,
+          "2": 0.32558139534883723,
+          "20": 0.0,
+          "3": 0.261,
+          "30": 0.0,
+          "5": 0.134
+        },
+        "flag_rate_0.50": 0.49973390101117615,
+        "specificity_0.40": 0.23891625615763548
+      }
+    },
+    "file": "decision_tree.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T16:42:11+00:00",
+    "size_bytes": 32204,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "gaussian_nb": {
+    "best_params": {
+      "clf__var_smoothing": 0.1
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "GaussianNB",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 81289,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.7405563587928871,
+      "test_roc_auc": 0.7409871569759143,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 1.5426824314518361e-12,
+          "2": 0.0003747176961041987,
+          "20": 2.8222644490524806e-13,
+          "3": 7.752053352305666e-05,
+          "30": 2.8222644490524806e-13,
+          "5": 1.935450654855231e-06
+        },
+        "flag_rate_0.50": 0.051028721034526825,
+        "specificity_0.40": 0.0010519721545279026
+      }
+    },
+    "file": "gaussian_nb.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T16:39:29+00:00",
+    "size_bytes": 19182,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "hist_gb": {
+    "best_params": {
+      "clf__early_stopping": true,
+      "clf__l2_regularization": 0.0,
+      "clf__learning_rate": 0.05,
+      "clf__max_iter": 400,
+      "clf__max_leaf_nodes": 31
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "HistGradientBoostingClassifier",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 81289,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.8414021427599513,
+      "test_roc_auc": 0.8430423369227206,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.10775665714397015,
+          "2": 0.33474105169162305,
+          "20": 0.05767023714136421,
+          "3": 0.23524170214950232,
+          "30": 0.037381161705868034,
+          "5": 0.16504503926475864
+        },
+        "flag_rate_0.50": 0.45614238960674613,
+        "specificity_0.40": 0.21028013793420935
+      }
+    },
+    "file": "hist_gb.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T16:54:13+00:00",
+    "size_bytes": 449045,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "knn": {
+    "best_params": {
+      "clf__n_neighbors": 51,
+      "clf__p": 2,
+      "clf__weights": "distance"
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "KNeighborsClassifier",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 39999,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.7697756008081409,
+      "test_roc_auc": 0.7731692640111303,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.0964231406032738,
+          "2": 0.3328544851243127,
+          "20": 0.018957935127701542,
+          "3": 0.2517640001747002,
+          "30": 0.018957935127701542,
+          "5": 0.192369670872469
+        },
+        "flag_rate_0.50": 0.4327906891677207,
+        "specificity_0.40": 0.30848448371873644
+      }
+    },
+    "file": "knn.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T16:38:59+00:00",
+    "size_bytes": 5227333,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "logreg": {
+    "best_params": {
+      "clf__C": 1.0,
+      "clf__class_weight": null
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "LogisticRegression",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 81289,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.8247578495021872,
+      "test_roc_auc": 0.8291269545356786,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.05347510054707527,
+          "2": 0.35723018646240234,
+          "20": 0.028299031779170036,
+          "3": 0.25433191657066345,
+          "30": 0.008653081953525543,
+          "5": 0.14681348204612732
+        },
+        "flag_rate_0.50": 0.48708873987197876,
+        "specificity_0.40": 0.2223244458436966
+      }
+    },
+    "file": "logreg.joblib",
+    "git_sha": "ee0209d2a1b40df5b3d775ca42017909979a9fa3",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T16:34:14+00:00",
+    "size_bytes": 13509,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "mlp": {
+    "best_params": {
+      "clf__alpha": 0.01,
+      "clf__hidden_layer_sizes": [
+        128
+      ]
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "MLPClassifier",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 81289,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.8368675998559368,
+      "test_roc_auc": 0.8394862383165018,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.06796195358037949,
+          "2": 0.2994730770587921,
+          "20": 0.025543544441461563,
+          "3": 0.20865173637866974,
+          "30": 0.0189003087580204,
+          "5": 0.13329866528511047
+        },
+        "flag_rate_0.50": 0.4502641260623932,
+        "specificity_0.40": 0.1868068128824234
+      }
+    },
+    "file": "mlp.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T17:18:01+00:00",
+    "size_bytes": 810108,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "random_forest": {
+    "best_params": {
+      "clf__max_depth": null,
+      "clf__max_features": "sqrt",
+      "clf__min_samples_leaf": 5,
+      "clf__n_estimators": 100
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "RandomForestClassifier",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 81289,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.8265710289479542,
+      "test_roc_auc": 0.832793603295208,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.15243466154422042,
+          "2": 0.3780695510017759,
+          "20": 0.10919877897287077,
+          "3": 0.31362233420875135,
+          "30": 0.03586813278606763,
+          "5": 0.25117060129700125
+        },
+        "flag_rate_0.50": 0.46512824724619223,
+        "specificity_0.40": 0.28967000936666865
+      }
+    },
+    "file": "random_forest.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T16:44:33+00:00",
+    "size_bytes": 20369277,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  },
+  "svc_rbf": {
+    "best_params": {
+      "clf__estimator__C": 1.0,
+      "clf__estimator__gamma": 0.01
+    },
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z",
+    "estimator": "CalibratedClassifierCV",
+    "extra": {
+      "cv_folds": 5,
+      "n_fit_rows": 9913,
+      "n_train_rows": 81289,
+      "quick": false,
+      "test_pr_auc": 0.8113334457003498,
+      "test_roc_auc": 0.8195930084835136,
+      "thresholds": {
+        "cost_optimal": {
+          "10": 0.084,
+          "2": 0.3623523304838917,
+          "20": 0.04023341247078149,
+          "3": 0.24591938217628112,
+          "30": 0.03220209249959526,
+          "5": 0.16986710549232395
+        },
+        "flag_rate_0.50": 0.47612877750302834,
+        "specificity_0.40": 0.23675565156670397
+      }
+    },
+    "file": "svc_rbf.joblib",
+    "git_sha": "56c4c03251c850acfae167507e174f6c2c8b667d",
+    "joblib_version": "1.6.0",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.12.15",
+    "saved_at_utc": "2026-10-14T17:14:52+00:00",
+    "size_bytes": 1246971,
+    "sklearn_version": "1.9.1",
+    "student_id": "13130"
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "best_model": "hist_gb",
+  "permutation_importance": {
+    "rows": 5000,
+    "top_10": [
+      {
+        "feature": "NATURE_INJURY_CD",
+        "importance_mean": 0.13704294166474246,
+        "importance_std": 0.004624640883395556
+      },
+      {
+        "feature": "INJ_BODY_PART_CD",
+        "importance_mean": 0.06484180599702094,
+        "importance_std": 0.00246014764532871
+      },
+      {
+        "feature": "COAL_METAL_IND",
+        "importance_mean": 0.028792364248243697,
+        "importance_std": 0.0032592576084674286
+      },
+      {
+        "feature": "prev_lost_time_share",
+        "importance_mean": 0.02855541456678403,
+        "importance_std": 0.0010509249759429184
+      },
+      {
+        "feature": "longitude",
+        "importance_mean": 0.00456361308749238,
+        "importance_std": 0.0007761104737348026
+      },
+      {
+        "feature": "immed_reportable",
+        "importance_mean": 0.0031372366715534785,
+        "importance_std": 0.00041707072306677666
+      },
+      {
+        "feature": "INJURY_SOURCE_CD",
+        "importance_mean": 0.0027194240381512415,
+        "importance_std": 0.0003736247258459157
+      },
+      {
+        "feature": "FIPS_STATE_CD",
+        "importance_mean": 0.002434885935536468,
+        "importance_std": 0.0005606013587208112
+      },
+      {
+        "feature": "OCCUPATION",
+        "importance_mean": 0.002109597701425869,
+        "importance_std": 0.0004602326837558747
+      },
+      {
+        "feature": "is_contractor",
+        "importance_mean": 0.0017918425011237637,
+        "importance_std": 0.00037644414421187825
+      }
+    ]
+  },
+  "estimator_table_logreg": {
+    "kind": "coefficient",
+    "top_10": [
+      {
+        "feature": "NATURE_INJURY_CD_100",
+        "coefficient": 5.605148792266846,
+        "abs_coefficient": 5.605148792266846,
+        "odds_ratio": 271.82236749174024
+      },
+      {
+        "feature": "FIPS_STATE_CD_72",
+        "coefficient": 2.6291630268096924,
+        "abs_coefficient": 2.6291630268096924,
+        "odds_ratio": 13.8621627867731
+      },
+      {
+        "feature": "INJ_BODY_PART_CD_142",
+        "coefficient": -2.420745611190796,
+        "abs_coefficient": 2.420745611190796,
+        "odds_ratio": 0.0888553412175292
+      },
+      {
+        "feature": "FIPS_STATE_CD_15",
+        "coefficient": 1.780989170074463,
+        "abs_coefficient": 1.780989170074463,
+        "odds_ratio": 5.935724957119115
+      },
+      {
+        "feature": "NATURE_INJURY_CD_180",
+        "coefficient": -1.5551910400390625,
+        "abs_coefficient": 1.5551910400390625,
+        "odds_ratio": 0.2111490408666316
+      },
+      {
+        "feature": "INJURY_SOURCE_CD_049",
+        "coefficient": -1.3719614744186401,
+        "abs_coefficient": 1.3719614744186401,
+        "odds_ratio": 0.25360902375584876
+      },
+      {
+        "feature": "NATURE_INJURY_CD_320",
+        "coefficient": -1.3419828414916992,
+        "abs_coefficient": 1.3419828414916992,
+        "odds_ratio": 0.2613269845283137
+      },
+      {
+        "feature": "NATURE_INJURY_CD_260",
+        "coefficient": 1.2483341693878174,
+        "abs_coefficient": 1.2483341693878174,
+        "odds_ratio": 3.4845334774645336
+      },
+      {
+        "feature": "ACCIDENT_TYPE_CD_36",
+        "coefficient": -1.1239824295043945,
+        "abs_coefficient": 1.1239824295043945,
+        "odds_ratio": 0.3249829922681371
+      },
+      {
+        "feature": "NATURE_INJURY_CD_310",
+        "coefficient": -1.0488035678863525,
+        "abs_coefficient": 1.0488035678863525,
+        "odds_ratio": 0.35035667643104607
+      }
+    ]
+  },
+  "estimator_table_hist_gb": null,
+  "shap": {
+    "available": true,
+    "explainer": "TreeExplainer",
+    "rows": 500,
+    "top_10": [
+      {
+        "feature": "NATURE_INJURY_CD_180",
+        "mean_abs_shap": 0.5747764120844294
+      },
+      {
+        "feature": "prev_lost_time_share",
+        "mean_abs_shap": 0.36535263799067647
+      },
+      {
+        "feature": "COAL_METAL_IND_C",
+        "mean_abs_shap": 0.34959580860802286
+      },
+      {
+        "feature": "INJ_BODY_PART_CD_340",
+        "mean_abs_shap": 0.20625931570947187
+      },
+      {
+        "feature": "longitude",
+        "mean_abs_shap": 0.08163143846965298
+      },
+      {
+        "feature": "NATURE_INJURY_CD_100",
+        "mean_abs_shap": 0.07274537376950758
+      },
+      {
+        "feature": "NATURE_INJURY_CD_220",
+        "mean_abs_shap": 0.06811883563356165
+      },
+      {
+        "feature": "INJ_BODY_PART_CD_130",
+        "mean_abs_shap": 0.06742705065132833
+      },
+      {
+        "feature": "INJ_BODY_PART_CD_142",
+        "mean_abs_shap": 0.05910520238294369
+      },
+      {
+        "feature": "prev_incidents",
+        "mean_abs_shap": 0.050054748437021436
+      }
+    ]
+  }
+}

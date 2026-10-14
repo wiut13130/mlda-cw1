@@ -1,0 +1,18 @@
+rule,condition,action,rows_affected
+E1_job_exper_gt_total,JOB_EXPER > TOT_EXPER,set JOB_EXPER NaN; exper_inconsistent = 1,3731
+E2_mine_exper_gt_total,MINE_EXPER > TOT_EXPER,set MINE_EXPER NaN; exper_inconsistent = 1,83
+E3_exper_gt_60,TOT_EXPER > 60 or MINE_EXPER > 60 or JOB_EXPER > 60,set offending value NaN,3
+E4_negative_exper,any experience < 0,assert none,0
+E5_accident_time_code,9990 <= ACCIDENT_TIME <= 9999,NaN,3091
+E6_accident_time_2400,ACCIDENT_TIME == 2400,set 0000,326
+E7_accident_time_other_invalid,"ACCIDENT_TIME blank, minutes >= 60 or > 2400 outside codes",assert none,0
+E8_shift_time_code_or_blank,9990 <= SHIFT_BEGIN_TIME <= 9999 or NaN (blank masked by load.py),NaN,519
+E9_shift_time_2400,SHIFT_BEGIN_TIME == 2400,set 0000,1833
+E10_shift_time_short,len(SHIFT_BEGIN_TIME) == 3 (e.g. '700'),parse as integer HHMM (700 -> 07:00); do not string-slice,48
+E11_shift_wrap,acc_min < shift_min,handled by mod 1440 in hours_into_shift,11538
+E12_hours_into_shift_gt_16,hours_into_shift > 16,NaN,662
+E21_no_injuries_cap,NO_INJURIES > 10,cap at 10,33
+E22_dates,ACCIDENT_DT unparsable or after snapshot; CAL_YR/CAL_QTR != derived,assert none,0
+E23_coordinates,not (17.5<=lat<=72 and -180<=lon<=-64) and STATE != 'AS',NaN,3
+E24_mine_attr_not_in_force,CURRENT_103I_DT > ACCIDENT_DT and not 'Never Had'; (CURRENT_CONTROLLER_BEGIN_DT > ACCIDENT_DT),"103I: any status dated after the accident ('Removed From 103I Status' included) or blank -> 'Unknown', because nothing dated later was knowable at filing; COMPANY_TYPE: feature dropped",22368
+E25_unstable_rates,prev_hours < 2000,winsorise rates at 50 per 200k h then log1p; keep raw counts,764

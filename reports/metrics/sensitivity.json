@@ -1,0 +1,774 @@
+{
+  "model": "hist_gb",
+  "pure_levels": {
+    "rule": "levels of categorical and binary features with at least 100 rows that are 100 % one class",
+    "found": [
+      {
+        "column": "NATURE_INJURY_CD",
+        "level": "100",
+        "n": 925,
+        "positives": 925,
+        "positive_rate": 1.0,
+        "documented": true
+      }
+    ],
+    "undocumented": []
+  },
+  "excluding_pure_levels": {
+    "levels": [
+      "NATURE_INJURY_CD=100"
+    ],
+    "n_test": 20320,
+    "n_test_excluded": 175,
+    "prevalence_test": 0.4858759842519685,
+    "prevalence_test_remaining": 0.481409779101514,
+    "models": {
+      "hist_gb": {
+        "with_levels": {
+          "roc_auc": 0.8430423369227206,
+          "pr_auc": 0.8414021427599513,
+          "brier": 0.1610149967602578,
+          "recall_at_0.5": 0.7377696748708599,
+          "specificity_at_0.5": 0.7847228869531923,
+          "recall_at_specificity_0.40": 0.9431783652385293,
+          "specificity_at_specificity_0.40": 0.40346510960084236,
+          "recall_at_flag_rate_0.50": 0.7750430466930011
+        },
+        "without_levels": {
+          "roc_auc": 0.8402100425281523,
+          "pr_auc": 0.834122526185725,
+          "brier": 0.1624134627684231,
+          "recall_at_0.5": 0.7330377397401526,
+          "specificity_at_0.5": 0.7847228869531923,
+          "recall_at_specificity_0.40": 0.9421530212414931,
+          "specificity_at_specificity_0.40": 0.40346510960084236,
+          "recall_at_flag_rate_0.50": 0.770983707981027
+        },
+        "delta": {
+          "roc_auc": -0.0028322943945682244,
+          "pr_auc": -0.007279616574226266,
+          "brier": 0.0013984660081653166,
+          "recall_at_0.5": -0.004731935130707243,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0010253439970361322,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": -0.004059338711974059
+        }
+      },
+      "mlp": {
+        "with_levels": {
+          "roc_auc": 0.8394862383165018,
+          "pr_auc": 0.8368675998559368,
+          "brier": 0.16309073751412512,
+          "recall_at_0.5": 0.7494176035652791,
+          "specificity_at_0.5": 0.7689288791040491,
+          "recall_at_specificity_0.40": 0.9479388230527702,
+          "specificity_at_specificity_0.40": 0.3728343064994735,
+          "recall_at_flag_rate_0.50": 0.7902359971639826
+        },
+        "without_levels": {
+          "roc_auc": 0.8366188321599665,
+          "pr_auc": 0.8297349084272516,
+          "brier": 0.16449941864068218,
+          "recall_at_0.5": 0.7448958548154259,
+          "specificity_at_0.5": 0.7689288791040491,
+          "recall_at_specificity_0.40": 0.9469993813157352,
+          "specificity_at_specificity_0.40": 0.3728343064994735,
+          "recall_at_flag_rate_0.50": 0.7864508146009487
+        },
+        "delta": {
+          "roc_auc": -0.002867406156535357,
+          "pr_auc": -0.007132691428685223,
+          "brier": 0.0014086811265570653,
+          "recall_at_0.5": -0.004521748749853227,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0009394417370349739,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": -0.003785182563033951
+        }
+      },
+      "random_forest": {
+        "with_levels": {
+          "roc_auc": 0.832793603295208,
+          "pr_auc": 0.8265710289479542,
+          "brier": 0.17022330215260334,
+          "recall_at_0.5": 0.7074850602653702,
+          "specificity_at_0.5": 0.799463960945726,
+          "recall_at_specificity_0.40": 0.9351767446571457,
+          "specificity_at_specificity_0.40": 0.4082511725854312,
+          "recall_at_flag_rate_0.50": 0.7591410918667072
+        },
+        "without_levels": {
+          "roc_auc": 0.8311256774736804,
+          "pr_auc": 0.8233661524632847,
+          "brier": 0.17065183271135376,
+          "recall_at_0.5": 0.7025159826768406,
+          "specificity_at_0.5": 0.799463960945726,
+          "recall_at_specificity_0.40": 0.934007011755001,
+          "specificity_at_specificity_0.40": 0.4082511725854312,
+          "recall_at_flag_rate_0.50": 0.7551041451845741
+        },
+        "delta": {
+          "roc_auc": -0.0016679258215276382,
+          "pr_auc": -0.0032048764846694944,
+          "brier": 0.00042853055875041735,
+          "recall_at_0.5": -0.004969077588529602,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0011697329021447267,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": -0.004036946682133058
+        }
+      },
+      "logreg": {
+        "with_levels": {
+          "roc_auc": 0.8291269545356786,
+          "pr_auc": 0.8247578495021872,
+          "brier": 0.1686329517536825,
+          "recall_at_0.5": 0.7441507140686722,
+          "specificity_at_0.5": 0.7583995405379534,
+          "recall_at_specificity_0.40": 0.9335561632735744,
+          "specificity_at_specificity_0.40": 0.40480520723652724,
+          "recall_at_flag_rate_0.50": 0.7545832067254128
+        },
+        "without_levels": {
+          "roc_auc": 0.826043893241244,
+          "pr_auc": 0.8162991256109134,
+          "brier": 0.1700968587717822,
+          "recall_at_0.5": 0.7395339245205197,
+          "specificity_at_0.5": 0.7583995405379534,
+          "recall_at_specificity_0.40": 0.932357187048876,
+          "specificity_at_specificity_0.40": 0.40480520723652724,
+          "recall_at_flag_rate_0.50": 0.7501546710661993
+        },
+        "delta": {
+          "roc_auc": -0.003083061294434586,
+          "pr_auc": -0.008458723891273778,
+          "brier": 0.0014639070180997027,
+          "recall_at_0.5": -0.004616789548152478,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0011989762246983338,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": -0.004428535659213528
+        }
+      },
+      "decision_tree": {
+        "with_levels": {
+          "roc_auc": 0.8170511160349437,
+          "pr_auc": 0.8046173991064273,
+          "brier": 0.17395880261411245,
+          "recall_at_0.5": 0.6762888686316216,
+          "specificity_at_0.5": 0.799081075906959,
+          "recall_at_specificity_0.40": 0.931935581890003,
+          "specificity_at_specificity_0.40": 0.37589738680961043,
+          "recall_at_flag_rate_0.50": 0.6762888686316216
+        },
+        "without_levels": {
+          "roc_auc": 0.813941085884158,
+          "pr_auc": 0.7957021848178987,
+          "brier": 0.17537390156488,
+          "recall_at_0.5": 0.6706537430398021,
+          "specificity_at_0.5": 0.799081075906959,
+          "recall_at_specificity_0.40": 0.9307073623427511,
+          "specificity_at_specificity_0.40": 0.37589738680961043,
+          "recall_at_flag_rate_0.50": 0.6706537430398021
+        },
+        "delta": {
+          "roc_auc": -0.003110030150785703,
+          "pr_auc": -0.008915214288528595,
+          "brier": 0.0014150989507675515,
+          "recall_at_0.5": -0.005635125591819556,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0012282195472519408,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": -0.005635125591819556
+        }
+      },
+      "svc_rbf": {
+        "with_levels": {
+          "roc_auc": 0.8195930084835136,
+          "pr_auc": 0.8113334457003498,
+          "brier": 0.17304475559672824,
+          "recall_at_0.5": 0.7305783449812621,
+          "specificity_at_0.5": 0.7626112759643917,
+          "recall_at_specificity_0.40": 0.9265674060569229,
+          "specificity_at_specificity_0.40": 0.41073992533741743,
+          "recall_at_flag_rate_0.50": 0.7484047402005469
+        },
+        "without_levels": {
+          "roc_auc": 0.8193413421897247,
+          "pr_auc": 0.808938117755253,
+          "brier": 0.17305648527559106,
+          "recall_at_0.5": 0.7308723448133636,
+          "specificity_at_0.5": 0.7626112759643917,
+          "recall_at_specificity_0.40": 0.9254485460919777,
+          "specificity_at_specificity_0.40": 0.41073992533741743,
+          "recall_at_flag_rate_0.50": 0.7485048463600742
+        },
+        "delta": {
+          "roc_auc": -0.00025166629378892136,
+          "pr_auc": -0.0023953279450967813,
+          "brier": 1.1729678862815174e-05,
+          "recall_at_0.5": 0.00029399983210154357,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.001118859964945207,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.00010010615952726898
+        }
+      },
+      "knn": {
+        "with_levels": {
+          "roc_auc": 0.7731692640111303,
+          "pr_auc": 0.7697756008081409,
+          "brier": 0.1948660094529733,
+          "recall_at_0.5": 0.5893851919376076,
+          "specificity_at_0.5": 0.8074088255001436,
+          "recall_at_specificity_0.40": 0.8862554441405854,
+          "specificity_at_specificity_0.40": 0.4120800229731023,
+          "recall_at_flag_rate_0.50": 0.6961409905803707
+        },
+        "without_levels": {
+          "roc_auc": 0.7762998207787699,
+          "pr_auc": 0.7699201187201548,
+          "brier": 0.19338616281902207,
+          "recall_at_0.5": 0.5944524644256548,
+          "specificity_at_0.5": 0.8074088255001436,
+          "recall_at_specificity_0.40": 0.8897710868220252,
+          "specificity_at_specificity_0.40": 0.4120800229731023,
+          "recall_at_flag_rate_0.50": 0.7017941843679109
+        },
+        "delta": {
+          "roc_auc": 0.003130556767639625,
+          "pr_auc": 0.000144517912013864,
+          "brier": -0.0014798466339512317,
+          "recall_at_0.5": 0.00506727248804717,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": 0.003515642681439779,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.005653193787540145
+        }
+      },
+      "gaussian_nb": {
+        "with_levels": {
+          "roc_auc": 0.7409871569759143,
+          "pr_auc": 0.7405563587928871,
+          "brier": 0.29793897554808635,
+          "recall_at_0.5": 0.5243593639218069,
+          "specificity_at_0.5": 0.8023355987364794,
+          "recall_at_specificity_0.40": 0.8679226172389345,
+          "specificity_at_specificity_0.40": 0.4067196324303628,
+          "recall_at_flag_rate_0.50": 0.6642357945913097
+        },
+        "without_levels": {
+          "roc_auc": 0.7443346102155883,
+          "pr_auc": 0.740344406006345,
+          "brier": 0.2944827232597011,
+          "recall_at_0.5": 0.5286657042689215,
+          "specificity_at_0.5": 0.8023355987364794,
+          "recall_at_specificity_0.40": 0.8722416993194473,
+          "specificity_at_specificity_0.40": 0.4067196324303628,
+          "recall_at_flag_rate_0.50": 0.670138172819138
+        },
+        "delta": {
+          "roc_auc": 0.003347453239674003,
+          "pr_auc": -0.00021195278654206895,
+          "brier": -0.003456252288385253,
+          "recall_at_0.5": 0.004306340347114523,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": 0.004319082080512793,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.005902378227828353
+        }
+      },
+      "majority": {
+        "with_levels": {
+          "roc_auc": 0.5,
+          "pr_auc": 0.4858759842519685,
+          "brier": 0.2498005130312471,
+          "recall_at_0.5": 0.0,
+          "specificity_at_0.5": 1.0,
+          "recall_at_specificity_0.40": 1.0,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.0
+        },
+        "without_levels": {
+          "roc_auc": 0.5,
+          "pr_auc": 0.481409779101514,
+          "brier": 0.24967409078406488,
+          "recall_at_0.5": 0.0,
+          "specificity_at_0.5": 1.0,
+          "recall_at_specificity_0.40": 1.0,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.0
+        },
+        "delta": {
+          "roc_auc": 0.0,
+          "pr_auc": -0.004466205150454483,
+          "brier": -0.0001264222471822063,
+          "recall_at_0.5": 0.0,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": 0.0,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.0
+        }
+      },
+      "all_positive": {
+        "with_levels": {
+          "roc_auc": 0.5,
+          "pr_auc": 0.4858759842519685,
+          "brier": 0.5141240157480315,
+          "recall_at_0.5": 1.0,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": 0.0,
+          "specificity_at_specificity_0.40": 1.0,
+          "recall_at_flag_rate_0.50": 0.0
+        },
+        "without_levels": {
+          "roc_auc": 0.5,
+          "pr_auc": 0.481409779101514,
+          "brier": 0.5185902208984859,
+          "recall_at_0.5": 1.0,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": 0.0,
+          "specificity_at_specificity_0.40": 1.0,
+          "recall_at_flag_rate_0.50": 0.0
+        },
+        "delta": {
+          "roc_auc": 0.0,
+          "pr_auc": -0.004466205150454483,
+          "brier": 0.004466205150454483,
+          "recall_at_0.5": 0.0,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": 0.0,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.0
+        }
+      },
+      "rule_not_cut_or_dust": {
+        "with_levels": {
+          "roc_auc": 0.660456157321657,
+          "pr_auc": 0.5840785508056276,
+          "brier": 0.34625984251968506,
+          "recall_at_0.5": 0.8982072318444242,
+          "specificity_at_0.5": 0.42270508279888963,
+          "recall_at_specificity_0.40": 0.8982072318444242,
+          "specificity_at_specificity_0.40": 0.42270508279888963,
+          "recall_at_flag_rate_0.50": 0.0
+        },
+        "without_levels": {
+          "roc_auc": 0.6595377342227073,
+          "pr_auc": 0.5791023658820486,
+          "brier": 0.3492678083891785,
+          "recall_at_0.5": 0.896370385646525,
+          "specificity_at_0.5": 0.42270508279888963,
+          "recall_at_specificity_0.40": 0.896370385646525,
+          "specificity_at_specificity_0.40": 0.42270508279888963,
+          "recall_at_flag_rate_0.50": 0.0
+        },
+        "delta": {
+          "roc_auc": -0.0009184230989496278,
+          "pr_auc": -0.004976184923579097,
+          "brier": 0.003007965869493423,
+          "recall_at_0.5": -0.0018368461978991446,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0018368461978991446,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": 0.0
+        }
+      },
+      "lookup_nature_bodypart_coal": {
+        "with_levels": {
+          "roc_auc": 0.8039409391780636,
+          "pr_auc": 0.7899469580511544,
+          "brier": 0.17901130119744724,
+          "recall_at_0.5": 0.6548161652993011,
+          "specificity_at_0.5": 0.8008040585814109,
+          "recall_at_specificity_0.40": 0.915932340727236,
+          "specificity_at_specificity_0.40": 0.4019335694457739,
+          "recall_at_flag_rate_0.50": 0.7525574799959486
+        },
+        "without_levels": {
+          "roc_auc": 0.8004168800029483,
+          "pr_auc": 0.7788478385801084,
+          "brier": 0.18056637579211357,
+          "recall_at_0.5": 0.6485873375953805,
+          "specificity_at_0.5": 0.8008040585814109,
+          "recall_at_specificity_0.40": 0.9144153433697669,
+          "specificity_at_specificity_0.40": 0.4019335694457739,
+          "recall_at_flag_rate_0.50": 0.748092390183543
+        },
+        "delta": {
+          "roc_auc": -0.003524059175115335,
+          "pr_auc": -0.011099119471046026,
+          "brier": 0.0015550745946663336,
+          "recall_at_0.5": -0.006228827703920636,
+          "specificity_at_0.5": 0.0,
+          "recall_at_specificity_0.40": -0.0015169973574690188,
+          "specificity_at_specificity_0.40": 0.0,
+          "recall_at_flag_rate_0.50": -0.004465089812405565
+        }
+      }
+    }
+  },
+  "primary_split_variants": {
+    "reference": {
+      "roc_auc": 0.8430423369227206,
+      "pr_auc": 0.8414021427599513,
+      "brier": 0.1610149967602578,
+      "recall_at_0.5": 0.7377696748708599,
+      "specificity_at_0.5": 0.7847228869531923,
+      "recall_at_specificity_0.40": 0.9431783652385293,
+      "specificity_at_specificity_0.40": 0.40346510960084236,
+      "recall_at_flag_rate_0.50": 0.7750430466930011
+    },
+    "hyperparameters": "those selected by the primary search on the primary training rows; not re-tuned",
+    "variants": {
+      "without_immed_reportable": {
+        "description": "immed_reportable set to 0 (the flag is a near copy of the death code)",
+        "rows_changed": 3665,
+        "thresholds": {
+          "specificity_0.40": 0.2121091948709063,
+          "flag_rate_0.50": 0.45868052458169206
+        },
+        "test": {
+          "roc_auc": 0.8430508057285891,
+          "pr_auc": 0.8404008985598224,
+          "brier": 0.16107910921088228,
+          "recall_at_0.5": 0.7399979742732705,
+          "specificity_at_0.5": 0.7879774097827127,
+          "recall_at_specificity_0.40": 0.9425706472196901,
+          "specificity_at_specificity_0.40": 0.40442232219776014,
+          "recall_at_flag_rate_0.50": 0.7748404740200547
+        },
+        "delta_vs_reference": {
+          "roc_auc": 8.468805868577789e-06,
+          "pr_auc": -0.0010012442001289257,
+          "brier": 6.411245062448723e-05,
+          "recall_at_0.5": 0.0022282994024106495,
+          "specificity_at_0.5": 0.0032545228295204343,
+          "recall_at_specificity_0.40": -0.0006077180188391873,
+          "specificity_at_specificity_0.40": 0.000957212596917778,
+          "recall_at_flag_rate_0.50": -0.00020257267294632175
+        }
+      },
+      "without_status_103i": {
+        "description": "status_103i_at_accident set to one constant level",
+        "rows_changed": 101609,
+        "thresholds": {
+          "specificity_0.40": 0.21072452334886052,
+          "flag_rate_0.50": 0.45572738977089067
+        },
+        "test": {
+          "roc_auc": 0.8433254335420227,
+          "pr_auc": 0.8413486165364401,
+          "brier": 0.16087026844858404,
+          "recall_at_0.5": 0.7389851109085385,
+          "specificity_at_0.5": 0.7862544271082608,
+          "recall_at_specificity_0.40": 0.9416590701914311,
+          "specificity_at_specificity_0.40": 0.4094955489614243,
+          "recall_at_flag_rate_0.50": 0.7760559100577332
+        },
+        "delta_vs_reference": {
+          "roc_auc": 0.0002830966193021478,
+          "pr_auc": -5.352622351117997e-05,
+          "brier": -0.000144728311673753,
+          "recall_at_0.5": 0.0012154360376785966,
+          "specificity_at_0.5": 0.0015315401550685115,
+          "recall_at_specificity_0.40": -0.0015192950470981348,
+          "specificity_at_specificity_0.40": 0.006030439360581952,
+          "recall_at_flag_rate_0.50": 0.0010128633647321639
+        }
+      },
+      "resolved_lag_counts": {
+        "description": "previous-year case counts restricted to cases whose return-to-work date and closing document are earlier than the accident",
+        "rows_changed": 30505,
+        "thresholds": {
+          "specificity_0.40": 0.21092820703875054,
+          "flag_rate_0.50": 0.45692572565458944
+        },
+        "test": {
+          "roc_auc": 0.8425953323102706,
+          "pr_auc": 0.84094065614607,
+          "brier": 0.16128466864864552,
+          "recall_at_0.5": 0.7361490934872885,
+          "specificity_at_0.5": 0.7892217861587059,
+          "recall_at_specificity_0.40": 0.9430770789020562,
+          "specificity_at_specificity_0.40": 0.4010720781085479,
+          "recall_at_flag_rate_0.50": 0.7733211789729566
+        },
+        "delta_vs_reference": {
+          "roc_auc": -0.0004470046124499527,
+          "pr_auc": -0.0004614866138812346,
+          "brier": 0.0002696718883877236,
+          "recall_at_0.5": -0.0016205813835713512,
+          "specificity_at_0.5": 0.004498899205513607,
+          "recall_at_specificity_0.40": -0.00010128633647310537,
+          "specificity_at_specificity_0.40": -0.002393031492294473,
+          "recall_at_flag_rate_0.50": -0.0017218677200444565
+        }
+      },
+      "exposure_blank_if_q4_incomplete": {
+        "description": "previous-year hours and employees set to missing (and the mine type taken from the accident subunit) for forms filed on or before 15 January",
+        "rows_changed": 1637,
+        "thresholds": {
+          "specificity_0.40": 0.21232908666455197,
+          "flag_rate_0.50": 0.45595544936389926
+        },
+        "test": {
+          "roc_auc": 0.842916691256259,
+          "pr_auc": 0.8411452693019534,
+          "brier": 0.16110245699315814,
+          "recall_at_0.5": 0.7372632431884939,
+          "specificity_at_0.5": 0.7873073609648703,
+          "recall_at_specificity_0.40": 0.9417603565279044,
+          "specificity_at_specificity_0.40": 0.40499664975591076,
+          "recall_at_flag_rate_0.50": 0.7751443330294743
+        },
+        "delta_vs_reference": {
+          "roc_auc": -0.00012564566646156017,
+          "pr_auc": -0.00025687345799785266,
+          "brier": 8.746023290034932e-05,
+          "recall_at_0.5": -0.0005064316823659709,
+          "specificity_at_0.5": 0.0025844740116780507,
+          "recall_at_specificity_0.40": -0.0014180087106249184,
+          "specificity_at_specificity_0.40": 0.0015315401550684005,
+          "recall_at_flag_rate_0.50": 0.00010128633647321639
+        }
+      }
+    }
+  },
+  "mine_grouped_split": {
+    "group": "MINE_ID",
+    "n_groups": 8303,
+    "n_train": 81320,
+    "n_test": 20289,
+    "n_fit_rows": 81320,
+    "shared_mines": 0,
+    "prevalence_tolerance_used": 0.01,
+    "hyperparameters": "selected by the primary search, whose training rows include rows that are test rows of this split; only that grid choice, not any fitted weight, imputation or threshold, has seen their labels",
+    "prevalence_train": 0.48585833743236595,
+    "prevalence_test": 0.4858297599684558,
+    "model": {
+      "thresholds": {
+        "specificity_0.40": 0.21401880439219598,
+        "flag_rate_0.50": 0.4585527561407847
+      },
+      "test": {
+        "roc_auc": 0.8375548429193915,
+        "pr_auc": 0.836464688237796,
+        "brier": 0.16385279337824588,
+        "recall_at_0.5": 0.7237496195597037,
+        "specificity_at_0.5": 0.7972584355828221,
+        "recall_at_specificity_0.40": 0.9361874809779852,
+        "specificity_at_specificity_0.40": 0.41037193251533743,
+        "recall_at_flag_rate_0.50": 0.7618950999289845
+      },
+      "delta_vs_primary": {
+        "roc_auc": -0.005487494003329041,
+        "pr_auc": -0.004937454522155327,
+        "brier": 0.002837796617988081,
+        "recall_at_0.5": -0.014020055311156132,
+        "specificity_at_0.5": 0.0125355486296298,
+        "recall_at_specificity_0.40": -0.006990884260544061,
+        "specificity_at_specificity_0.40": 0.00690682291449507,
+        "recall_at_flag_rate_0.50": -0.013147946764016538
+      },
+      "criteria": {
+        "S1": {
+          "value": 0.8375548429193915,
+          "pass": true
+        },
+        "S2": {
+          "value": 0.836464688237796,
+          "pass": true
+        },
+        "S3": {
+          "value": 0.9361874809779852,
+          "specificity_achieved": 0.41037193251533743,
+          "threshold": 0.21401880439219598,
+          "pass": true
+        },
+        "S4": {
+          "by_ratio": {
+            "2": {
+              "cost_per_1000": 67376.41086302923,
+              "floor": 102834.04800630883,
+              "lookup": 74917.44294938144,
+              "below_floor": true,
+              "below_lookup": true,
+              "distance_to_floor": -35457.6371432796,
+              "counts_for_pass": true
+            },
+            "3": {
+              "cost_per_1000": 78732.3180048302,
+              "floor": 102834.04800630883,
+              "lookup": 86273.35009118241,
+              "below_floor": true,
+              "below_lookup": true,
+              "distance_to_floor": -24101.73000147863,
+              "counts_for_pass": true
+            },
+            "5": {
+              "cost_per_1000": 90107.94026319681,
+              "floor": 102834.04800630883,
+              "lookup": 97855.9810734881,
+              "below_floor": true,
+              "below_lookup": true,
+              "distance_to_floor": -12726.107743112021,
+              "counts_for_pass": true
+            },
+            "10": {
+              "cost_per_1000": 99561.33865641481,
+              "floor": 102834.04800630883,
+              "lookup": 102834.04800630883,
+              "below_floor": true,
+              "below_lookup": true,
+              "distance_to_floor": -3272.709349894023,
+              "counts_for_pass": false
+            },
+            "20": {
+              "cost_per_1000": 102311.59741731973,
+              "floor": 102834.04800630883,
+              "lookup": 102834.04800630883,
+              "below_floor": true,
+              "below_lookup": true,
+              "distance_to_floor": -522.4505889891007,
+              "counts_for_pass": false
+            },
+            "30": {
+              "cost_per_1000": 102843.90556459165,
+              "floor": 102834.04800630883,
+              "lookup": 102834.04800630883,
+              "below_floor": false,
+              "below_lookup": false,
+              "distance_to_floor": 9.85755828281981,
+              "counts_for_pass": false
+            }
+          },
+          "pass": true
+        },
+        "S5": {
+          "value": 0.7618950999289845,
+          "flag_rate_achieved": 0.49553945487702694,
+          "pass": false
+        },
+        "S6": {
+          "value": 0.16385279337824588,
+          "temporal_brier_by_sector": {},
+          "pass": true
+        },
+        "S7": {
+          "pass": true,
+          "see": "statistical_tests.json"
+        },
+        "all_pass": false
+      }
+    },
+    "lookup": {
+      "thresholds": {
+        "specificity_0.40": 0.21951219512195122,
+        "flag_rate_0.50": 0.44680851063829785
+      },
+      "test": {
+        "roc_auc": 0.7982293995469569,
+        "pr_auc": 0.7822727530802971,
+        "brier": 0.18203933412791237,
+        "recall_at_0.5": 0.6474586588211423,
+        "specificity_at_0.5": 0.7954371165644172,
+        "recall_at_specificity_0.40": 0.911433499036218,
+        "specificity_at_specificity_0.40": 0.40922162576687116,
+        "recall_at_flag_rate_0.50": 0.7096479659125494
+      },
+      "criteria": {
+        "S1": {
+          "value": 0.7982293995469569,
+          "pass": false
+        },
+        "S2": {
+          "value": 0.7822727530802971,
+          "pass": true
+        },
+        "S3": {
+          "value": 0.911433499036218,
+          "specificity_achieved": 0.40922162576687116,
+          "threshold": 0.21951219512195122,
+          "pass": false
+        },
+        "S4": {
+          "by_ratio": {
+            "2": {
+              "cost_per_1000": 74917.44294938144,
+              "floor": 102834.04800630883,
+              "lookup": 74917.44294938144,
+              "below_floor": true,
+              "below_lookup": false,
+              "distance_to_floor": -27916.605056927394,
+              "counts_for_pass": true
+            },
+            "3": {
+              "cost_per_1000": 86273.35009118241,
+              "floor": 102834.04800630883,
+              "lookup": 86273.35009118241,
+              "below_floor": true,
+              "below_lookup": false,
+              "distance_to_floor": -16560.697915126424,
+              "counts_for_pass": true
+            },
+            "5": {
+              "cost_per_1000": 97855.9810734881,
+              "floor": 102834.04800630883,
+              "lookup": 97855.9810734881,
+              "below_floor": true,
+              "below_lookup": false,
+              "distance_to_floor": -4978.06693282073,
+              "counts_for_pass": true
+            },
+            "10": {
+              "cost_per_1000": 102834.04800630883,
+              "floor": 102834.04800630883,
+              "lookup": 102834.04800630883,
+              "below_floor": false,
+              "below_lookup": false,
+              "distance_to_floor": 0.0,
+              "counts_for_pass": false
+            },
+            "20": {
+              "cost_per_1000": 102834.04800630883,
+              "floor": 102834.04800630883,
+              "lookup": 102834.04800630883,
+              "below_floor": false,
+              "below_lookup": false,
+              "distance_to_floor": 0.0,
+              "counts_for_pass": false
+            },
+            "30": {
+              "cost_per_1000": 102834.04800630883,
+              "floor": 102834.04800630883,
+              "lookup": 102834.04800630883,
+              "below_floor": false,
+              "below_lookup": false,
+              "distance_to_floor": 0.0,
+              "counts_for_pass": false
+            }
+          },
+          "pass": null
+        },
+        "S5": {
+          "value": 0.7096479659125494,
+          "flag_rate_achieved": 0.48075311745280697,
+          "pass": false
+        },
+        "S6": {
+          "value": 0.18203933412791237,
+          "temporal_brier_by_sector": {},
+          "pass": true
+        },
+        "S7": {
+          "pass": true,
+          "see": "statistical_tests.json"
+        },
+        "all_pass": false
+      }
+    },
+    "random_state": 42
+  }
+}

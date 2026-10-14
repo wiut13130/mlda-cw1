@@ -1,0 +1,834 @@
+{
+  "student_id": "13130",
+  "quick": false,
+  "models": [
+    "logreg",
+    "knn",
+    "gaussian_nb",
+    "decision_tree",
+    "random_forest",
+    "hist_gb",
+    "svc_rbf",
+    "mlp"
+  ],
+  "best_model": "hist_gb",
+  "ranking_by_cv_average_precision": [
+    "hist_gb",
+    "mlp",
+    "random_forest",
+    "logreg",
+    "decision_tree",
+    "svc_rbf",
+    "knn",
+    "gaussian_nb"
+  ],
+  "n_rows": 101609,
+  "prevalence": 0.4858526311645622,
+  "n_train": 81289,
+  "n_test": 20320,
+  "prevalence_train": 0.4858467935391012,
+  "prevalence_test": 0.4858759842519685,
+  "n_input_features": 55,
+  "n_transformed_features_default_preprocessor": 552,
+  "cv_folds": 5,
+  "quick_sample_cap": null,
+  "n_jobs": 8,
+  "error_rules_logged": 17,
+  "eda": {
+    "rows_described": 81289,
+    "scope": "training rows of the grouped split (target distribution: all rows)",
+    "figure_rows_histograms_boxplots": 81289,
+    "top_numeric_by_point_biserial": [
+      "prev_lost_time_share",
+      "prev_lost_time_rate_200k",
+      "longitude",
+      "prev_incidents",
+      "exper_ratio_mine"
+    ],
+    "top_categorical_by_cramers_v": [
+      "NATURE_INJURY_CD",
+      "INJ_BODY_PART_CD",
+      "INJURY_SOURCE_CD",
+      "ACCIDENT_TYPE_CD",
+      "FIPS_STATE_CD",
+      "PRIMARY_CANVASS",
+      "COAL_METAL_IND",
+      "ACTIVITY_CD"
+    ]
+  },
+  "learning_curve": {
+    "model": "hist_gb",
+    "n_rows": 10000,
+    "cv_folds": 5
+  },
+  "statistical_tests": {
+    "ranking_rule": "cross-validated mean average_precision of the selected candidate",
+    "mcnemar_best_vs_lookup": {
+      "at_0.5": {
+        "statistic": 131.74306205176177,
+        "p_value": 1.7029329621290245e-30,
+        "n_both_correct": 13553,
+        "n_a_only": 1929,
+        "n_b_only": 1278,
+        "n_neither": 3560,
+        "accuracy_a": 0.7619094488188977,
+        "accuracy_b": 0.7298720472440945,
+        "method": "chi-square with continuity correction",
+        "clustered_statistic": 78.49620300055565,
+        "clustered_p_value": 8.015215213446284e-19,
+        "n_clusters": 6724,
+        "n_discordant_clusters": 1910,
+        "clustered_method": "Durkalski et al. (2003) clustered McNemar, chi-square on 1 df",
+        "model_a": "hist_gb",
+        "model_b": "lookup_nature_bodypart_coal",
+        "threshold_a": 0.5,
+        "threshold_b": 0.5
+      },
+      "at_specificity_0.40": {
+        "statistic": 35.174880069777586,
+        "p_value": 3.013861703284694e-09,
+        "n_both_correct": 12238,
+        "n_a_only": 1289,
+        "n_b_only": 1004,
+        "n_neither": 5789,
+        "accuracy_a": 0.6656988188976378,
+        "accuracy_b": 0.6516732283464567,
+        "method": "chi-square with continuity correction",
+        "clustered_statistic": 24.443274149864582,
+        "clustered_p_value": 7.65302152295729e-07,
+        "n_clusters": 6724,
+        "n_discordant_clusters": 1489,
+        "clustered_method": "Durkalski et al. (2003) clustered McNemar, chi-square on 1 df",
+        "model_a": "hist_gb",
+        "model_b": "lookup_nature_bodypart_coal",
+        "threshold_a": 0.21028013793420935,
+        "threshold_b": 0.225
+      }
+    },
+    "clustering": "group_id (mine-year) of the held-out rows",
+    "bootstrap_best_model": {
+      "model": "hist_gb",
+      "n_boot": 1000,
+      "metrics": {
+        "roc_auc": {
+          "rows": {
+            "metric": "roc_auc",
+            "estimate": 0.8430423369227206,
+            "lower": 0.8377118174740834,
+            "upper": 0.8482346606786684,
+            "n_boot": 1000,
+            "alpha": 0.05,
+            "resampling": "rows"
+          },
+          "mine_years": {
+            "metric": "roc_auc",
+            "estimate": 0.8430423369227206,
+            "lower": 0.8350343046759194,
+            "upper": 0.851285288392877,
+            "n_boot": 1000,
+            "alpha": 0.05,
+            "resampling": "6724 clusters"
+          }
+        },
+        "pr_auc": {
+          "rows": {
+            "metric": "pr_auc",
+            "estimate": 0.8414021427599513,
+            "lower": 0.8345552129765597,
+            "upper": 0.848440343785034,
+            "n_boot": 1000,
+            "alpha": 0.05,
+            "resampling": "rows"
+          },
+          "mine_years": {
+            "metric": "pr_auc",
+            "estimate": 0.8414021427599513,
+            "lower": 0.825228878007825,
+            "upper": 0.8558218598492298,
+            "n_boot": 1000,
+            "alpha": 0.05,
+            "resampling": "6724 clusters"
+          }
+        },
+        "recall_at_specificity_0.40": {
+          "rows": {
+            "metric": "recall",
+            "estimate": 0.9431783652385293,
+            "lower": 0.9389932029902471,
+            "upper": 0.9474530455131626,
+            "n_boot": 1000,
+            "alpha": 0.05,
+            "resampling": "rows"
+          },
+          "mine_years": {
+            "metric": "recall",
+            "estimate": 0.9431783652385293,
+            "lower": 0.9379944430350693,
+            "upper": 0.9488204151882349,
+            "n_boot": 1000,
+            "alpha": 0.05,
+            "resampling": "6724 clusters"
+          }
+        }
+      }
+    },
+    "paired_fold_test_top_two": {
+      "models": [
+        "hist_gb",
+        "mlp"
+      ],
+      "metric": "average_precision",
+      "same_fit_rows": true,
+      "note": null,
+      "scores_a": [
+        0.8336527573447058,
+        0.8359522982909282,
+        0.8399310362667148,
+        0.8395984681956963,
+        0.8412353358962763
+      ],
+      "scores_b": [
+        0.8283344230167231,
+        0.8266963663493426,
+        0.8372309133575542,
+        0.8367376070563839,
+        0.8344242960201852
+      ],
+      "n_folds": 5,
+      "mean_a": 0.8380739791988644,
+      "mean_b": 0.8326847211600379,
+      "mean_difference": 0.005389258038826483,
+      "std_difference": 0.002765949179887847,
+      "t_statistic": 4.356821669294678,
+      "t_p_value": 0.012092214799014159,
+      "test_train_ratio": 0.25,
+      "corrected_t_statistic": 2.9045477795297856,
+      "corrected_t_p_value": 0.04391730476251742,
+      "wilcoxon_statistic": 0.0,
+      "wilcoxon_p_value": 0.0625
+    }
+  },
+  "temporal_models": [
+    "hist_gb",
+    "mlp"
+  ],
+  "undocumented_pure_levels": [],
+  "success_all_pass": {
+    "hist_gb": false,
+    "mlp": true,
+    "random_forest": false,
+    "logreg": false,
+    "decision_tree": false,
+    "svc_rbf": false,
+    "knn": false,
+    "gaussian_nb": false,
+    "lookup_nature_bodypart_coal": false
+  },
+  "comparison_at_0.5": {
+    "hist_gb": {
+      "TPR": 0.7378,
+      "TNR": 0.7847,
+      "AUC": 0.843,
+      "Recall": 0.7378,
+      "Precision": 0.7641,
+      "F1": 0.7507,
+      "PR-AUC": 0.8414,
+      "Accuracy": 0.7619
+    },
+    "mlp": {
+      "TPR": 0.7494,
+      "TNR": 0.7689,
+      "AUC": 0.8395,
+      "Recall": 0.7494,
+      "Precision": 0.754,
+      "F1": 0.7517,
+      "PR-AUC": 0.8369,
+      "Accuracy": 0.7594
+    },
+    "random_forest": {
+      "TPR": 0.7075,
+      "TNR": 0.7995,
+      "AUC": 0.8328,
+      "Recall": 0.7075,
+      "Precision": 0.7693,
+      "F1": 0.7371,
+      "PR-AUC": 0.8266,
+      "Accuracy": 0.7548
+    },
+    "logreg": {
+      "TPR": 0.7442,
+      "TNR": 0.7584,
+      "AUC": 0.8291,
+      "Recall": 0.7442,
+      "Precision": 0.7443,
+      "F1": 0.7442,
+      "PR-AUC": 0.8248,
+      "Accuracy": 0.7515
+    },
+    "svc_rbf": {
+      "TPR": 0.7306,
+      "TNR": 0.7626,
+      "AUC": 0.8196,
+      "Recall": 0.7306,
+      "Precision": 0.7441,
+      "F1": 0.7373,
+      "PR-AUC": 0.8113,
+      "Accuracy": 0.747
+    },
+    "decision_tree": {
+      "TPR": 0.6763,
+      "TNR": 0.7991,
+      "AUC": 0.8171,
+      "Recall": 0.6763,
+      "Precision": 0.7608,
+      "F1": 0.7161,
+      "PR-AUC": 0.8046,
+      "Accuracy": 0.7394
+    },
+    "lookup_nature_bodypart_coal": {
+      "TPR": 0.6548,
+      "TNR": 0.8008,
+      "AUC": 0.8039,
+      "Recall": 0.6548,
+      "Precision": 0.7565,
+      "F1": 0.702,
+      "PR-AUC": 0.7899,
+      "Accuracy": 0.7299
+    },
+    "knn": {
+      "TPR": 0.5894,
+      "TNR": 0.8074,
+      "AUC": 0.7732,
+      "Recall": 0.5894,
+      "Precision": 0.7431,
+      "F1": 0.6574,
+      "PR-AUC": 0.7698,
+      "Accuracy": 0.7015
+    },
+    "gaussian_nb": {
+      "TPR": 0.5244,
+      "TNR": 0.8023,
+      "AUC": 0.741,
+      "Recall": 0.5244,
+      "Precision": 0.7149,
+      "F1": 0.605,
+      "PR-AUC": 0.7406,
+      "Accuracy": 0.6673
+    },
+    "rule_not_cut_or_dust": {
+      "TPR": 0.8982,
+      "TNR": 0.4227,
+      "AUC": 0.6605,
+      "Recall": 0.8982,
+      "Precision": 0.5952,
+      "F1": 0.716,
+      "PR-AUC": 0.5841,
+      "Accuracy": 0.6537
+    },
+    "majority": {
+      "TPR": 0.0,
+      "TNR": 1.0,
+      "AUC": 0.5,
+      "Recall": 0.0,
+      "Precision": 0.0,
+      "F1": 0.0,
+      "PR-AUC": 0.4859,
+      "Accuracy": 0.5141
+    },
+    "all_positive": {
+      "TPR": 1.0,
+      "TNR": 0.0,
+      "AUC": 0.5,
+      "Recall": 1.0,
+      "Precision": 0.4859,
+      "F1": 0.654,
+      "PR-AUC": 0.4859,
+      "Accuracy": 0.4859
+    }
+  },
+  "evaluation_figures": [
+    "F12_roc_curves.png",
+    "F13_pr_curves.png",
+    "F14_validation_curves.png",
+    "F16_confusion_matrices.png",
+    "F18_threshold_cost_curve_hist_gb.png",
+    "F19_calibration.png"
+  ],
+  "explanations": {
+    "best_model": "hist_gb",
+    "shap": {
+      "available": true,
+      "explainer": "TreeExplainer",
+      "rows": 500,
+      "top_10": [
+        {
+          "feature": "NATURE_INJURY_CD_180",
+          "mean_abs_shap": 0.5747764120844294
+        },
+        {
+          "feature": "prev_lost_time_share",
+          "mean_abs_shap": 0.36535263799067647
+        },
+        {
+          "feature": "COAL_METAL_IND_C",
+          "mean_abs_shap": 0.34959580860802286
+        },
+        {
+          "feature": "INJ_BODY_PART_CD_340",
+          "mean_abs_shap": 0.20625931570947187
+        },
+        {
+          "feature": "longitude",
+          "mean_abs_shap": 0.08163143846965298
+        },
+        {
+          "feature": "NATURE_INJURY_CD_100",
+          "mean_abs_shap": 0.07274537376950758
+        },
+        {
+          "feature": "NATURE_INJURY_CD_220",
+          "mean_abs_shap": 0.06811883563356165
+        },
+        {
+          "feature": "INJ_BODY_PART_CD_130",
+          "mean_abs_shap": 0.06742705065132833
+        },
+        {
+          "feature": "INJ_BODY_PART_CD_142",
+          "mean_abs_shap": 0.05910520238294369
+        },
+        {
+          "feature": "prev_incidents",
+          "mean_abs_shap": 0.050054748437021436
+        }
+      ]
+    }
+  },
+  "stage_seconds": {
+    "load_and_clean": 0.6,
+    "features_and_split": 8.94,
+    "eda": 19.65,
+    "baselines": 15.25,
+    "model_logreg": 71.38,
+    "model_knn": 285.17,
+    "model_gaussian_nb": 29.55,
+    "model_decision_tree": 161.62,
+    "model_random_forest": 142.16,
+    "model_hist_gb": 580.79,
+    "model_svc_rbf": 1238.87,
+    "model_mlp": 188.35,
+    "predictions_and_comparison": 16.22,
+    "evaluation_figures": 3.09,
+    "learning_curve": 28.96,
+    "temporal_split": 2535.29,
+    "sensitivity": 325.09,
+    "explanations": 23.94,
+    "success_criteria": 0.01
+  },
+  "total_seconds": 5674.9,
+  "environment": {
+    "student_id": "13130",
+    "saved_at_utc": "2026-10-14T18:06:53+00:00",
+    "python_version": "3.12.15",
+    "sklearn_version": "1.9.1",
+    "numpy_version": "2.5.4",
+    "pandas_version": "2.3.3",
+    "joblib_version": "1.6.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git_sha": "6e0d04121f2479dada517467df1d87ed77279ee6",
+    "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
+    "data_snapshot_utc": "2026-10-14T12:06:01Z"
+  },
+  "artefacts": [
+    {
+      "directory": "processed",
+      "file": "base.parquet",
+      "bytes": 7282880
+    },
+    {
+      "directory": "processed",
+      "file": "features.parquet",
+      "bytes": 5885589
+    },
+    {
+      "directory": "processed",
+      "file": "mine_case_history.parquet",
+      "bytes": 969030
+    },
+    {
+      "directory": "processed",
+      "file": "mine_year_features.parquet",
+      "bytes": 1107070
+    },
+    {
+      "directory": "processed",
+      "file": "split_indices.json",
+      "bytes": 701883
+    },
+    {
+      "directory": "models",
+      "file": "decision_tree.joblib",
+      "bytes": 32204
+    },
+    {
+      "directory": "models",
+      "file": "gaussian_nb.joblib",
+      "bytes": 19182
+    },
+    {
+      "directory": "models",
+      "file": "hist_gb.joblib",
+      "bytes": 449045
+    },
+    {
+      "directory": "models",
+      "file": "knn.joblib",
+      "bytes": 5227333
+    },
+    {
+      "directory": "models",
+      "file": "logreg.joblib",
+      "bytes": 13509
+    },
+    {
+      "directory": "models",
+      "file": "manifest.json",
+      "bytes": 10611
+    },
+    {
+      "directory": "models",
+      "file": "mlp.joblib",
+      "bytes": 810108
+    },
+    {
+      "directory": "models",
+      "file": "random_forest.joblib",
+      "bytes": 20369277
+    },
+    {
+      "directory": "models",
+      "file": "svc_rbf.joblib",
+      "bytes": 1246971
+    },
+    {
+      "directory": "metrics",
+      "file": "baselines.json",
+      "bytes": 55362
+    },
+    {
+      "directory": "metrics",
+      "file": "coefficients_logreg.csv",
+      "bytes": 47177
+    },
+    {
+      "directory": "metrics",
+      "file": "comparison.csv",
+      "bytes": 1877
+    },
+    {
+      "directory": "metrics",
+      "file": "comparison_operating_point.csv",
+      "bytes": 3201
+    },
+    {
+      "directory": "metrics",
+      "file": "cv_summary.csv",
+      "bytes": 2556
+    },
+    {
+      "directory": "metrics",
+      "file": "decision_tree.json",
+      "bytes": 15939
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_correlations_disagreements.csv",
+      "bytes": 1965
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_correlations_pearson.csv",
+      "bytes": 8566
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_correlations_spearman.csv",
+      "bytes": 8450
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_cramers_v.csv",
+      "bytes": 1696
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_describe_categorical.csv",
+      "bytes": 1577
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_describe_numeric.csv",
+      "bytes": 4341
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_missingness.csv",
+      "bytes": 4288
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_point_biserial.csv",
+      "bytes": 1281
+    },
+    {
+      "directory": "metrics",
+      "file": "eda_vif.csv",
+      "bytes": 718
+    },
+    {
+      "directory": "metrics",
+      "file": "error_rules.csv",
+      "bytes": 1663
+    },
+    {
+      "directory": "metrics",
+      "file": "explanations.json",
+      "bytes": 4945
+    },
+    {
+      "directory": "metrics",
+      "file": "gaussian_nb.json",
+      "bytes": 16259
+    },
+    {
+      "directory": "metrics",
+      "file": "hist_gb.json",
+      "bytes": 16328
+    },
+    {
+      "directory": "metrics",
+      "file": "knn.json",
+      "bytes": 16284
+    },
+    {
+      "directory": "metrics",
+      "file": "logreg.json",
+      "bytes": 16218
+    },
+    {
+      "directory": "metrics",
+      "file": "mlp.json",
+      "bytes": 16215
+    },
+    {
+      "directory": "metrics",
+      "file": "permutation_importance_hist_gb.csv",
+      "bytes": 3239
+    },
+    {
+      "directory": "metrics",
+      "file": "random_forest.json",
+      "bytes": 16307
+    },
+    {
+      "directory": "metrics",
+      "file": "run_manifest.json",
+      "bytes": 19966
+    },
+    {
+      "directory": "metrics",
+      "file": "sensitivity.json",
+      "bytes": 30109
+    },
+    {
+      "directory": "metrics",
+      "file": "shap_summary_hist_gb.csv",
+      "bytes": 22962
+    },
+    {
+      "directory": "metrics",
+      "file": "statistical_tests.json",
+      "bytes": 5336
+    },
+    {
+      "directory": "metrics",
+      "file": "success_criteria.json",
+      "bytes": 32578
+    },
+    {
+      "directory": "metrics",
+      "file": "svc_rbf.json",
+      "bytes": 16288
+    },
+    {
+      "directory": "metrics",
+      "file": "temporal_split.json",
+      "bytes": 36172
+    },
+    {
+      "directory": "metrics",
+      "file": "threshold_sweep_test_hist_gb.csv",
+      "bytes": 5987929
+    },
+    {
+      "directory": "metrics",
+      "file": "thresholds.json",
+      "bytes": 3696
+    },
+    {
+      "directory": "cv",
+      "file": "decision_tree_cv_results.csv",
+      "bytes": 52906
+    },
+    {
+      "directory": "cv",
+      "file": "gaussian_nb_cv_results.csv",
+      "bytes": 12589
+    },
+    {
+      "directory": "cv",
+      "file": "hist_gb_cv_results.csv",
+      "bytes": 36947
+    },
+    {
+      "directory": "cv",
+      "file": "hist_gb_learning_curve.csv",
+      "bytes": 478
+    },
+    {
+      "directory": "cv",
+      "file": "knn_cv_results.csv",
+      "bytes": 14451
+    },
+    {
+      "directory": "cv",
+      "file": "logreg_cv_results.csv",
+      "bytes": 18897
+    },
+    {
+      "directory": "cv",
+      "file": "mlp_cv_results.csv",
+      "bytes": 20974
+    },
+    {
+      "directory": "cv",
+      "file": "random_forest_cv_results.csv",
+      "bytes": 10949
+    },
+    {
+      "directory": "cv",
+      "file": "svc_rbf_cv_results.csv",
+      "bytes": 10576
+    },
+    {
+      "directory": "predictions",
+      "file": "oof_predictions.parquet",
+      "bytes": 5773350
+    },
+    {
+      "directory": "predictions",
+      "file": "test_predictions.parquet",
+      "bytes": 1436880
+    },
+    {
+      "directory": "figures",
+      "file": "F01_pipeline.png",
+      "bytes": 168945
+    },
+    {
+      "directory": "figures",
+      "file": "F02_target_distribution.png",
+      "bytes": 28013
+    },
+    {
+      "directory": "figures",
+      "file": "F03_histograms.png",
+      "bytes": 329814
+    },
+    {
+      "directory": "figures",
+      "file": "F04_class_boxplots.png",
+      "bytes": 307001
+    },
+    {
+      "directory": "figures",
+      "file": "F05_pairplot_top.png",
+      "bytes": 521196
+    },
+    {
+      "directory": "figures",
+      "file": "F06_correlation_heatmaps.png",
+      "bytes": 117338
+    },
+    {
+      "directory": "figures",
+      "file": "F07_categorical_vs_target.png",
+      "bytes": 253061
+    },
+    {
+      "directory": "figures",
+      "file": "F08_missingness.png",
+      "bytes": 158295
+    },
+    {
+      "directory": "figures",
+      "file": "F09_qq_plots.png",
+      "bytes": 152821
+    },
+    {
+      "directory": "figures",
+      "file": "F10_outlier_fences.png",
+      "bytes": 134385
+    },
+    {
+      "directory": "figures",
+      "file": "F11_pca_projection.png",
+      "bytes": 240160
+    },
+    {
+      "directory": "figures",
+      "file": "F12_roc_curves.png",
+      "bytes": 130111
+    },
+    {
+      "directory": "figures",
+      "file": "F13_pr_curves.png",
+      "bytes": 116913
+    },
+    {
+      "directory": "figures",
+      "file": "F14_validation_curves.png",
+      "bytes": 356944
+    },
+    {
+      "directory": "figures",
+      "file": "F15_learning_curve_hist_gb.png",
+      "bytes": 49764
+    },
+    {
+      "directory": "figures",
+      "file": "F16_confusion_matrices.png",
+      "bytes": 119312
+    },
+    {
+      "directory": "figures",
+      "file": "F17_feature_importance_hist_gb.png",
+      "bytes": 76324
+    },
+    {
+      "directory": "figures",
+      "file": "F17b_coefficients_logreg.png",
+      "bytes": 91502
+    },
+    {
+      "directory": "figures",
+      "file": "F18_threshold_cost_curve_hist_gb.png",
+      "bytes": 221533
+    },
+    {
+      "directory": "figures",
+      "file": "F19_calibration.png",
+      "bytes": 154107
+    }
+  ]
+}
