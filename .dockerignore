@@ -1,0 +1,12 @@
+.git
+.venv
+.pytest_cache
+.ruff_cache
+**/__pycache__
+**/.ipynb_checkpoints
+data/raw/*.txt
+data/raw/*.zip
+report/
+tests/
+docs/
+*.zip

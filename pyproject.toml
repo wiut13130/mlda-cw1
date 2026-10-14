@@ -1,0 +1,67 @@
+[project]
+name = "mlda-cw1"
+version = "0.1.0"
+description = "6COSC017C Machine Learning and Data Analytics, CW1: predicting lost-time mine injuries from US MSHA open data (student ID 13130)"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pandas>=2.2,<3",
+    "numpy>=1.26,<3",
+    "scipy>=1.13",
+    "scikit-learn>=1.6",
+    "imbalanced-learn>=0.13",
+    "statsmodels>=0.14",
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+    "altair>=5.3",
+    "streamlit>=1.45",
+    "joblib>=1.4",
+    "pyarrow>=16",
+    "shap>=0.46",
+    "psutil>=6",
+]
+
+[project.scripts]
+mlda-download = "mlda.cli:download"
+mlda-train = "mlda.cli:train_all"
+mlda-zip = "mlda.cli:zip_submission"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-timeout>=2.3",
+    "ruff>=0.8",
+    "jupyterlab>=4.2",
+    "ipykernel>=6.29",
+    "nbformat>=5.10",
+    "nbclient>=0.10",
+    "nbconvert>=7.16",
+    "python-docx>=1.1",
+    "pymupdf>=1.24",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mlda"]
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: executes the full notebook or trains models (deselect with -m 'not slow')"]
+addopts = "-ra --timeout=900"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["notebooks", "data", "models", "reports"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W"]
+ignore = ["E501", "N803", "N806"]

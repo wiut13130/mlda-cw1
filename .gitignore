@@ -1,0 +1,16 @@
+# environments
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+# raw data: large text extracts are re-created by `uv run mlda-download`
+data/raw/*.txt
+data/raw/*.zip
+# local artefacts
+*.zip
+!data/raw/*.zip.sha256
+.streamlit/secrets.toml
+report/~$*
+*.log

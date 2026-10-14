@@ -1,0 +1,39 @@
+{
+  "Accidents_Definition_File.txt": {
+    "bytes": 10214,
+    "sha256": "c7681808dd372b6c5bd95fdf70b01e856e0d2501b7e5d7cc9185f4c4e1f876e5",
+    "last_modified": "Mon, 27 Oct 2014 21:51:09 GMT",
+    "url": "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Accidents_Definition_File.txt"
+  },
+  "Mines_Definition_File.txt": {
+    "bytes": 10285,
+    "sha256": "efd2bc2c493207a464be7c4e4795ffd08a221588b76b716ee334a75dfc14f1f9",
+    "last_modified": "Tue, 16 May 2023 13:47:39 GMT",
+    "url": "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Mines_Definition_File.txt"
+  },
+  "MinesProdYearly_Definition_File.txt": {
+    "bytes": 2023,
+    "sha256": "2931d666cf837770bdb12889e1f6fd13b024eed87f52c264a95b4e37c290ab65",
+    "last_modified": "Fri, 25 Feb 2011 19:30:17 GMT",
+    "url": "https://arlweb.msha.gov/OpenGovernmentData/DataSets/MinesProdYearly_Definition_File.txt"
+  },
+  "Mines.zip": {
+    "bytes": 7308890,
+    "sha256": "1a0957ff00496855289725e351797d1737faad53c48ef7bf5ac51d725e997e02",
+    "last_modified": "Fri, 09 Oct 2026 11:12:35 GMT",
+    "url": "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Mines.zip"
+  },
+  "MinesProdYearly.zip": {
+    "bytes": 7072831,
+    "sha256": "c0fdca86d1756fc03b3f22dbc9430a02cefae9a8afac5d8e9e8503f590a3c342",
+    "last_modified": "Fri, 09 Oct 2026 11:12:36 GMT",
+    "url": "https://arlweb.msha.gov/OpenGovernmentData/DataSets/MinesProdYearly.zip"
+  },
+  "Accidents.zip": {
+    "bytes": 52269752,
+    "sha256": "62d0c861a5c3a8e76bd06de79ac60e4dcc643bca148501cb3fc752fa76c6687d",
+    "last_modified": "Fri, 09 Oct 2026 11:12:32 GMT",
+    "url": "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Accidents.zip"
+  },
+  "snapshot_utc": "2026-10-14T12:06:01Z"
+}
