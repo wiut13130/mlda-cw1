@@ -2,7 +2,7 @@
 
 Usage (from the repository root):
     uv run python report/build_report.py            # writes report/MLDA_CW1_13130_report.docx
-    uv run python report/build_report.py --check    # prints word counts and cross-reference problems only
+    uv run python report/build_report.py --check    # prints word counts and source problems only (exit 1 if any)
 
 Why a generator rather than a hand-edited document: every number in the report is produced by the
 pipeline, so the text is kept in version control as Markdown (report/sections/*.md) and rendered
@@ -52,6 +52,7 @@ FIG_RE = re.compile(r"^!\[(?P<caption>.*?)\]\((?P<path>[^)]+)\)(?:\{(?P<attrs>[^
 TAB_CAPTION_RE = re.compile(r"^Table:\s*(?P<caption>.*?)(?:\s*\{#tab:(?P<key>[\w-]+)\})?\s*$")
 XREF_RE = re.compile(r"\{(fig|tab):([\w-]+)\}")
 INLINE_RE = re.compile(r"(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)")
+PLACEHOLDER_RE = re.compile(r"\{\{[^{}]*\}\}")
 
 
 @dataclass
@@ -218,20 +219,62 @@ def collect_numbers(files: list[Path], counters: Counters) -> None:
     """Assign figure and table numbers in document order so cross-references can be resolved."""
     for path in files:
         lines = path.read_text(encoding="utf-8").splitlines()
-        for line in lines:
+        for line_no, line in enumerate(lines, start=1):
             fig = FIG_RE.match(line.strip())
             if fig:
                 attrs = fig.group("attrs") or ""
                 key_match = re.search(r"#fig:([\w-]+)", attrs)
                 key = key_match.group(1) if key_match else f"auto{len(counters.figure_captions) + 1}"
+                if key in counters.figures:
+                    counters.problems.append(f"duplicate figure key fig:{key} ({path.name}:{line_no})")
                 counters.figures[key] = len(counters.figure_captions) + 1
                 counters.figure_captions.append(fig.group("caption"))
                 continue
             tab = TAB_CAPTION_RE.match(line.strip())
             if tab:
                 key = tab.group("key") or f"auto{len(counters.table_captions) + 1}"
+                if key in counters.tables:
+                    counters.problems.append(f"duplicate table key tab:{key} ({path.name}:{line_no})")
                 counters.tables[key] = len(counters.table_captions) + 1
                 counters.table_captions.append(tab.group("caption"))
+
+
+def audit_sources(files: list[Path], meta: dict) -> list[str]:
+    """Problems that rendering alone does not reveal, for the files in rendering order.
+
+    A figure or table must be referenced before it appears and at least once; ``{{...}}``
+    placeholders must be filled; cover-sheet values in report_meta.json must not be stubs.
+    """
+    problems: list[str] = []
+    defined: dict[tuple[str, str], tuple[int, int, str]] = {}
+    first_reference: dict[tuple[str, str], tuple[int, int, str]] = {}
+    for file_index, path in enumerate(files):
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            position = (file_index, line_no, path.name)
+            for match in XREF_RE.finditer(line):
+                first_reference.setdefault((match.group(1), match.group(2)), position)
+            stripped = line.strip()
+            fig = FIG_RE.match(stripped)
+            key_match = re.search(r"#fig:([\w-]+)", fig.group("attrs") or "") if fig else None
+            if key_match:
+                defined.setdefault(("fig", key_match.group(1)), position)
+            tab = TAB_CAPTION_RE.match(stripped)
+            if tab and tab.group("key"):
+                defined.setdefault(("tab", tab.group("key")), position)
+            for match in PLACEHOLDER_RE.finditer(line):
+                problems.append(f"unfilled placeholder {match.group(0)} ({path.name}:{line_no})")
+    for (kind, key), (file_index, line_no, name) in defined.items():
+        reference = first_reference.get((kind, key))
+        if reference is None:
+            problems.append(f"{kind}:{key} is never referenced ({name}:{line_no})")
+        elif reference[:2] > (file_index, line_no):
+            problems.append(
+                f"{kind}:{key} is first referenced at {reference[2]}:{reference[1]}, after it appears at {name}:{line_no}"
+            )
+    for key, value in meta.items():
+        if isinstance(value, str) and (PLACEHOLDER_RE.search(value) or value.lower().startswith("to be added")):
+            problems.append(f"report_meta.json '{key}' is not filled: {value!r}")
+    return problems
 
 
 # ----------------------------------------------------------------------------- block rendering
@@ -489,6 +532,8 @@ def build(output: Path | None = None, check_only: bool = False) -> Path:
         raise SystemExit(f"no section files found in {SECTIONS_DIR}")
     counters = Counters()
     collect_numbers(body + appendices, counters)
+    source_problems = counters.problems + audit_sources(body + references + appendices, meta)
+    counters.problems = []
 
     # word count pass on a scratch document (cheap; the renderer is the single source of truth)
     scratch = Document()
@@ -498,12 +543,23 @@ def build(output: Path | None = None, check_only: bool = False) -> Path:
 
     if check_only:
         print(f"body words: {body_words:,}")
-        for path in body:
-            words = render_markdown(Document(), path.read_text(encoding="utf-8"), Counters(**{
-                "figures": counters.figures, "tables": counters.tables,
-                "figure_captions": counters.figure_captions, "table_captions": counters.table_captions}), ROOT)
-            print(f"  {path.name:40} {words:>6,} words")
+        problems = list(source_problems)
+        for path in body + references + appendices:
+            file_counters = Counters(
+                figures=counters.figures, tables=counters.tables,
+                figure_captions=counters.figure_captions, table_captions=counters.table_captions,
+            )
+            words = render_markdown(Document(), path.read_text(encoding="utf-8"), file_counters, ROOT)
+            problems.extend(f"{problem} ({path.name})" for problem in file_counters.problems)
+            if path in body:
+                print(f"  {path.name:40} {words:>6,} words")
         print(f"figures: {len(counters.figure_captions)}, tables: {len(counters.table_captions)}")
+        if problems:
+            print(f"PROBLEMS ({len(problems)}):")
+            for problem in dict.fromkeys(problems):
+                print("  -", problem)
+            raise SystemExit(1)
+        print("no problems found")
         return META_PATH
 
     document = Document()
@@ -527,9 +583,10 @@ def build(output: Path | None = None, check_only: bool = False) -> Path:
     document.save(output)
     print(f"written {output} ({output.stat().st_size / 1e6:.1f} MB); body words {body_words:,}; "
           f"figures {len(counters.figure_captions)}; tables {len(counters.table_captions)}")
-    if counters.problems:
-        print("PROBLEMS:")
-        for problem in sorted(set(counters.problems)):
+    problems = source_problems + sorted(set(counters.problems))
+    if problems:
+        print(f"PROBLEMS ({len(problems)}):")
+        for problem in problems:
             print("  -", problem)
     return output
 
@@ -542,5 +599,6 @@ if __name__ == "__main__":
     try:
         build(args.output, args.check)
     except SystemExit as error:
-        print(error, file=sys.stderr)
+        if isinstance(error.code, str):
+            print(error, file=sys.stderr)
         raise

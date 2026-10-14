@@ -60,14 +60,16 @@ MODEL_LABELS = {
     "gaussian_nb": "Gaussian Naive Bayes",
     "decision_tree": "Decision tree",
     "random_forest": "Random forest",
-    "hist_gb": "Histogram gradient boosting",
+    "hist_gb": "Histogram-based gradient boosting (HGB)",
     "svc_rbf": "SVM (RBF kernel)",
     "mlp": "Multilayer perceptron",
     "majority": "Baseline: majority class",
-    "all_positive": "Baseline: flag every case",
-    "rule_not_cut_or_dust": "Baseline: not cut, scratch or dust",
-    "lookup_nature_bodypart_coal": "Baseline: nature x body part x sector lookup",
+    "all_positive": "Baseline: review everything",
+    "rule_not_cut_or_dust": "Baseline: hand rule (not cut, scratch or dust)",
+    "lookup_nature_bodypart_coal": "Lookup baseline (nature x body part x sector)",
 }
+# Palette positions per model; position 7 is the grey kept for baselines, so the eighth model
+# takes near-black instead and no model shares a colour with a baseline.
 MODEL_COLOURS = {
     name: PALETTE[i]
     for i, name in enumerate(
@@ -79,10 +81,25 @@ MODEL_COLOURS = {
             "random_forest",
             "hist_gb",
             "svc_rbf",
-            "mlp",
         ]
     )
 }
+MODEL_COLOURS["mlp"] = (0.13, 0.13, 0.13)
+# Codebook columns whose descriptions decode the one-hot levels of a code feature.
+CODE_DESCRIPTION_COLUMNS = {
+    "SUBUNIT_CD": "SUBUNIT",
+    "UG_LOCATION_CD": "UG_LOCATION",
+    "UG_MINING_METHOD_CD": "UG_MINING_METHOD",
+    "MINING_EQUIP_CD": "MINING_EQUIP",
+    "CLASSIFICATION_CD": "CLASSIFICATION",
+    "ACCIDENT_TYPE_CD": "ACCIDENT_TYPE",
+    "ACTIVITY_CD": "ACTIVITY",
+    "INJURY_SOURCE_CD": "INJURY_SOURCE",
+    "NATURE_INJURY_CD": "NATURE_INJURY",
+    "INJ_BODY_PART_CD": "INJ_BODY_PART",
+    "FIPS_STATE_CD": "STATE",
+}
+SECTOR_LEVELS = {"C": "coal", "M": "metal and non-metal"}
 BASELINE_STYLES = {
     "majority": ":",
     "all_positive": "-.",
@@ -142,6 +159,18 @@ LABELS: dict[str, str] = {
     "PORTABLE_OPERATION": "Portable operation",
     "accident_weekday": "Weekday of the accident (0 = Monday)",
     "accident_month": "Month of the accident (1-12)",
+    "is_night": "Accident between 18:00 and 05:59 (flag)",
+    "is_weekend": "Accident on a Saturday or Sunday (flag)",
+    "new_to_mine": "Less than one year at this mine (flag)",
+    "is_contractor": "Contractor employee (flag)",
+    "immed_reportable": "Immediately reportable accident type (flag)",
+    "exper_inconsistent": "Experience fields inconsistent before correction (flag)",
+    "prev_year_matched": "Previous-year production found (flag)",
+    "tot_exper_missing": "Total experience missing (flag)",
+    "accident_hour_missing": "Accident hour missing (flag)",
+    "hours_into_shift_missing": "Hours into shift missing (flag)",
+    "prev_share_missing": "Previous-year lost-time share missing (flag)",
+    "coords_missing": "Mine coordinates missing (flag)",
 }
 _STYLE_RC = {
     "axes.spines.top": False,
@@ -162,6 +191,48 @@ def axis_label(col: str) -> str:
 def display_name(name: str) -> str:
     """Report-ready name of a model or baseline key (falls back to the key itself)."""
     return MODEL_LABELS.get(name, name)
+
+
+def code_descriptions(frame: pd.DataFrame) -> dict[str, dict[str, str]]:
+    """Codebook text per level of each code feature, read from the paired description column.
+
+    ``frame`` is the cleaned base table (it holds e.g. NATURE_INJURY_CD beside NATURE_INJURY);
+    each level takes its most frequent description. Used to decode one-hot column names.
+    """
+    out: dict[str, dict[str, str]] = {}
+    for code, description in CODE_DESCRIPTION_COLUMNS.items():
+        if code not in frame.columns or description not in frame.columns:
+            continue
+        pairs = frame[[code, description]].dropna().astype(str)
+        pairs = pairs[~pairs[description].str.strip().isin(["", "?", "NO VALUE FOUND"])]
+        if pairs.empty:
+            continue
+        modal = pairs.groupby(code)[description].agg(lambda s: s.value_counts().index[0])
+        out[code] = {str(k).strip(): str(v).strip() for k, v in modal.items()}
+    out["COAL_METAL_IND"] = dict(SECTOR_LEVELS)
+    return out
+
+
+def _tidy_description(text: str) -> str:
+    """Codebook text in sentence case with a space after each comma ('CUT,LACER' -> 'cut, lacer')."""
+    text = re.sub(r"\s*,\s*", ", ", text.strip())
+    return text.lower() if text.isupper() and len(text) > 3 else text
+
+
+def feature_label(name: str, codebook: Mapping[str, Mapping[str, str]] | None = None) -> str:
+    """Readable label of an input feature or of a one-hot column such as NATURE_INJURY_CD_100.
+
+    One-hot columns become 'Nature of the injury: amputation or enucleation' when the codebook
+    knows the level; other names fall back to ``axis_label``.
+    """
+    if name in LABELS:
+        return LABELS[name]
+    for prefix in sorted(LABELS, key=len, reverse=True):
+        if name.startswith(f"{prefix}_"):
+            level = name[len(prefix) + 1:]
+            text = (codebook or {}).get(prefix, {}).get(level, level)
+            return f"{LABELS[prefix]}: {_tidy_description(text)}"
+    return axis_label(name)
 
 
 def _wrap(label: str, width: int = 34) -> str:
@@ -1042,12 +1113,14 @@ def feature_importance(
     top_n: int = 20,
     value_label: str = "Permutation importance (drop in average precision)",
     save: str | None = None,
+    codebook: Mapping[str, Mapping[str, str]] | None = None,
 ) -> Figure:
     """F17: horizontal bars of the `top_n` largest |importance| values, with error bars if given.
 
     Accepts a Series indexed by feature or a DataFrame with columns `feature`,
     `importance` and optionally `std`. Signed values (coefficients) are coloured by
-    sign so direction is visible at a glance.
+    sign so direction is visible at a glance. Tick labels are decoded with
+    ``feature_label`` (and ``codebook`` for one-hot levels), not printed as raw codes.
     """
     if isinstance(importances, pd.Series):
         table = importances.rename("importance").rename_axis("feature").reset_index()
@@ -1073,7 +1146,7 @@ def feature_importance(
         error_kw={"elinewidth": 0.8, "ecolor": "0.3"},
     )
     ax.set_yticks(y_pos)
-    ax.set_yticklabels([_shorten(f, 45) for f in table["feature"]], fontsize=7)
+    ax.set_yticklabels([_shorten(feature_label(str(f), codebook), 60) for f in table["feature"]], fontsize=7)
     ax.axvline(0, color="0.3", linewidth=0.8)
     ax.set_xlabel(value_label)
     ax.grid(axis="y", visible=False)

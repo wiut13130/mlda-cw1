@@ -25,7 +25,7 @@ from __future__ import annotations
 import logging
 import math
 import time
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -452,7 +452,7 @@ def run_baselines(data: StudyData, cv: BaseCrossValidator, dirs: ArtefactDirs) -
             BASELINE_ZOO[name].factory(), X_train, y_train, groups=g_train, cv=cv, method="predict_proba", n_jobs=1,
         )[:, 1]
         test_proba = model.predict_proba(X_test)[:, 1]
-        thresholds = oof_thresholds(y_train, oof)
+        thresholds = oof_thresholds(y_train, oof, fixed_threshold=0.5 if BASELINE_ZOO[name].constant else None)
         evaluation = evaluate_on_test(y_test, test_proba, data.sector[test_idx], thresholds)
         model_curves = curves(y_test, test_proba)
         scored[name] = ScoredModel(name, oof, test_proba, thresholds, evaluation, model_curves)
@@ -702,7 +702,11 @@ def validation_panel(result: TuneResult) -> dict[str, Any] | None:
     chosen = frame[mask] if mask.sum() >= 2 else frame
     chosen = chosen.drop_duplicates(subset=column)  # sorted by rank, so the best candidate per value stays
     values = chosen[column].tolist()
-    numeric = all(isinstance(v, (int, float, np.integer, np.floating)) and not isinstance(v, bool) for v in values)
+
+    def is_number(v: Any) -> bool:
+        return isinstance(v, (int, float, np.integer, np.floating)) and not isinstance(v, bool)
+
+    numeric = all(is_number(v) for v in values)
     if numeric:
         x = np.asarray(values, dtype=float)
         order = np.argsort(x)
@@ -710,8 +714,13 @@ def validation_panel(result: TuneResult) -> dict[str, Any] | None:
         x = x.astype(int) if integral else x
         best_value: Any = int(best[param]) if integral else float(best[param])
     else:
-        x = np.asarray([str(v) for v in values], dtype=object)
-        order = np.arange(len(values))
+        # Numbers with None (unlimited max_depth): ascending, None last, so the axis reads in order.
+        numbers_or_none = all(v is None or is_number(v) for v in values)
+        x = np.asarray([str(int(v)) if is_number(v) and float(v).is_integer() else str(v) for v in values], dtype=object)
+        if numbers_or_none:
+            order = np.array(sorted(range(len(values)), key=lambda i: (values[i] is None, values[i] or 0)))
+        else:
+            order = np.arange(len(values))
         best_value = str(best[param])
     chosen = chosen.iloc[order]
     return {
@@ -971,11 +980,17 @@ def run_sensitivity(
 
 
 def explanations(
-    ranked: Sequence[ScoredModel], data: StudyData, dirs: ArtefactDirs, n_jobs: int, quick: bool = False
+    ranked: Sequence[ScoredModel],
+    data: StudyData,
+    dirs: ArtefactDirs,
+    n_jobs: int,
+    quick: bool = False,
+    codebook: Mapping[str, Mapping[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Permutation importance (best model, 5,000 test rows), coefficient tables and a SHAP attempt.
 
     Quick mode uses ``QUICK_EXPLANATION_ROWS`` rows for the permutation importance and the SHAP sample.
+    ``codebook`` (``plots.code_descriptions`` of the cleaned base) decodes one-hot levels in F17/F17b.
     """
     best = ranked[0]
     assert best.result is not None
@@ -986,7 +1001,7 @@ def explanations(
     permutation = permutation_importance_table(best.result.best_pipeline, X_test, y_test, max_rows=permutation_rows, n_jobs=n_jobs)
     _write_csv(permutation, dirs.metrics / f"permutation_importance_{best.name}.csv", index=False)
     importance = permutation.rename(columns={"importance_mean": "importance", "importance_std": "std"})
-    _save_figure(plots.feature_importance(importance), dirs, "importance", best.name)
+    _save_figure(plots.feature_importance(importance, codebook=codebook), dirs, "importance", best.name)
     payload["permutation_importance"] = {"rows": int(permutation.attrs["n_rows"]), "top_10": permutation.head(10).to_dict(orient="records")}
 
     by_name = {m.name: m for m in ranked}
@@ -1005,6 +1020,7 @@ def explanations(
             fig = plots.feature_importance(
                 table.rename(columns={"coefficient": "importance"}),
                 value_label="Logistic regression coefficient (standardised inputs)",
+                codebook=codebook,
             )
             _save_figure(fig, dirs, "coefficients")
 
@@ -1130,6 +1146,8 @@ def train_all(
         log.info("default preprocessor on the training rows: %d transformed columns", preprocessor_width)
     with timer.stage("eda"):
         eda = run_eda(data, clean, dirs, quick=quick)
+    codebook = plots.code_descriptions(clean)
+    _write_json(dirs.metrics / "code_descriptions.json", codebook)
     del clean
     with timer.stage("baselines"):
         baselines = run_baselines(data, cv, dirs)
@@ -1156,7 +1174,7 @@ def train_all(
     with timer.stage("sensitivity"):
         sensitivity = run_sensitivity(ranked, baselines, data, cv, quick, dirs, n_jobs)
     with timer.stage("explanations"):
-        explained = explanations(ranked, data, dirs, n_jobs, quick=quick)
+        explained = explanations(ranked, data, dirs, n_jobs, quick=quick, codebook=codebook)
     with timer.stage("success_criteria"):
         criteria = success_criteria(ranked, baselines, temporal, y_test, dirs, sensitivity)
 

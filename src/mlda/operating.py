@@ -30,21 +30,36 @@ FLAG_KEY = f"flag_rate_{FLAG_RATE_TARGET:.2f}"
 LOOKUP_BASELINE = "lookup_nature_bodypart_coal"
 
 
-def oof_thresholds(y_train: np.ndarray, oof: np.ndarray) -> dict[str, Any]:
+def oof_thresholds(
+    y_train: np.ndarray, oof: np.ndarray, *, fixed_threshold: float | None = None
+) -> dict[str, Any]:
     """Operating thresholds chosen on out-of-fold probabilities only.
 
     ``specificity_0.40`` is the capacity operating point (S3), ``flag_rate_0.50`` the
     half-capacity point (S5) and ``cost_optimal`` the cheapest threshold per FN:FP ratio
     (S4) with the full out-of-fold cost table kept for the report.
+
+    ``fixed_threshold`` is for constant scorers (majority class, review everything). Their
+    out-of-fold scores differ only by the fold prevalence, so a searched cut-off lands between
+    folds and reverses the rule on the test rows (the majority class would flag every case and
+    review-everything none). With ``fixed_threshold`` every operating threshold is that value,
+    which keeps the decision that defines the baseline.
     """
     table = cost_table(y_train, oof)
-    operating = threshold_for_specificity(y_train, oof, OPERATING_SPECIFICITY)
+    if fixed_threshold is not None:
+        operating = float(fixed_threshold)
+        flag = operating
+        cost_optimal = {str(int(r)): operating for r in table["ratio"]}
+    else:
+        operating = threshold_for_specificity(y_train, oof, OPERATING_SPECIFICITY)
+        flag = threshold_for_flag_rate(y_train, oof, FLAG_RATE_TARGET)
+        cost_optimal = {
+            str(int(r)): float(t) for r, t in zip(table["ratio"], table["threshold"], strict=True)
+        }
     return {
         OPERATING_KEY: operating,
-        FLAG_KEY: threshold_for_flag_rate(y_train, oof, FLAG_RATE_TARGET),
-        "cost_optimal": {
-            str(int(r)): float(t) for r, t in zip(table["ratio"], table["threshold"], strict=True)
-        },
+        FLAG_KEY: flag,
+        "cost_optimal": cost_optimal,
         "oof_cost_table": table.to_dict(orient="records"),
         "oof_metrics_at_0.5": classification_metrics(y_train, oof, 0.5),
         "oof_metrics_at_operating": classification_metrics(y_train, oof, operating),

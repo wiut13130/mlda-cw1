@@ -161,16 +161,21 @@ class BaselineSpec:
     name: str
     factory: Callable[[], _BinaryBaseline]
     description: str
+    # A constant score cannot be thresholded, so its operating thresholds stay at 0.5
+    # (see mlda.operating.oof_thresholds, fixed_threshold).
+    constant: bool = False
 
 
 BASELINE_ZOO: dict[str, BaselineSpec] = {
     "majority": BaselineSpec(
         "majority", MajorityBaseline,
         "Always predict the majority training class (no lost time); accuracy equals 1 - prevalence.",
+        constant=True,
     ),
     "all_positive": BaselineSpec(
         "all_positive", AllPositiveBaseline,
         "Review every case; recall 1, specificity 0; its cost per 1,000 cases is the floor to beat.",
+        constant=True,
     ),
     "rule_not_cut_or_dust": BaselineSpec(
         "rule_not_cut_or_dust", RuleNotCutOrDust,

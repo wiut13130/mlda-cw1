@@ -1,4 +1,9 @@
-"""Typed loading of the MSHA extracts, exercised on 300-row fixtures committed with the repo."""
+"""Typed loading of the MSHA extracts, exercised on 300-row fixtures committed with the repo.
+
+The fixtures are samples of the public files. Their name columns (mine, controller and operator
+names, which can be the names of private individuals) hold placeholders built from the ID columns,
+so no personal or company name from the register is stored in the repository.
+"""
 
 from pathlib import Path
 
