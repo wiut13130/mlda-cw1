@@ -85,3 +85,79 @@ SOURCES: dict[str, Source] = {
         2_023,
     ),
 }
+
+
+# ---------------------------------------------------------------------------
+# Modelling decisions fixed after data profiling (docs/data_profile.md,
+# docs/profile/decisions.json). Changing anything here changes the whole study.
+# ---------------------------------------------------------------------------
+
+TARGET = "lost_time"
+TARGET_SOURCE_COL = "DEGREE_INJURY_CD"
+# Lost-time injury: fatality, permanent disability, days away from work (with or
+# without restricted activity). Negatives: restricted activity only, or no lost time.
+POSITIVE_CODES = ("01", "02", "03", "04")
+NEGATIVE_CODES = ("05", "06")
+# Excluded: 00 accident without injury, 07 occupational illness, 08 natural causes,
+# 09 non-employee, 10 all other cases including first aid.
+EXCLUDED_CODES = ("00", "07", "08", "09", "10")
+YEAR_MIN = 2010  # earlier years use older code lists and reporting practice
+YEAR_MAX = 2025  # 2026 is partial and its degree codes are still provisional
+
+GROUP_KEY = "group_id"  # MINE_ID + "_" + CAL_YR: rows from one mine-year never straddle train/test
+ACCIDENT_GROUP_KEY = "accident_group"  # MINE_ID + "_" + ACCIDENT_DT: multi-victim accidents
+SECTOR_COL = "COAL_METAL_IND"
+TEST_FRACTION = 0.2
+N_SPLITS = 5
+TEMPORAL_SPLIT_YEAR = 2020  # secondary evaluation: train 2010-2019, test 2020-2025
+
+# Columns that are recorded after the outcome is known, or that define the label.
+LEAKAGE_COLUMNS = (
+    "DEGREE_INJURY_CD", "DEGREE_INJURY", "DAYS_LOST", "DAYS_RESTRICT", "SCHEDULE_CHARGE",
+    "TRANS_TERM", "RETURN_TO_WORK_DT", "CLOSED_DOC_NO", "INVEST_BEGIN_DT", "NARRATIVE",
+)
+# Mine attributes that describe the mine *today* rather than at the accident date, or that
+# are operational details not reliably in force at the time of the accident.
+MINES_CURRENT_STATE_COLUMNS = (
+    "CURRENT_MINE_STATUS", "CURRENT_STATUS_DT", "CURRENT_MINE_TYPE", "COMPANY_TYPE",
+    "CURRENT_CONTROLLER_BEGIN_DT", "NO_EMPLOYEES", "DAYS_PER_WEEK", "HOURS_PER_SHIFT",
+    "PROD_SHIFTS_PER_DAY", "MAINT_SHIFTS_PER_DAY", "AVG_MINE_HEIGHT", "METHANE_LIBERATION",
+    "MINE_GAS_CATEGORY_CD", "NO_PRODUCING_PITS", "NO_NONPRODUCING_PITS", "NO_TAILING_PONDS",
+    "MILES_FROM_OFFICE",
+)
+# Mine columns carried into the base table (stable attributes or dated so they can be checked).
+MINES_KEEP_COLUMNS = (
+    "PRIMARY_CANVASS", "PRIMARY_SIC", "DISTRICT", "LATITUDE", "LONGITUDE", "PORTABLE_OPERATION",
+    "SAFETY_COMMITTEE_IND", "PART48_TRAINING", "CURRENT_103I", "CURRENT_103I_DT", "STATE",
+    "CURRENT_MINE_TYPE",  # EDA comparison only, never a feature
+)
+
+# Raw accident columns used directly as categorical features (descriptions replace codes
+# where one description spans several code series).
+ACCIDENT_CATEGORICAL = (
+    "SUBUNIT_CD", "FIPS_STATE_CD", "UG_LOCATION_CD", "UG_MINING_METHOD_CD", "MINING_EQUIP_CD",
+    "EQUIP_MFR_NAME", "CLASSIFICATION_CD", "ACCIDENT_TYPE_CD", "OCCUPATION", "ACTIVITY_CD",
+    "INJURY_SOURCE_CD", "NATURE_INJURY_CD", "INJ_BODY_PART_CD", "COAL_METAL_IND",
+)
+# "?" in these columns means "not applicable" (e.g. underground location at a surface mine),
+# so the placeholder is kept as its own level "none" instead of being imputed.
+PLACEHOLDER_AS_LEVEL = ("UG_LOCATION_CD", "UG_MINING_METHOD_CD", "MINING_EQUIP_CD", "EQUIP_MFR_NAME", "ACTIVITY_CD")
+ACCIDENT_NUMERIC_RAW = ("TOT_EXPER", "MINE_EXPER", "JOB_EXPER", "NO_INJURIES")
+
+ONE_HOT_MIN_FREQUENCY = 0.001  # levels rarer than 0.1 % of training rows share an "infrequent" bucket
+RATE_PER_HOURS = 200_000  # MSHA convention: incidence rate per 200,000 employee-hours
+RATE_CAP = 50.0  # winsorise lagged rates from tiny mines before log1p
+
+# Business framing: cost of a missed lost-time case (FN) versus an unnecessary review (FP).
+COST_FP_USD = 200
+COST_FN_USD = 4_000
+COST_RATIOS = (2, 3, 5, 10, 20, 30)
+OPERATING_SPECIFICITY = 0.40  # capacity operating point: reviewers can handle flagging ~75 % of cases
+SUCCESS_CRITERIA = {
+    "roc_auc_min": 0.80,
+    "pr_auc_min": 0.75,
+    "recall_min_at_operating_point": 0.92,
+    "recall_at_50pct_flag_rate_min": 0.78,
+    "brier_max": 0.20,
+    "cost_pass_ratios": (2, 3, 5),
+}

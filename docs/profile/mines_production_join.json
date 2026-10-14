@@ -1,0 +1,4739 @@
+{
+ "meta": {
+  "task": "B",
+  "snapshot_utc": "2026-10-14T12:06:01Z",
+  "files": {
+   "Mines.txt": [
+    92060,
+    59
+   ],
+   "MinesProdYearly.txt": [
+    658922,
+    11
+   ],
+   "Accidents.txt_7cols": [
+    275220,
+    7
+   ]
+  },
+  "accident_rows_2010_plus": 125718,
+  "target_definition": "lost_time = DEGREE_INJURY_CD in {01,02,03,04}; 0 = {05,06}; other codes excluded",
+  "placeholders_counted": [
+   "",
+   "whitespace-only",
+   "?",
+   "NO VALUE FOUND"
+  ],
+  "python": "3.14.7, pandas 3.0.6, numpy 2.5"
+ },
+ "encoding": {
+  "Mines.txt": {
+   "bytes": 39386894,
+   "newlines": 92061,
+   "non_ascii_bytes": 1425,
+   "utf8_strict_ok": false,
+   "utf8_first_error": "byte 1069693: invalid start byte",
+   "utf8_replacement_chars": 297,
+   "non_ascii_byte_values_top": [
+    [
+     194,
+     311
+    ],
+    [
+     195,
+     249
+    ],
+    [
+     130,
+     230
+    ],
+    [
+     176,
+     221
+    ],
+    [
+     131,
+     146
+    ],
+    [
+     191,
+     121
+    ],
+    [
+     187,
+     20
+    ],
+    [
+     174,
+     16
+    ],
+    [
+     183,
+     13
+    ],
+    [
+     189,
+     13
+    ]
+   ],
+   "encoding_used": "latin-1",
+   "rows_loaded": 92060,
+   "cols_loaded": 59,
+   "rows_vs_newlines_minus_header": 0
+  },
+  "MinesProdYearly.txt": {
+   "bytes": 60035252,
+   "newlines": 658923,
+   "non_ascii_bytes": 105,
+   "utf8_strict_ok": false,
+   "utf8_first_error": "byte 59788956: invalid continuation byte",
+   "utf8_replacement_chars": 105,
+   "non_ascii_byte_values_top": [
+    [
+     241,
+     54
+    ],
+    [
+     243,
+     51
+    ]
+   ],
+   "encoding_used": "latin-1",
+   "rows_loaded": 658922,
+   "cols_loaded": 11,
+   "rows_vs_newlines_minus_header": 0
+  },
+  "Accidents.txt": {
+   "bytes": 228804642,
+   "newlines": 275221,
+   "non_ascii_bytes": 123,
+   "utf8_strict_ok": false,
+   "utf8_first_error": "byte 3626765: invalid continuation byte",
+   "utf8_replacement_chars": 123,
+   "non_ascii_byte_values_top": [
+    [
+     160,
+     44
+    ],
+    [
+     189,
+     32
+    ],
+    [
+     190,
+     11
+    ],
+    [
+     176,
+     10
+    ],
+    [
+     243,
+     10
+    ],
+    [
+     188,
+     7
+    ],
+    [
+     191,
+     3
+    ],
+    [
+     167,
+     1
+    ],
+    [
+     174,
+     1
+    ],
+    [
+     215,
+     1
+    ]
+   ],
+   "encoding_used": "latin-1",
+   "rows_loaded": 275220,
+   "cols_loaded": 7,
+   "rows_vs_newlines_minus_header": 0
+  },
+  "non_ascii_columns": {
+   "Mines.txt": {
+    "CURRENT_MINE_NAME": 2,
+    "CURRENT_OPERATOR_NAME": 3,
+    "DIRECTIONS_TO_MINE": 219,
+    "NEAREST_TOWN": 1,
+    "rows_total": 224,
+    "lines_failing_strict_utf8": 162,
+    "lines_with_utf8_sequences": 62
+   },
+   "MinesProdYearly.txt": {
+    "CURR_MINE_NM": 105,
+    "rows_total": 105,
+    "lines_failing_strict_utf8": 105
+   }
+  }
+ },
+ "mines": {
+  "mine_id": {
+   "n_rows": 92060,
+   "n_unique": 92060,
+   "n_duplicate_rows": 0,
+   "all_7_chars": true,
+   "len_counts": {
+    "7": 92060
+   },
+   "all_digits": true,
+   "non_digit_examples": [],
+   "blank": 0
+  },
+  "per_column": [
+   {
+    "column": "MINE_ID",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 92060,
+    "temporal_class": "Key"
+   },
+   {
+    "column": "CURRENT_MINE_NAME",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 67880,
+    "temporal_class": "Current, identifier"
+   },
+   {
+    "column": "COAL_METAL_IND",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "CURRENT_MINE_TYPE",
+    "blank": 192,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 192,
+    "missing_pct": 0.21,
+    "distinct_nonmissing": 3,
+    "temporal_class": "Current (drifts; see 1.6)"
+   },
+   {
+    "column": "CURRENT_MINE_STATUS",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 7,
+    "temporal_class": "Current, dated"
+   },
+   {
+    "column": "CURRENT_STATUS_DT",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 14307,
+    "temporal_class": "Current, date"
+   },
+   {
+    "column": "CURRENT_CONTROLLER_ID",
+    "blank": 1031,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 1031,
+    "missing_pct": 1.12,
+    "distinct_nonmissing": 41097,
+    "temporal_class": "Current, identifier"
+   },
+   {
+    "column": "CURRENT_CONTROLLER_NAME",
+    "blank": 1031,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 1031,
+    "missing_pct": 1.12,
+    "distinct_nonmissing": 40770,
+    "temporal_class": "Current, identifier"
+   },
+   {
+    "column": "CURRENT_OPERATOR_ID",
+    "blank": 975,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 975,
+    "missing_pct": 1.06,
+    "distinct_nonmissing": 49851,
+    "temporal_class": "Current, identifier"
+   },
+   {
+    "column": "CURRENT_OPERATOR_NAME",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 53279,
+    "temporal_class": "Current, identifier"
+   },
+   {
+    "column": "STATE",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 55,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "BOM_STATE_CD",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 55,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "FIPS_CNTY_CD",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 296,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "FIPS_CNTY_NM",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 1784,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "CONG_DIST_CD",
+    "blank": 24657,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 24657,
+    "missing_pct": 26.78,
+    "distinct_nonmissing": 36,
+    "temporal_class": "Stable (redistricting)"
+   },
+   {
+    "column": "COMPANY_TYPE",
+    "blank": 975,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 975,
+    "missing_pct": 1.06,
+    "distinct_nonmissing": 5,
+    "temporal_class": "Current (controller), dated via CONTROLLER_BEGIN_DT"
+   },
+   {
+    "column": "CURRENT_CONTROLLER_BEGIN_DT",
+    "blank": 975,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 975,
+    "missing_pct": 1.06,
+    "distinct_nonmissing": 12549,
+    "temporal_class": "Current, date"
+   },
+   {
+    "column": "DISTRICT",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 13,
+    "temporal_class": "Stable (admin)"
+   },
+   {
+    "column": "OFFICE_CD",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 89,
+    "temporal_class": "Current (admin)"
+   },
+   {
+    "column": "OFFICE_NAME",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 89,
+    "temporal_class": "Current (admin)"
+   },
+   {
+    "column": "ASSESS_CTRL_NO",
+    "blank": 54133,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 54133,
+    "missing_pct": 58.8,
+    "distinct_nonmissing": 37927,
+    "temporal_class": "Current, identifier (post-accident)"
+   },
+   {
+    "column": "PRIMARY_SIC_CD",
+    "blank": 260,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 260,
+    "missing_pct": 0.28,
+    "distinct_nonmissing": 120,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "PRIMARY_SIC",
+    "blank": 260,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 260,
+    "missing_pct": 0.28,
+    "distinct_nonmissing": 120,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "PRIMARY_SIC_CD_1",
+    "blank": 260,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 260,
+    "missing_pct": 0.28,
+    "distinct_nonmissing": 28,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "PRIMARY_SIC_CD_SFX",
+    "blank": 260,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 260,
+    "missing_pct": 0.28,
+    "distinct_nonmissing": 31,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "SECONDARY_SIC_CD",
+    "blank": 91201,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91201,
+    "missing_pct": 99.07,
+    "distinct_nonmissing": 64,
+    "temporal_class": "Stable, sparse"
+   },
+   {
+    "column": "SECONDARY_SIC",
+    "blank": 91201,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91201,
+    "missing_pct": 99.07,
+    "distinct_nonmissing": 64,
+    "temporal_class": "Stable, sparse"
+   },
+   {
+    "column": "SECONDARY_SIC_CD_1",
+    "blank": 91201,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91201,
+    "missing_pct": 99.07,
+    "distinct_nonmissing": 22,
+    "temporal_class": "Stable, sparse"
+   },
+   {
+    "column": "SECONDARY_SIC_CD_SFX",
+    "blank": 91201,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91201,
+    "missing_pct": 99.07,
+    "distinct_nonmissing": 19,
+    "temporal_class": "Stable, sparse"
+   },
+   {
+    "column": "PRIMARY_CANVASS_CD",
+    "blank": 260,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 260,
+    "missing_pct": 0.28,
+    "distinct_nonmissing": 6,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "PRIMARY_CANVASS",
+    "blank": 260,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 260,
+    "missing_pct": 0.28,
+    "distinct_nonmissing": 5,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "SECONDARY_CANVASS_CD",
+    "blank": 91201,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91201,
+    "missing_pct": 99.07,
+    "distinct_nonmissing": 5,
+    "temporal_class": "Stable, sparse"
+   },
+   {
+    "column": "SECONDARY_CANVASS",
+    "blank": 91201,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91201,
+    "missing_pct": 99.07,
+    "distinct_nonmissing": 5,
+    "temporal_class": "Stable, sparse"
+   },
+   {
+    "column": "CURRENT_103I",
+    "blank": 45494,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 45494,
+    "missing_pct": 49.42,
+    "distinct_nonmissing": 7,
+    "temporal_class": "Current, dated via CURRENT_103I_DT"
+   },
+   {
+    "column": "CURRENT_103I_DT",
+    "blank": 72230,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 72230,
+    "missing_pct": 78.46,
+    "distinct_nonmissing": 4224,
+    "temporal_class": "Current, date"
+   },
+   {
+    "column": "PORTABLE_OPERATION",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Stable (LID)"
+   },
+   {
+    "column": "PORTABLE_FIPS_ST_CD",
+    "blank": 77465,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 77465,
+    "missing_pct": 84.15,
+    "distinct_nonmissing": 54,
+    "temporal_class": "Current"
+   },
+   {
+    "column": "DAYS_PER_WEEK",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 8,
+    "temporal_class": "Current (MIF), 0 = not recorded"
+   },
+   {
+    "column": "HOURS_PER_SHIFT",
+    "blank": 56025,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 56025,
+    "missing_pct": 60.86,
+    "distinct_nonmissing": 21,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "PROD_SHIFTS_PER_DAY",
+    "blank": 54112,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 54112,
+    "missing_pct": 58.78,
+    "distinct_nonmissing": 10,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "MAINT_SHIFTS_PER_DAY",
+    "blank": 58344,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 58344,
+    "missing_pct": 63.38,
+    "distinct_nonmissing": 13,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "NO_EMPLOYEES",
+    "blank": 39723,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 39723,
+    "missing_pct": 43.15,
+    "distinct_nonmissing": 292,
+    "temporal_class": "Current (MIF), 0 for closed mines"
+   },
+   {
+    "column": "PART48_TRAINING",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Current, undated"
+   },
+   {
+    "column": "LONGITUDE",
+    "blank": 44296,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 44296,
+    "missing_pct": 48.12,
+    "distinct_nonmissing": 34633,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "LATITUDE",
+    "blank": 44292,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 44292,
+    "missing_pct": 48.11,
+    "distinct_nonmissing": 30584,
+    "temporal_class": "Stable"
+   },
+   {
+    "column": "AVG_MINE_HEIGHT",
+    "blank": 76506,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 76506,
+    "missing_pct": 83.1,
+    "distinct_nonmissing": 190,
+    "temporal_class": "Current (MIF), coal"
+   },
+   {
+    "column": "MINE_GAS_CATEGORY_CD",
+    "blank": 91718,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 91718,
+    "missing_pct": 99.63,
+    "distinct_nonmissing": 8,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "METHANE_LIBERATION",
+    "blank": 82198,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 82198,
+    "missing_pct": 89.29,
+    "distinct_nonmissing": 248,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "NO_PRODUCING_PITS",
+    "blank": 83736,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 83736,
+    "missing_pct": 90.96,
+    "distinct_nonmissing": 11,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "NO_NONPRODUCING_PITS",
+    "blank": 77450,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 77450,
+    "missing_pct": 84.13,
+    "distinct_nonmissing": 10,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "NO_TAILING_PONDS",
+    "blank": 60120,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 60120,
+    "missing_pct": 65.31,
+    "distinct_nonmissing": 14,
+    "temporal_class": "Current (MIF)"
+   },
+   {
+    "column": "PILLAR_RECOVERY_USED",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Current, undated"
+   },
+   {
+    "column": "HIGHWALL_MINER_USED",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Current, undated"
+   },
+   {
+    "column": "MULTIPLE_PITS",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Current, undated"
+   },
+   {
+    "column": "MINERS_REP_IND",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 1,
+    "temporal_class": "Current, undated (constant N)"
+   },
+   {
+    "column": "SAFETY_COMMITTEE_IND",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 2,
+    "temporal_class": "Current, undated"
+   },
+   {
+    "column": "MILES_FROM_OFFICE",
+    "blank": 0,
+    "ws_only": 0,
+    "qmark": 0,
+    "no_value_found": 0,
+    "missing_total": 0,
+    "missing_pct": 0.0,
+    "distinct_nonmissing": 466,
+    "temporal_class": "Current (office), 0 = not recorded"
+   },
+   {
+    "column": "DIRECTIONS_TO_MINE",
+    "blank": 54820,
+    "ws_only": 6,
+    "qmark": 1448,
+    "no_value_found": 0,
+    "missing_total": 56274,
+    "missing_pct": 61.13,
+    "distinct_nonmissing": 31564,
+    "temporal_class": "Free text"
+   },
+   {
+    "column": "NEAREST_TOWN",
+    "blank": 36135,
+    "ws_only": 0,
+    "qmark": 1431,
+    "no_value_found": 0,
+    "missing_total": 37566,
+    "missing_pct": 40.81,
+    "distinct_nonmissing": 13230,
+    "temporal_class": "Free text"
+   }
+  ],
+  "numeric_summary": {
+   "DAYS_PER_WEEK": {
+    "n": 92060,
+    "missing": 0,
+    "missing_pct": 0.0,
+    "zeros": 75500,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 0.0,
+    "q95": 5.0,
+    "q99": 6.0,
+    "q100": 7.0,
+    "mean": 0.8840212904627417,
+    "std": 1.9278040729933685,
+    "non_numeric_nonblank": 0
+   },
+   "HOURS_PER_SHIFT": {
+    "n": 92060,
+    "missing": 56025,
+    "missing_pct": 60.86,
+    "zeros": 20074,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 8.0,
+    "q95": 10.0,
+    "q99": 12.0,
+    "q100": 24.0,
+    "mean": 3.9248508394616346,
+    "std": 4.543012862363978,
+    "non_numeric_nonblank": 0
+   },
+   "PROD_SHIFTS_PER_DAY": {
+    "n": 92060,
+    "missing": 54112,
+    "missing_pct": 58.78,
+    "zeros": 20276,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 1.0,
+    "q95": 2.0,
+    "q99": 3.0,
+    "q100": 13.0,
+    "mean": 0.545957626225361,
+    "std": 0.7268687680146744,
+    "non_numeric_nonblank": 0
+   },
+   "MAINT_SHIFTS_PER_DAY": {
+    "n": 92060,
+    "missing": 58344,
+    "missing_pct": 63.38,
+    "zeros": 30679,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 0.0,
+    "q95": 1.0,
+    "q99": 1.0,
+    "q100": 15.0,
+    "mean": 0.11140111519753233,
+    "std": 0.47782123950467875,
+    "non_numeric_nonblank": 0
+   },
+   "NO_EMPLOYEES": {
+    "n": 92060,
+    "missing": 39723,
+    "missing_pct": 43.15,
+    "zeros": 38131,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 1.0,
+    "q95": 13.0,
+    "q99": 60.0,
+    "q100": 5870.0,
+    "mean": 4.038175669220628,
+    "std": 38.010444661124154,
+    "non_numeric_nonblank": 0
+   },
+   "AVG_MINE_HEIGHT": {
+    "n": 92060,
+    "missing": 76506,
+    "missing_pct": 83.1,
+    "zeros": 328,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 17.0,
+    "q25": 30.0,
+    "q50": 40.0,
+    "q75": 52.0,
+    "q95": 86.0,
+    "q99": 144.46999999999935,
+    "q100": 7200.0,
+    "mean": 47.53002443101453,
+    "std": 86.8618622920939,
+    "non_numeric_nonblank": 0
+   },
+   "MILES_FROM_OFFICE": {
+    "n": 92060,
+    "missing": 0,
+    "missing_pct": 0.0,
+    "zeros": 55527,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 84.0,
+    "q95": 230.0,
+    "q99": 350.0,
+    "q100": 14593.0,
+    "mean": 50.66287203997393,
+    "std": 97.44324930737743,
+    "non_numeric_nonblank": 0
+   },
+   "METHANE_LIBERATION": {
+    "n": 92060,
+    "missing": 82198,
+    "missing_pct": 89.29,
+    "zeros": 9612,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 0.0,
+    "q95": 0.0,
+    "q99": 146280.5899999998,
+    "q100": 13248458.0,
+    "mean": 20401.544919894546,
+    "std": 331043.79213479604,
+    "non_numeric_nonblank": 0
+   },
+   "NO_PRODUCING_PITS": {
+    "n": 92060,
+    "missing": 83736,
+    "missing_pct": 90.96,
+    "zeros": 7825,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 0.0,
+    "q95": 1.0,
+    "q99": 1.0,
+    "q100": 11.0,
+    "mean": 0.07928880345987506,
+    "std": 0.40861640483488926,
+    "non_numeric_nonblank": 0
+   },
+   "NO_NONPRODUCING_PITS": {
+    "n": 92060,
+    "missing": 77450,
+    "missing_pct": 84.13,
+    "zeros": 11745,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 0.0,
+    "q95": 1.0,
+    "q99": 2.0,
+    "q100": 9.0,
+    "mean": 0.21765913757700206,
+    "std": 0.49777683194402444,
+    "non_numeric_nonblank": 0
+   },
+   "NO_TAILING_PONDS": {
+    "n": 92060,
+    "missing": 60120,
+    "missing_pct": 65.31,
+    "zeros": 30775,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 0.0,
+    "q75": 0.0,
+    "q95": 0.0,
+    "q99": 2.0,
+    "q100": 20.0,
+    "mean": 0.059423919849718225,
+    "std": 0.40385495650142494,
+    "non_numeric_nonblank": 0
+   },
+   "NO_EMPLOYEES_active_only": {
+    "n": 6614,
+    "missing": 4,
+    "missing_pct": 0.06,
+    "zeros": 0,
+    "negatives": 0,
+    "q00": 1.0,
+    "q01": 1.0,
+    "q05": 2.0,
+    "q25": 4.0,
+    "q50": 8.0,
+    "q75": 17.0,
+    "q95": 100.0,
+    "q99": 407.5499999999993,
+    "q100": 5870.0,
+    "mean": 26.369894099848715,
+    "std": 103.79731827810298
+   },
+   "NO_EMPLOYEES_zero_by_status": {
+    "Abandoned": 29241,
+    "Abandoned and Sealed": 8285,
+    "Temporarily Idled": 499,
+    "NonProducing": 74,
+    "New Mine": 30,
+    "Intermittent": 2
+   },
+   "AVG_MINE_HEIGHT_by_commodity_nonmissing": {
+    "C": 15515,
+    "M": 39
+   },
+   "AVG_MINE_HEIGHT_coal_only": {
+    "n": 35734,
+    "missing": 20219,
+    "missing_pct": 56.58,
+    "zeros": 289,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 18.0,
+    "q25": 30.0,
+    "q50": 40.0,
+    "q75": 52.0,
+    "q95": 87.0,
+    "q99": 144.86000000000058,
+    "q100": 7200.0,
+    "mean": 47.64950048340316,
+    "std": 86.93823554256286
+   }
+  },
+  "distributions": {
+   "CURRENT_MINE_TYPE": [
+    {
+     "value": "Surface",
+     "n": 68903,
+     "pct": 74.85
+    },
+    {
+     "value": "Underground",
+     "n": 17407,
+     "pct": 18.91
+    },
+    {
+     "value": "Facility",
+     "n": 5558,
+     "pct": 6.04
+    },
+    {
+     "value": "<blank>",
+     "n": 192,
+     "pct": 0.21
+    }
+   ],
+   "CURRENT_MINE_STATUS": [
+    {
+     "value": "Abandoned",
+     "n": 69585,
+     "pct": 75.59
+    },
+    {
+     "value": "Abandoned and Sealed",
+     "n": 8820,
+     "pct": 9.58
+    },
+    {
+     "value": "Active",
+     "n": 6614,
+     "pct": 7.18
+    },
+    {
+     "value": "Intermittent",
+     "n": 5465,
+     "pct": 5.94
+    },
+    {
+     "value": "Temporarily Idled",
+     "n": 909,
+     "pct": 0.99
+    },
+    {
+     "value": "NonProducing",
+     "n": 373,
+     "pct": 0.41
+    },
+    {
+     "value": "New Mine",
+     "n": 294,
+     "pct": 0.32
+    }
+   ],
+   "COAL_METAL_IND": [
+    {
+     "value": "M",
+     "n": 56326,
+     "pct": 61.18
+    },
+    {
+     "value": "C",
+     "n": 35734,
+     "pct": 38.82
+    }
+   ],
+   "COMPANY_TYPE": [
+    {
+     "value": "Other",
+     "n": 63418,
+     "pct": 68.89
+    },
+    {
+     "value": "Corporation",
+     "n": 24075,
+     "pct": 26.15
+    },
+    {
+     "value": "Sole Proprietor",
+     "n": 2541,
+     "pct": 2.76
+    },
+    {
+     "value": "Partnership",
+     "n": 1049,
+     "pct": 1.14
+    },
+    {
+     "value": "<blank>",
+     "n": 975,
+     "pct": 1.06
+    },
+    {
+     "value": "Limited Liability Corporation",
+     "n": 2,
+     "pct": 0.0
+    }
+   ],
+   "PRIMARY_CANVASS": [
+    {
+     "value": "Coal",
+     "n": 35619,
+     "pct": 38.69
+    },
+    {
+     "value": "SandAndGravel",
+     "n": 30496,
+     "pct": 33.13
+    },
+    {
+     "value": "Stone",
+     "n": 16043,
+     "pct": 17.43
+    },
+    {
+     "value": "Metal",
+     "n": 5019,
+     "pct": 5.45
+    },
+    {
+     "value": "Nonmetal",
+     "n": 4623,
+     "pct": 5.02
+    },
+    {
+     "value": "<blank>",
+     "n": 260,
+     "pct": 0.28
+    }
+   ],
+   "PRIMARY_CANVASS_CD": [
+    {
+     "value": "2",
+     "n": 34047,
+     "pct": 36.98
+    },
+    {
+     "value": "5",
+     "n": 30496,
+     "pct": 33.13
+    },
+    {
+     "value": "6",
+     "n": 16043,
+     "pct": 17.43
+    },
+    {
+     "value": "8",
+     "n": 5019,
+     "pct": 5.45
+    },
+    {
+     "value": "7",
+     "n": 4623,
+     "pct": 5.02
+    },
+    {
+     "value": "1",
+     "n": 1572,
+     "pct": 1.71
+    },
+    {
+     "value": "<blank>",
+     "n": 260,
+     "pct": 0.28
+    }
+   ],
+   "CURRENT_103I": [
+    {
+     "value": "<blank>",
+     "n": 45494,
+     "pct": 49.42
+    },
+    {
+     "value": "Never Had 103I Status",
+     "n": 26739,
+     "pct": 29.05
+    },
+    {
+     "value": "Removed From 103I Status",
+     "n": 19587,
+     "pct": 21.28
+    },
+    {
+     "value": "Inspect Once Every 5-days",
+     "n": 114,
+     "pct": 0.12
+    },
+    {
+     "value": "Inspect Once Every 15-days",
+     "n": 58,
+     "pct": 0.06
+    },
+    {
+     "value": "Inspect Once Every 10-days",
+     "n": 32,
+     "pct": 0.03
+    },
+    {
+     "value": "Hazard",
+     "n": 24,
+     "pct": 0.03
+    },
+    {
+     "value": "Ignition or Explosion",
+     "n": 12,
+     "pct": 0.01
+    }
+   ],
+   "PORTABLE_OPERATION": [
+    {
+     "value": "N",
+     "n": 77465,
+     "pct": 84.15
+    },
+    {
+     "value": "Y",
+     "n": 14595,
+     "pct": 15.85
+    }
+   ],
+   "MINERS_REP_IND": [
+    {
+     "value": "N",
+     "n": 92060,
+     "pct": 100.0
+    }
+   ],
+   "SAFETY_COMMITTEE_IND": [
+    {
+     "value": "N",
+     "n": 89973,
+     "pct": 97.73
+    },
+    {
+     "value": "Y",
+     "n": 2087,
+     "pct": 2.27
+    }
+   ],
+   "PART48_TRAINING": [
+    {
+     "value": "Y",
+     "n": 48745,
+     "pct": 52.95
+    },
+    {
+     "value": "N",
+     "n": 43315,
+     "pct": 47.05
+    }
+   ],
+   "DAYS_PER_WEEK": [
+    {
+     "value": "0",
+     "n": 75500,
+     "pct": 82.01
+    },
+    {
+     "value": "5",
+     "n": 13539,
+     "pct": 14.71
+    },
+    {
+     "value": "6",
+     "n": 793,
+     "pct": 0.86
+    },
+    {
+     "value": "7",
+     "n": 689,
+     "pct": 0.75
+    },
+    {
+     "value": "4",
+     "n": 573,
+     "pct": 0.62
+    },
+    {
+     "value": "1",
+     "n": 422,
+     "pct": 0.46
+    },
+    {
+     "value": "3",
+     "n": 305,
+     "pct": 0.33
+    },
+    {
+     "value": "2",
+     "n": 239,
+     "pct": 0.26
+    }
+   ],
+   "HOURS_PER_SHIFT": [
+    {
+     "value": "<blank>",
+     "n": 56025,
+     "pct": 60.86
+    },
+    {
+     "value": "0",
+     "n": 20074,
+     "pct": 21.81
+    },
+    {
+     "value": "8",
+     "n": 8319,
+     "pct": 9.04
+    },
+    {
+     "value": "10",
+     "n": 4129,
+     "pct": 4.49
+    },
+    {
+     "value": "12",
+     "n": 1272,
+     "pct": 1.38
+    },
+    {
+     "value": "9",
+     "n": 1206,
+     "pct": 1.31
+    },
+    {
+     "value": "11",
+     "n": 372,
+     "pct": 0.4
+    },
+    {
+     "value": "4",
+     "n": 254,
+     "pct": 0.28
+    },
+    {
+     "value": "1",
+     "n": 103,
+     "pct": 0.11
+    },
+    {
+     "value": "6",
+     "n": 86,
+     "pct": 0.09
+    },
+    {
+     "value": "5",
+     "n": 70,
+     "pct": 0.08
+    },
+    {
+     "value": "7",
+     "n": 43,
+     "pct": 0.05
+    },
+    {
+     "value": "2",
+     "n": 26,
+     "pct": 0.03
+    },
+    {
+     "value": "13",
+     "n": 24,
+     "pct": 0.03
+    },
+    {
+     "value": "14",
+     "n": 21,
+     "pct": 0.02
+    },
+    {
+     "value": "3",
+     "n": 17,
+     "pct": 0.02
+    },
+    {
+     "value": "24",
+     "n": 9,
+     "pct": 0.01
+    },
+    {
+     "value": "16",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "value": "15",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "value": "19",
+     "n": 2,
+     "pct": 0.0
+    },
+    {
+     "value": "18",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "value": "20",
+     "n": 1,
+     "pct": 0.0
+    }
+   ],
+   "PROD_SHIFTS_PER_DAY": [
+    {
+     "value": "<blank>",
+     "n": 54112,
+     "pct": 58.78
+    },
+    {
+     "value": "0",
+     "n": 20276,
+     "pct": 22.02
+    },
+    {
+     "value": "1",
+     "n": 15657,
+     "pct": 17.01
+    },
+    {
+     "value": "2",
+     "n": 1452,
+     "pct": 1.58
+    },
+    {
+     "value": "3",
+     "n": 396,
+     "pct": 0.43
+    },
+    {
+     "value": "5",
+     "n": 105,
+     "pct": 0.11
+    },
+    {
+     "value": "4",
+     "n": 23,
+     "pct": 0.02
+    },
+    {
+     "value": "8",
+     "n": 20,
+     "pct": 0.02
+    },
+    {
+     "value": "10",
+     "n": 9,
+     "pct": 0.01
+    },
+    {
+     "value": "13",
+     "n": 6,
+     "pct": 0.01
+    },
+    {
+     "value": "6",
+     "n": 4,
+     "pct": 0.0
+    }
+   ],
+   "MAINT_SHIFTS_PER_DAY": [
+    {
+     "value": "<blank>",
+     "n": 58344,
+     "pct": 63.38
+    },
+    {
+     "value": "0",
+     "n": 30679,
+     "pct": 33.33
+    },
+    {
+     "value": "1",
+     "n": 2711,
+     "pct": 2.94
+    },
+    {
+     "value": "2",
+     "n": 219,
+     "pct": 0.24
+    },
+    {
+     "value": "3",
+     "n": 52,
+     "pct": 0.06
+    },
+    {
+     "value": "10",
+     "n": 18,
+     "pct": 0.02
+    },
+    {
+     "value": "5",
+     "n": 12,
+     "pct": 0.01
+    },
+    {
+     "value": "8",
+     "n": 6,
+     "pct": 0.01
+    },
+    {
+     "value": "9",
+     "n": 6,
+     "pct": 0.01
+    },
+    {
+     "value": "6",
+     "n": 4,
+     "pct": 0.0
+    },
+    {
+     "value": "4",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "value": "12",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "value": "11",
+     "n": 2,
+     "pct": 0.0
+    },
+    {
+     "value": "15",
+     "n": 1,
+     "pct": 0.0
+    }
+   ],
+   "STATE_top15": [
+    {
+     "value": "KY",
+     "n": 14084,
+     "pct": 15.3
+    },
+    {
+     "value": "WV",
+     "n": 7157,
+     "pct": 7.77
+    },
+    {
+     "value": "PA",
+     "n": 6398,
+     "pct": 6.95
+    },
+    {
+     "value": "VA",
+     "n": 4607,
+     "pct": 5.0
+    },
+    {
+     "value": "TX",
+     "n": 3660,
+     "pct": 3.98
+    },
+    {
+     "value": "AL",
+     "n": 2602,
+     "pct": 2.83
+    },
+    {
+     "value": "NY",
+     "n": 2577,
+     "pct": 2.8
+    },
+    {
+     "value": "CO",
+     "n": 2542,
+     "pct": 2.76
+    },
+    {
+     "value": "CA",
+     "n": 2443,
+     "pct": 2.65
+    },
+    {
+     "value": "TN",
+     "n": 2274,
+     "pct": 2.47
+    },
+    {
+     "value": "OH",
+     "n": 2265,
+     "pct": 2.46
+    },
+    {
+     "value": "MN",
+     "n": 2076,
+     "pct": 2.26
+    },
+    {
+     "value": "WA",
+     "n": 2060,
+     "pct": 2.24
+    },
+    {
+     "value": "AZ",
+     "n": 2015,
+     "pct": 2.19
+    },
+    {
+     "value": "WI",
+     "n": 1991,
+     "pct": 2.16
+    },
+    {
+     "value": "<other 40 values>",
+     "n": 33309,
+     "pct": 36.18
+    }
+   ],
+   "PRIMARY_SIC_top15": [
+    {
+     "value": "Coal (Bituminous)",
+     "n": 33911,
+     "pct": 36.84
+    },
+    {
+     "value": "Construction Sand and Gravel",
+     "n": 29314,
+     "pct": 31.84
+    },
+    {
+     "value": "Crushed, Broken Limestone NEC",
+     "n": 6707,
+     "pct": 7.29
+    },
+    {
+     "value": "Gold Ore",
+     "n": 3024,
+     "pct": 3.28
+    },
+    {
+     "value": "Crushed, Broken Stone NEC",
+     "n": 3023,
+     "pct": 3.28
+    },
+    {
+     "value": "Dimension Stone NEC",
+     "n": 1623,
+     "pct": 1.76
+    },
+    {
+     "value": "Coal (Anthracite)",
+     "n": 1572,
+     "pct": 1.71
+    },
+    {
+     "value": "Sand, Common",
+     "n": 1176,
+     "pct": 1.28
+    },
+    {
+     "value": "Crushed, Broken Traprock",
+     "n": 1142,
+     "pct": 1.24
+    },
+    {
+     "value": "Common Clays NEC",
+     "n": 747,
+     "pct": 0.81
+    },
+    {
+     "value": "Sand, Industrial NEC",
+     "n": 742,
+     "pct": 0.81
+    },
+    {
+     "value": "Dimension Sandstone",
+     "n": 667,
+     "pct": 0.72
+    },
+    {
+     "value": "Crushed, Broken Granite",
+     "n": 666,
+     "pct": 0.72
+    },
+    {
+     "value": "Crushed, Broken Sandstone",
+     "n": 605,
+     "pct": 0.66
+    },
+    {
+     "value": "Silver Ore",
+     "n": 514,
+     "pct": 0.56
+    },
+    {
+     "value": "<other 106 values>",
+     "n": 6627,
+     "pct": 7.2
+    }
+   ],
+   "STATE_n_distinct": 55,
+   "PRIMARY_SIC_n_distinct": 121,
+   "type_by_commodity": {
+    "C": {
+     "<blank>": 108,
+     "Facility": 3413,
+     "Surface": 17624,
+     "Underground": 14589
+    },
+    "M": {
+     "<blank>": 84,
+     "Facility": 2145,
+     "Surface": 51279,
+     "Underground": 2818
+    }
+   },
+   "status_by_commodity": {
+    "C": {
+     "Abandoned": 25623,
+     "Abandoned and Sealed": 8811,
+     "Active": 574,
+     "Intermittent": 0,
+     "New Mine": 132,
+     "NonProducing": 314,
+     "Temporarily Idled": 280
+    },
+    "M": {
+     "Abandoned": 43962,
+     "Abandoned and Sealed": 9,
+     "Active": 6040,
+     "Intermittent": 5465,
+     "New Mine": 162,
+     "NonProducing": 59,
+     "Temporarily Idled": 629
+    }
+   }
+  },
+  "coordinates": {
+   "LONGITUDE": {
+    "n": 92060,
+    "missing": 44296,
+    "missing_pct": 48.12,
+    "zeros": 0,
+    "negatives": 47764,
+    "q00": -180.999,
+    "q01": -147.470278,
+    "q05": -118.14952775,
+    "q25": -94.07818825,
+    "q50": -83.2286115,
+    "q75": -81.40808875,
+    "q95": -73.53433365,
+    "q99": -66.43199992999996,
+    "q100": -0.000278,
+    "mean": -88.63770161100409,
+    "std": 15.653129151902498
+   },
+   "LATITUDE": {
+    "n": 92060,
+    "missing": 44292,
+    "missing_pct": 48.11,
+    "zeros": 0,
+    "negatives": 5,
+    "q00": -14.41444,
+    "q01": 18.26630248,
+    "q05": 31.30759695,
+    "q25": 36.91029425,
+    "q50": 37.839444,
+    "q75": 41.0028,
+    "q95": 46.233680850000006,
+    "q99": 61.747222,
+    "q100": 90.999722,
+    "mean": 38.754297319942225,
+    "std": 6.464759167963134
+   },
+   "lon_blank": 44296,
+   "lat_blank": 44292,
+   "both_present": 47760,
+   "either_zero": 0,
+   "both_zero": 0,
+   "lon_out_of_range_abs_gt_180": 62,
+   "lat_out_of_range_abs_gt_90": 63,
+   "lon_positive_nonzero": 0,
+   "lat_negative_nonzero": 5,
+   "outside_us_bbox_nonmissing_nonzero": 687,
+   "valid_us_coords": 47073,
+   "lon_non_numeric_nonblank": 0,
+   "lat_non_numeric_nonblank": 0,
+   "valid_us_coords_pct": 51.13,
+   "valid_us_coords_active_pct": 99.65
+  },
+  "coordinates_out_of_bbox": {
+   "rows": 687,
+   "by_state_top": {
+    "WV": 179,
+    "PA": 121,
+    "KY": 88,
+    "VA": 45,
+    "AR": 35,
+    "OK": 35,
+    "CO": 31,
+    "WY": 22,
+    "TN": 21,
+    "OH": 17
+   },
+   "lat_gt_90": 63,
+   "lon_abs_gt_180": 62,
+   "lat_negative": 5,
+   "lat_negative_states": {
+    "AS": 5
+   },
+   "lat_lt_17_5_nonneg": 394,
+   "lon_gt_minus64": 391,
+   "lon_gt_minus64_states": {
+    "WV": 108,
+    "PA": 83,
+    "KY": 79,
+    "VA": 42,
+    "CO": 14,
+    "OH": 14
+   },
+   "looks_swapped_lat_in_lon_range": 162,
+   "active_rows_out_of_bbox": 11,
+   "examples_lat_lon": [
+    {
+     "STATE": "AL",
+     "LATITUDE": ".1694",
+     "LONGITUDE": "-1.0169"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": ".1694",
+     "LONGITUDE": "-1.0169"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": ".1694",
+     "LONGITUDE": "-1.0169"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": ".0003",
+     "LONGITUDE": "-.0003"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": ".1694",
+     "LONGITUDE": "-1.0169"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": ".1694",
+     "LONGITUDE": "-1.0169"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": ".1694",
+     "LONGITUDE": "-1.0169"
+    },
+    {
+     "STATE": "AL",
+     "LATITUDE": "1.0169",
+     "LONGITUDE": "-1.0169"
+    }
+   ],
+   "state_PR_VI_GU_AS_rows_total": 436
+  },
+  "impossible_values": {
+   "DAYS_PER_WEEK_gt_7": 0,
+   "DAYS_PER_WEEK_zero": 75500,
+   "DAYS_PER_WEEK_zero_active": 6,
+   "HOURS_PER_SHIFT_gt_24": 0,
+   "HOURS_PER_SHIFT_zero": 20074,
+   "HOURS_PER_SHIFT_zero_active": 61,
+   "HOURS_PER_SHIFT_gt_12_le_24": 64,
+   "PROD_SHIFTS_gt_3": 167,
+   "PROD_SHIFTS_zero_active": 88,
+   "MAINT_SHIFTS_gt_3": 55,
+   "shifts_total_gt_4": 253,
+   "prod_shifts_x_hours_gt_24": 190,
+   "prod_shifts_x_hours_gt_24_active": 110,
+   "all_shifts_x_hours_gt_24": 735,
+   "NO_EMPLOYEES_zero": 38131,
+   "NO_EMPLOYEES_zero_active": 0,
+   "NO_EMPLOYEES_negative": 0,
+   "NO_EMPLOYEES_gt_5000": 1,
+   "NO_EMPLOYEES_gt_2000": 1,
+   "NO_EMPLOYEES_top5": [
+    1123,
+    1200,
+    1207,
+    1386,
+    5870
+   ],
+   "AVG_MINE_HEIGHT_zero": 328,
+   "AVG_MINE_HEIGHT_gt_1200in_100ft": 5,
+   "AVG_MINE_HEIGHT_lt_24in_nonzero": 1187,
+   "AVG_MINE_HEIGHT_on_metal_nonmetal": 39,
+   "AVG_MINE_HEIGHT_on_metal_nonmetal_nonzero": 0,
+   "AVG_MINE_HEIGHT_top5": [
+    1320,
+    1800,
+    2237,
+    5160,
+    7200
+   ],
+   "MILES_FROM_OFFICE_zero": 55527,
+   "MILES_FROM_OFFICE_gt_1000": 1,
+   "MILES_FROM_OFFICE_gt_500": 112,
+   "MILES_FROM_OFFICE_negative": 0,
+   "MILES_FROM_OFFICE_top5": [
+    600,
+    600,
+    600,
+    600,
+    14593
+   ],
+   "coords_zero_either": 0,
+   "coords_outside_us_bbox": 687,
+   "lon_positive_nonzero": 0,
+   "COAL_METAL_IND_not_C_or_M": 0,
+   "yes_no_cols_not_Y_N_blank": {
+    "PORTABLE_OPERATION": 0,
+    "PART48_TRAINING": 0,
+    "PILLAR_RECOVERY_USED": 0,
+    "HIGHWALL_MINER_USED": 0,
+    "MULTIPLE_PITS": 0,
+    "MINERS_REP_IND": 0,
+    "SAFETY_COMMITTEE_IND": 0
+   }
+  },
+  "outlier_rows": {
+   "NO_EMPLOYEES_max_row": {
+    "STATE": "AZ",
+    "COAL_METAL_IND": "M",
+    "CURRENT_MINE_TYPE": "Surface",
+    "CURRENT_MINE_STATUS": "Active",
+    "NO_EMPLOYEES": "5870",
+    "PRIMARY_CANVASS": "Metal"
+   },
+   "MILES_FROM_OFFICE_max_row": {
+    "STATE": "ID",
+    "COAL_METAL_IND": "M",
+    "CURRENT_MINE_STATUS": "Abandoned",
+    "MILES_FROM_OFFICE": "14593"
+   },
+   "AVG_MINE_HEIGHT_gt_1200_rows": [
+    {
+     "STATE": "CO",
+     "COAL_METAL_IND": "C",
+     "CURRENT_MINE_TYPE": "Underground",
+     "CURRENT_MINE_STATUS": "Abandoned and Sealed",
+     "AVG_MINE_HEIGHT": "1800"
+    },
+    {
+     "STATE": "VA",
+     "COAL_METAL_IND": "C",
+     "CURRENT_MINE_TYPE": "Surface",
+     "CURRENT_MINE_STATUS": "Abandoned and Sealed",
+     "AVG_MINE_HEIGHT": "7200"
+    },
+    {
+     "STATE": "WV",
+     "COAL_METAL_IND": "C",
+     "CURRENT_MINE_TYPE": "Underground",
+     "CURRENT_MINE_STATUS": "Abandoned and Sealed",
+     "AVG_MINE_HEIGHT": "2237"
+    },
+    {
+     "STATE": "WY",
+     "COAL_METAL_IND": "C",
+     "CURRENT_MINE_TYPE": "Surface",
+     "CURRENT_MINE_STATUS": "Abandoned",
+     "AVG_MINE_HEIGHT": "1320"
+    },
+    {
+     "STATE": "WY",
+     "COAL_METAL_IND": "C",
+     "CURRENT_MINE_TYPE": "Surface",
+     "CURRENT_MINE_STATUS": "Active",
+     "AVG_MINE_HEIGHT": "5160"
+    }
+   ],
+   "AVG_MINE_HEIGHT_lt_24_value_counts_top": {
+    "18": 216,
+    "20": 203,
+    "22": 166,
+    "1": 99,
+    "16": 71,
+    "12": 69,
+    "15": 60,
+    "23": 57
+   },
+   "AVG_MINE_HEIGHT_lt_24_underground_share_pct": 9.8,
+   "MILES_FROM_OFFICE_zero_active_pct": 3.3,
+   "MILES_FROM_OFFICE_zero_abandoned_pct": 69.6,
+   "DAYS_PER_WEEK_zero_active_pct": 0.1,
+   "HOURS_PER_SHIFT_blank_or_zero_active_pct": 1.0
+  },
+  "dates": {
+   "CURRENT_STATUS_DT": {
+    "nonblank": 92060,
+    "parsed": 92060,
+    "unparsed_nonblank": 0,
+    "min": "1925-01-01",
+    "max": "2026-10-08",
+    "after_snapshot_2026_10_14": 0,
+    "year_counts_recent": {
+     "2019": 1162,
+     "2020": 1192,
+     "2021": 1079,
+     "2022": 1295,
+     "2023": 1632,
+     "2024": 2247,
+     "2025": 2459,
+     "2026": 2967
+    }
+   },
+   "CURRENT_CONTROLLER_BEGIN_DT": {
+    "nonblank": 91085,
+    "parsed": 91085,
+    "unparsed_nonblank": 0,
+    "min": "1950-01-01",
+    "max": "2026-10-01",
+    "after_snapshot_2026_10_14": 0,
+    "year_counts_recent": {
+     "2019.0": 853,
+     "2020.0": 843,
+     "2021.0": 851,
+     "2022.0": 893,
+     "2023.0": 909,
+     "2024.0": 965,
+     "2025.0": 922,
+     "2026.0": 876
+    }
+   },
+   "CURRENT_103I_DT": {
+    "nonblank": 19830,
+    "parsed": 19830,
+    "unparsed_nonblank": 0,
+    "min": "1901-01-01",
+    "max": "2026-09-29",
+    "after_snapshot_2026_10_14": 0,
+    "year_counts_recent": {
+     "2019.0": 6,
+     "2020.0": 8,
+     "2021.0": 12,
+     "2022.0": 11,
+     "2023.0": 4,
+     "2024.0": 7,
+     "2025.0": 21,
+     "2026.0": 23
+    }
+   }
+  },
+  "temporal_mismatch": {
+   "current_status_by_accident_year": {
+    "2010": {
+     "rows": 10756,
+     "Active_pct": 51.3,
+     "Abandoned_or_sealed_pct": 37.0,
+     "Intermittent_pct": 1.8,
+     "NonProducing_pct": 7.5,
+     "TempIdled_pct": 2.5
+    },
+    "2011": {
+     "rows": 11038,
+     "Active_pct": 51.3,
+     "Abandoned_or_sealed_pct": 35.6,
+     "Intermittent_pct": 2.1,
+     "NonProducing_pct": 7.6,
+     "TempIdled_pct": 3.4
+    },
+    "2012": {
+     "rows": 10036,
+     "Active_pct": 54.6,
+     "Abandoned_or_sealed_pct": 32.3,
+     "Intermittent_pct": 2.0,
+     "NonProducing_pct": 8.0,
+     "TempIdled_pct": 3.1
+    },
+    "2013": {
+     "rows": 9581,
+     "Active_pct": 58.5,
+     "Abandoned_or_sealed_pct": 28.2,
+     "Intermittent_pct": 1.9,
+     "NonProducing_pct": 8.3,
+     "TempIdled_pct": 3.1
+    },
+    "2014": {
+     "rows": 9420,
+     "Active_pct": 61.3,
+     "Abandoned_or_sealed_pct": 26.5,
+     "Intermittent_pct": 1.9,
+     "NonProducing_pct": 7.9,
+     "TempIdled_pct": 2.3
+    },
+    "2015": {
+     "rows": 8239,
+     "Active_pct": 66.1,
+     "Abandoned_or_sealed_pct": 22.5,
+     "Intermittent_pct": 2.3,
+     "NonProducing_pct": 7.2,
+     "TempIdled_pct": 2.0
+    },
+    "2016": {
+     "rows": 7067,
+     "Active_pct": 72.1,
+     "Abandoned_or_sealed_pct": 17.5,
+     "Intermittent_pct": 2.4,
+     "NonProducing_pct": 5.8,
+     "TempIdled_pct": 2.2
+    },
+    "2017": {
+     "rows": 6984,
+     "Active_pct": 73.4,
+     "Abandoned_or_sealed_pct": 15.8,
+     "Intermittent_pct": 2.7,
+     "NonProducing_pct": 5.8,
+     "TempIdled_pct": 2.3
+    },
+    "2018": {
+     "rows": 6863,
+     "Active_pct": 77.3,
+     "Abandoned_or_sealed_pct": 12.8,
+     "Intermittent_pct": 2.3,
+     "NonProducing_pct": 5.9,
+     "TempIdled_pct": 1.8
+    },
+    "2019": {
+     "rows": 6824,
+     "Active_pct": 78.4,
+     "Abandoned_or_sealed_pct": 11.8,
+     "Intermittent_pct": 2.3,
+     "NonProducing_pct": 5.8,
+     "TempIdled_pct": 1.6
+    },
+    "2020": {
+     "rows": 5391,
+     "Active_pct": 83.8,
+     "Abandoned_or_sealed_pct": 7.5,
+     "Intermittent_pct": 2.5,
+     "NonProducing_pct": 4.7,
+     "TempIdled_pct": 1.5
+    },
+    "2021": {
+     "rows": 5676,
+     "Active_pct": 86.3,
+     "Abandoned_or_sealed_pct": 5.4,
+     "Intermittent_pct": 3.0,
+     "NonProducing_pct": 3.8,
+     "TempIdled_pct": 1.5
+    },
+    "2022": {
+     "rows": 5980,
+     "Active_pct": 87.5,
+     "Abandoned_or_sealed_pct": 4.1,
+     "Intermittent_pct": 3.3,
+     "NonProducing_pct": 3.5,
+     "TempIdled_pct": 1.6
+    },
+    "2023": {
+     "rows": 6093,
+     "Active_pct": 88.9,
+     "Abandoned_or_sealed_pct": 2.9,
+     "Intermittent_pct": 2.8,
+     "NonProducing_pct": 3.9,
+     "TempIdled_pct": 1.6
+    },
+    "2024": {
+     "rows": 5991,
+     "Active_pct": 92.0,
+     "Abandoned_or_sealed_pct": 2.1,
+     "Intermittent_pct": 2.5,
+     "NonProducing_pct": 2.6,
+     "TempIdled_pct": 0.9
+    },
+    "2025": {
+     "rows": 5602,
+     "Active_pct": 93.2,
+     "Abandoned_or_sealed_pct": 1.0,
+     "Intermittent_pct": 3.3,
+     "NonProducing_pct": 2.1,
+     "TempIdled_pct": 0.4
+    },
+    "2026": {
+     "rows": 4177,
+     "Active_pct": 94.5,
+     "Abandoned_or_sealed_pct": 0.2,
+     "Intermittent_pct": 3.1,
+     "NonProducing_pct": 1.8,
+     "TempIdled_pct": 0.3
+    }
+   },
+   "no_employees_vs_year_avg_employees": {
+    "rows_comparable": 99530,
+    "pearson_log1p": 0.821,
+    "ratio_median": 0.92,
+    "ratio_q05": 0.056,
+    "ratio_q95": 1.668,
+    "within_pm50pct": 74.4,
+    "by_year": {
+     "2010": {
+      "rows": 6460,
+      "within_pm50pct": 66.4,
+      "pearson_log1p": 0.672
+     },
+     "2011": {
+      "rows": 6738,
+      "within_pm50pct": 67.2,
+      "pearson_log1p": 0.681
+     },
+     "2012": {
+      "rows": 6488,
+      "within_pm50pct": 66.3,
+      "pearson_log1p": 0.68
+     },
+     "2013": {
+      "rows": 6590,
+      "within_pm50pct": 68.4,
+      "pearson_log1p": 0.724
+     },
+     "2014": {
+      "rows": 6686,
+      "within_pm50pct": 69.8,
+      "pearson_log1p": 0.746
+     },
+     "2015": {
+      "rows": 6205,
+      "within_pm50pct": 70.8,
+      "pearson_log1p": 0.785
+     },
+     "2016": {
+      "rows": 5719,
+      "within_pm50pct": 71.9,
+      "pearson_log1p": 0.808
+     },
+     "2017": {
+      "rows": 5735,
+      "within_pm50pct": 73.8,
+      "pearson_log1p": 0.816
+     },
+     "2018": {
+      "rows": 5872,
+      "within_pm50pct": 74.1,
+      "pearson_log1p": 0.843
+     },
+     "2019": {
+      "rows": 5901,
+      "within_pm50pct": 74.3,
+      "pearson_log1p": 0.86
+     },
+     "2020": {
+      "rows": 4901,
+      "within_pm50pct": 77.9,
+      "pearson_log1p": 0.907
+     },
+     "2021": {
+      "rows": 5287,
+      "within_pm50pct": 79.3,
+      "pearson_log1p": 0.927
+     },
+     "2022": {
+      "rows": 5635,
+      "within_pm50pct": 78.9,
+      "pearson_log1p": 0.936
+     },
+     "2023": {
+      "rows": 5824,
+      "within_pm50pct": 79.6,
+      "pearson_log1p": 0.934
+     },
+     "2024": {
+      "rows": 5826,
+      "within_pm50pct": 83.6,
+      "pearson_log1p": 0.943
+     },
+     "2025": {
+      "rows": 5522,
+      "within_pm50pct": 85.3,
+      "pearson_log1p": 0.95
+     },
+     "2026": {
+      "rows": 4141,
+      "within_pm50pct": 86.1,
+      "pearson_log1p": 0.96
+     }
+    }
+   },
+   "accident_rows_with_no_employees_zero_or_blank": 26100,
+   "status_dt_after_accident_dt_rows": 51210,
+   "status_dt_after_accident_dt_pct_of_matched": 40.7,
+   "controller_begin_after_accident_dt_rows": 33016,
+   "controller_begin_after_accident_dt_pct_of_matched": 26.3,
+   "103i_dt_after_accident_dt_rows": 20869,
+   "103i_dt_after_accident_dt_pct_of_matched": 16.6,
+   "ug_subunit_accidents_at_non_underground_current_type": 6799,
+   "ug_subunit_accidents_total_matched": 53577,
+   "type_by_subunit_crosstab": {
+    "Facility": {
+     "01": 3824,
+     "02": 257,
+     "03": 1225,
+     "04": 0,
+     "05": 55,
+     "06": 27,
+     "12": 0,
+     "17": 195,
+     "30": 13732,
+     "99": 140
+    },
+    "Surface": {
+     "01": 2507,
+     "02": 211,
+     "03": 37275,
+     "04": 145,
+     "05": 50,
+     "06": 1596,
+     "12": 169,
+     "17": 34,
+     "30": 14618,
+     "99": 556
+    },
+    "Underground": {
+     "01": 41624,
+     "02": 5154,
+     "03": 140,
+     "04": 0,
+     "05": 0,
+     "06": 0,
+     "12": 0,
+     "17": 0,
+     "30": 2051,
+     "99": 133
+    }
+   }
+  },
+  "in_force_at_accident": {
+   "rows": 125718,
+   "status_dt_le_accident_pct": 59.3,
+   "status_dt_after_accident_pct": 40.7,
+   "controller_begin_le_accident_pct": 73.7,
+   "controller_begin_after_accident_pct": 26.3,
+   "controller_begin_blank_pct": 0.0,
+   "i103_dt_present_pct": 35.8,
+   "i103_dt_le_accident_pct": 19.2,
+   "i103_dt_after_accident_pct": 16.6,
+   "i103_status_nonblank_but_dt_blank_pct": 57.8,
+   "i103_never_had_status_dt_blank_pct": 100.0,
+   "status_active_and_dt_le_accident_pct": 58.0,
+   "i103_in_force_rows_valid_target": 82448,
+   "i103_in_force_cramers_v": 0.1877
+  },
+  "mine_type_drift": {
+   "ug_subunit_accident_rows": 53577,
+   "ug_subunit_accidents_at_non_UG_current_type": 6799,
+   "of_which_mine_had_UG_hours_that_year": 6767,
+   "of_which_pct": 99.5,
+   "current_type_vs_type_at_time_crosstab": {
+    "<no prod>": {
+     "Facility": 64,
+     "Surface": 98,
+     "Underground": 124
+    },
+    "Facility": {
+     "Facility": 9220,
+     "Surface": 2147,
+     "Underground": 124
+    },
+    "Surface": {
+     "Facility": 5962,
+     "Surface": 52160,
+     "Underground": 177
+    },
+    "Underground": {
+     "Facility": 4209,
+     "Surface": 2756,
+     "Underground": 48677
+    }
+   },
+   "current_type_equals_type_at_time_pct": 87.54,
+   "type_at_time_available_pct": 99.77,
+   "type_at_time_counts": {
+    "Surface": 58299,
+    "Underground": 55642,
+    "Facility": 11491,
+    "<no prod>": 286
+   },
+   "lost_time_rate_by_current_type": {
+    "Facility": 41.8,
+    "Surface": 43.8,
+    "Underground": 58.9
+   },
+   "lost_time_rate_by_type_at_time": {
+    "Facility": 41.6,
+    "Surface": 42.2,
+    "Underground": 58.9
+   },
+   "cramers_v_current_type": 0.1501,
+   "cramers_v_type_at_time": 0.1645,
+   "cramers_v_subunit_cd": 0.1842
+  }
+ },
+ "production": {
+  "codebook_name_mismatch": {
+   "file_columns": [
+    "MINE_ID",
+    "CURR_MINE_NM",
+    "STATE_ABBR",
+    "SUBUNIT_CD",
+    "SUBUNIT_DESC",
+    "CALENDAR_YR",
+    "ANNUAL_HRS",
+    "ANNUAL_COAL_PROD",
+    "AVG_ANNUAL_EMPL",
+    "AVG_EMPLOYEE_HOURS",
+    "C_M_IND"
+   ],
+   "codebook_columns": [
+    "MINE_ID",
+    "MINE_NAME",
+    "STATE",
+    "SUBUNIT_CD",
+    "SUBUNIT",
+    "CAL_YR",
+    "ANNUAL_HOURS",
+    "ANNUAL_COAL_PRODUCTION",
+    "AVG_EMPLOYEE_CNT",
+    "AVG_EMPLOYEE_HOURS",
+    "COAL_METAL_IND"
+   ]
+  },
+  "key_uniqueness": {
+   "key": [
+    "MINE_ID",
+    "CALENDAR_YR",
+    "SUBUNIT_CD"
+   ],
+   "n_rows": 658922,
+   "n_unique_keys": 658922,
+   "rows_in_duplicated_keys": 0,
+   "fully_duplicated_rows": 0,
+   "n_unique_mine_year": 370794,
+   "n_unique_mines": 33871,
+   "mine_id_all_7_digits": true,
+   "duplicate_examples": []
+  },
+  "mines_not_in_Mines_table": {
+   "n_prod_mine_ids_not_in_mines": 0,
+   "n_prod_rows_not_in_mines": 0,
+   "n_mines_with_no_production_rows": 58189
+  },
+  "calendar_yr": {
+   "min": 2000,
+   "max": 2026,
+   "missing": 0,
+   "counts": {
+    "2000": 25696,
+    "2001": 25816,
+    "2002": 25498,
+    "2003": 25417,
+    "2004": 25760,
+    "2005": 26143,
+    "2006": 26456,
+    "2007": 26420,
+    "2008": 26511,
+    "2009": 25957,
+    "2010": 25338,
+    "2011": 25305,
+    "2012": 25256,
+    "2013": 24793,
+    "2014": 24424,
+    "2015": 23824,
+    "2016": 23363,
+    "2017": 23335,
+    "2018": 23254,
+    "2019": 23089,
+    "2020": 22613,
+    "2021": 22235,
+    "2022": 22169,
+    "2023": 22192,
+    "2024": 22127,
+    "2025": 21882,
+    "2026": 24049
+   }
+  },
+  "hours_by_year_total_millions": {
+   "2000": 534.49,
+   "2001": 530.78,
+   "2002": 506.91,
+   "2003": 494.18,
+   "2004": 512.68,
+   "2005": 537.78,
+   "2006": 554.1,
+   "2007": 551.61,
+   "2008": 548.25,
+   "2009": 485.37,
+   "2010": 495.31,
+   "2011": 523.89,
+   "2012": 518.68,
+   "2013": 504.34,
+   "2014": 499.99,
+   "2015": 473.62,
+   "2016": 433.45,
+   "2017": 447.18,
+   "2018": 462.15,
+   "2019": 462.83,
+   "2020": 410.8,
+   "2021": 413.8,
+   "2022": 437.41,
+   "2023": 452.32,
+   "2024": 453.16,
+   "2025": 446.06,
+   "2026": 218.81
+  },
+  "subunit_counts": [
+   {
+    "value": "03 STRIP, QUARY, OPEN PIT",
+    "n": 303645,
+    "pct": 46.08
+   },
+   {
+    "value": "99 OFFICE WORKERS AT MINE SITE",
+    "n": 227507,
+    "pct": 34.53
+   },
+   {
+    "value": "30 MILL OPERATION/PREPARATION PLANT",
+    "n": 68055,
+    "pct": 10.33
+   },
+   {
+    "value": "06 DREDGE",
+    "n": 20221,
+    "pct": 3.07
+   },
+   {
+    "value": "01 UNDERGROUND",
+    "n": 18318,
+    "pct": 2.78
+   },
+   {
+    "value": "02 SURFACE AT UNDERGROUND",
+    "n": 15456,
+    "pct": 2.35
+   },
+   {
+    "value": "04 AUGER",
+    "n": 2291,
+    "pct": 0.35
+   },
+   {
+    "value": "05 CULM BANK/REFUSE PILE",
+    "n": 1842,
+    "pct": 0.28
+   },
+   {
+    "value": "17 INDEPENDENT SHOPS OR YARDS",
+    "n": 1219,
+    "pct": 0.18
+   },
+   {
+    "value": "12 OTHER MINING",
+    "n": 368,
+    "pct": 0.06
+   }
+  ],
+  "c_m_ind_counts": [
+   {
+    "value": "M",
+    "n": 588571,
+    "pct": 89.32
+   },
+   {
+    "value": "C",
+    "n": 70351,
+    "pct": 10.68
+   }
+  ],
+  "ANNUAL_HRS": {
+   "n": 658922,
+   "missing": 0,
+   "missing_pct": 0.0,
+   "zeros": 3319,
+   "negatives": 0,
+   "q00": 0.0,
+   "q01": 2.0,
+   "q05": 12.0,
+   "q25": 1223.0,
+   "q50": 4203.0,
+   "q75": 13108.0,
+   "q95": 70060.8999999999,
+   "q99": 279082.49000000115,
+   "q100": 4642869.0,
+   "mean": 19592.54909078768,
+   "std": 76967.60906279793
+  },
+  "AVG_ANNUAL_EMPL": {
+   "n": 658922,
+   "missing": 0,
+   "missing_pct": 0.0,
+   "zeros": 3319,
+   "negatives": 0,
+   "q00": 0.0,
+   "q01": 1.0,
+   "q05": 1.0,
+   "q25": 1.0,
+   "q50": 3.0,
+   "q75": 7.0,
+   "q95": 33.0,
+   "q99": 128.0,
+   "q100": 2107.0,
+   "mean": 9.995949444699068,
+   "std": 35.97154638503326
+  },
+  "AVG_EMPLOYEE_HOURS": {
+   "n": 658922,
+   "missing": 0,
+   "missing_pct": 0.0,
+   "zeros": 3330,
+   "negatives": 0,
+   "q00": 0.0,
+   "q01": 2.0,
+   "q05": 10.0,
+   "q25": 631.0,
+   "q50": 1647.0,
+   "q75": 2143.0,
+   "q95": 2698.0,
+   "q99": 3156.0,
+   "q100": 5760.0,
+   "mean": 1450.5303116302082,
+   "std": 893.0841811188002
+  },
+  "ANNUAL_COAL_PROD": {
+   "n": 658922,
+   "missing": 72210,
+   "missing_pct": 10.96,
+   "zeros": 559018,
+   "negatives": 0,
+   "q00": 0.0,
+   "q01": 0.0,
+   "q05": 0.0,
+   "q25": 0.0,
+   "q50": 0.0,
+   "q75": 0.0,
+   "q95": 0.0,
+   "q99": 463461.06000000215,
+   "q100": 117965515.0,
+   "mean": 40565.43925639837,
+   "std": 955154.9643021206
+  },
+  "ANNUAL_HRS_top5": [
+   3716272,
+   3767642,
+   3895003,
+   3899068,
+   4642869
+  ],
+  "AVG_ANNUAL_EMPL_top5": [
+   1805,
+   1908,
+   1934,
+   1978,
+   2107
+  ],
+  "hrs_zero_empl_zero": 3319,
+  "hrs_pos_empl_zero": 0,
+  "hrs_zero_empl_pos": 0,
+  "coal_prod_blank_by_cm": {
+   "C": {
+    "rows": 70351,
+    "blank": 5768,
+    "blank_pct": 8.2,
+    "zero": 37002,
+    "positive": 27581
+   },
+   "M": {
+    "rows": 588571,
+    "blank": 66442,
+    "blank_pct": 11.29,
+    "zero": 522016,
+    "positive": 113
+   }
+  },
+  "coal_prod_blank_coal_by_subunit": {
+   "03": {
+    "rows": 16728,
+    "blank": 0
+   },
+   "99": {
+    "rows": 14183,
+    "blank": 2168
+   },
+   "01": {
+    "rows": 12056,
+    "blank": 0
+   },
+   "30": {
+    "rows": 11488,
+    "blank": 1530
+   },
+   "02": {
+    "rows": 10776,
+    "blank": 1912
+   },
+   "04": {
+    "rows": 2291,
+    "blank": 0
+   },
+   "05": {
+    "rows": 1834,
+    "blank": 0
+   },
+   "17": {
+    "rows": 837,
+    "blank": 158
+   },
+   "06": {
+    "rows": 158,
+    "blank": 0
+   }
+  },
+  "avg_emp_hours_consistency": {
+   "rows_checkable_empl_gt0": 655603,
+   "exact_after_round": 620692,
+   "exact_after_floor": 449589,
+   "within_1": 655603,
+   "within_1_pct": 100.0,
+   "gt_1": 0,
+   "gt_10": 0,
+   "abs_diff_max": 0.5,
+   "examples_gt_1": [],
+   "empl_zero_rows": 3319,
+   "empl_zero_aeh_values": [
+    {
+     "value": "0",
+     "n": 3319,
+     "pct": 100.0
+    }
+   ],
+   "aeh_gt_8784_hours_in_year": 0,
+   "aeh_gt_4000": 753,
+   "aeh_gt_3000": 11227,
+   "aeh_lt_100_nonzero": 68059,
+   "aeh_zero_with_hours_pos": 11
+  },
+  "mine_year": {
+   "n_mine_years": 370794,
+   "hours_zero": 916,
+   "employees_zero": 916,
+   "mixed_cm_within_mine_year": 0,
+   "hours": {
+    "n": 370794,
+    "missing": 0,
+    "missing_pct": 0.0,
+    "zeros": 916,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 4.0,
+    "q05": 139.0,
+    "q25": 1952.0,
+    "q50": 7529.0,
+    "q75": 24091.75,
+    "q95": 128940.04999999993,
+    "q99": 502519.7300000003,
+    "q100": 8490584.0,
+    "mean": 34817.072638715836,
+    "std": 128731.9587642308
+   },
+   "employees": {
+    "n": 370794,
+    "missing": 0,
+    "missing_pct": 0.0,
+    "zeros": 916,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 1.0,
+    "q05": 1.0,
+    "q25": 3.0,
+    "q50": 5.0,
+    "q75": 13.0,
+    "q95": 60.0,
+    "q99": 234.07000000000698,
+    "q100": 4251.0,
+    "mean": 17.763369957442677,
+    "std": 60.85941870850915
+   },
+   "hours_per_employee": {
+    "n": 370794,
+    "missing": 916,
+    "missing_pct": 0.25,
+    "zeros": 0,
+    "negatives": 0,
+    "q00": 0.004285714285714286,
+    "q01": 6.333333333333333,
+    "q05": 72.0,
+    "q25": 668.5,
+    "q50": 1541.2857142857142,
+    "q75": 2091.6916666666666,
+    "q95": 2610.5,
+    "q99": 3010.0,
+    "q100": 5760.0,
+    "mean": 1416.5660660642131,
+    "std": 833.3358042671366
+   },
+   "subunits_per_mine_year": [
+    {
+     "value": "2",
+     "n": 181078,
+     "pct": 48.84
+    },
+    {
+     "value": "1",
+     "n": 137782,
+     "pct": 37.16
+    },
+    {
+     "value": "3",
+     "n": 48765,
+     "pct": 13.15
+    },
+    {
+     "value": "4",
+     "n": 3156,
+     "pct": 0.85
+    },
+    {
+     "value": "5",
+     "n": 13,
+     "pct": 0.0
+    }
+   ]
+  },
+  "non_numeric_nonblank": {
+   "CALENDAR_YR": 0,
+   "ANNUAL_HRS": 0,
+   "ANNUAL_COAL_PROD": 0,
+   "AVG_ANNUAL_EMPL": 0,
+   "AVG_EMPLOYEE_HOURS": 0
+  }
+ },
+ "accidents_subset": {
+  "cal_yr_counts_2010_plus": {
+   "2010": 10756,
+   "2011": 11038,
+   "2012": 10036,
+   "2013": 9581,
+   "2014": 9420,
+   "2015": 8239,
+   "2016": 7067,
+   "2017": 6984,
+   "2018": 6863,
+   "2019": 6824,
+   "2020": 5391,
+   "2021": 5676,
+   "2022": 5980,
+   "2023": 6093,
+   "2024": 5991,
+   "2025": 5602,
+   "2026": 4177
+  },
+  "degree_injury_2010_plus": [
+   {
+    "value": "03",
+    "n": 38604,
+    "pct": 30.71
+   },
+   {
+    "value": "06",
+    "n": 32511,
+    "pct": 25.86
+   },
+   {
+    "value": "05",
+    "n": 21396,
+    "pct": 17.02
+   },
+   {
+    "value": "00",
+    "n": 12610,
+    "pct": 10.03
+   },
+   {
+    "value": "04",
+    "n": 10922,
+    "pct": 8.69
+   },
+   {
+    "value": "07",
+    "n": 5655,
+    "pct": 4.5
+   },
+   {
+    "value": "02",
+    "n": 1167,
+    "pct": 0.93
+   },
+   {
+    "value": "08",
+    "n": 1038,
+    "pct": 0.83
+   },
+   {
+    "value": "10",
+    "n": 868,
+    "pct": 0.69
+   },
+   {
+    "value": "01",
+    "n": 591,
+    "pct": 0.47
+   },
+   {
+    "value": "09",
+    "n": 356,
+    "pct": 0.28
+   }
+  ],
+  "target_2010_plus": {
+   "lost_time_1": 51284,
+   "lost_time_0": 53907,
+   "excluded_nan": 20527,
+   "prevalence_among_valid": 0.4875
+  },
+  "document_no_unique_all": 275220,
+  "document_no_dup_rows_all": 0,
+  "cal_yr_vs_accident_dt_year_mismatch": 0,
+  "subunit_counts_2010_plus": [
+   {
+    "value": "01",
+    "n": 47955,
+    "pct": 38.14
+   },
+   {
+    "value": "03",
+    "n": 38640,
+    "pct": 30.74
+   },
+   {
+    "value": "30",
+    "n": 30401,
+    "pct": 24.18
+   },
+   {
+    "value": "02",
+    "n": 5622,
+    "pct": 4.47
+   },
+   {
+    "value": "06",
+    "n": 1623,
+    "pct": 1.29
+   },
+   {
+    "value": "99",
+    "n": 829,
+    "pct": 0.66
+   },
+   {
+    "value": "17",
+    "n": 229,
+    "pct": 0.18
+   },
+   {
+    "value": "12",
+    "n": 169,
+    "pct": 0.13
+   },
+   {
+    "value": "04",
+    "n": 145,
+    "pct": 0.12
+   },
+   {
+    "value": "05",
+    "n": 105,
+    "pct": 0.08
+   }
+  ]
+ },
+ "join_coverage": {
+  "rows": 125718,
+  "table": [
+   {
+    "step": "(a) Accidents -> Mines",
+    "keys": "MINE_ID",
+    "how": "left, many_to_one",
+    "matched_rows": 125718,
+    "matched_pct": 100.0,
+    "unmatched": 0,
+    "matched_hours_positive_pct": null,
+    "note": "all rows match"
+   },
+   {
+    "step": "(b) Accidents -> Production (subunit)",
+    "keys": "MINE_ID, CAL_YR=CALENDAR_YR, SUBUNIT_CD",
+    "how": "left, many_to_one",
+    "matched_rows": 124735,
+    "matched_pct": 99.218,
+    "unmatched": 983,
+    "matched_hours_positive_pct": 99.185,
+    "note": "42 matched with 0 hours"
+   },
+   {
+    "step": "(c) Accidents -> Production (mine-year, summed)",
+    "keys": "MINE_ID, CAL_YR=CALENDAR_YR",
+    "how": "left, many_to_one",
+    "matched_rows": 125432,
+    "matched_pct": 99.773,
+    "unmatched": 286,
+    "matched_hours_positive_pct": 99.769,
+    "note": "697 rows match the mine-year but not the subunit"
+   },
+   {
+    "step": "(c') Accidents -> Production (mine, previous year)",
+    "keys": "MINE_ID, CAL_YR-1=CALENDAR_YR",
+    "how": "left, many_to_one",
+    "matched_rows": 124291,
+    "matched_pct": 98.865,
+    "unmatched": 1427,
+    "matched_hours_positive_pct": 98.86,
+    "note": "time-safe exposure; 2009 production covers 2010 rows"
+   }
+  ],
+  "a_mines": {
+   "matched": 125718,
+   "matched_pct": 100.0,
+   "unmatched": 0,
+   "unmatched_distinct_mine_ids": 0,
+   "unmatched_mine_id_examples": [],
+   "unmatched_by_year": {},
+   "unmatched_by_cm": [],
+   "unmatched_target": {
+    "lt1": 0,
+    "lt0": 0,
+    "nan": 0
+   }
+  },
+  "b_prod_subunit": {
+   "matched": 124735,
+   "matched_pct": 99.218,
+   "unmatched": 983,
+   "matched_but_hours_zero": 42,
+   "matched_but_hours_blank": 0,
+   "matched_hours_positive_pct": 99.185
+  },
+  "c_prod_mine_year": {
+   "matched": 125432,
+   "matched_pct": 99.773,
+   "unmatched": 286,
+   "matched_but_hours_zero": 5,
+   "matched_hours_positive": 125427,
+   "matched_hours_positive_pct": 99.769,
+   "matched_my_but_not_subunit": 697,
+   "matched_su_but_not_my_should_be_0": 0,
+   "matched_mines_but_not_my": 286,
+   "matched_my_but_not_mines": 0,
+   "unmatched_both_mines_and_my": 0
+  },
+  "c_minus_b_accident_subunits": [
+   {
+    "value": "03",
+    "n": 224,
+    "pct": 32.14
+   },
+   {
+    "value": "02",
+    "n": 208,
+    "pct": 29.84
+   },
+   {
+    "value": "30",
+    "n": 145,
+    "pct": 20.8
+   },
+   {
+    "value": "01",
+    "n": 81,
+    "pct": 11.62
+   },
+   {
+    "value": "99",
+    "n": 24,
+    "pct": 3.44
+   },
+   {
+    "value": "06",
+    "n": 6,
+    "pct": 0.86
+   },
+   {
+    "value": "04",
+    "n": 5,
+    "pct": 0.72
+   },
+   {
+    "value": "05",
+    "n": 3,
+    "pct": 0.43
+   },
+   {
+    "value": "12",
+    "n": 1,
+    "pct": 0.14
+   }
+  ],
+  "d_coal_metal_agreement": {
+   "acc_vs_mines_rows": 125718,
+   "acc_vs_mines_agree": 125718,
+   "acc_vs_mines_agree_pct": 100.0,
+   "acc_vs_mines_disagree_crosstab": {},
+   "acc_vs_prod_subunit_rows": 124735,
+   "acc_vs_prod_subunit_agree": 124735,
+   "acc_vs_prod_subunit_agree_pct": 100.0,
+   "acc_vs_prod_mine_year_rows": 125432,
+   "acc_vs_prod_mine_year_agree": 125432,
+   "acc_vs_prod_mine_year_agree_pct": 100.0,
+   "mines_vs_prod_mine_year_agree_pct": 100.0,
+   "acc_coal_metal_values": [
+    {
+     "value": "M",
+     "n": 70414,
+     "pct": 56.01
+    },
+    {
+     "value": "C",
+     "n": 55304,
+     "pct": 43.99
+    }
+   ]
+  },
+  "e_unmatched": {
+   "mines_unmatched": {
+    "rows": 0,
+    "lt1": 0,
+    "lt0": 0,
+    "excluded_nan": 0,
+    "valid": 0,
+    "lost_time_rate_pct": null,
+    "excluded_pct": null
+   },
+   "mines_matched": {
+    "rows": 125718,
+    "lt1": 51284,
+    "lt0": 53907,
+    "excluded_nan": 20527,
+    "valid": 105191,
+    "lost_time_rate_pct": 48.75,
+    "excluded_pct": 16.33
+   },
+   "prod_my_unmatched": {
+    "rows": 286,
+    "lt1": 80,
+    "lt0": 64,
+    "excluded_nan": 142,
+    "valid": 144,
+    "lost_time_rate_pct": 55.56,
+    "excluded_pct": 49.65
+   },
+   "prod_my_matched": {
+    "rows": 125432,
+    "lt1": 51204,
+    "lt0": 53843,
+    "excluded_nan": 20385,
+    "valid": 105047,
+    "lost_time_rate_pct": 48.74,
+    "excluded_pct": 16.25
+   },
+   "prod_my_matched_hours_zero": {
+    "rows": 5,
+    "lt1": 2,
+    "lt0": 3,
+    "excluded_nan": 0,
+    "valid": 5,
+    "lost_time_rate_pct": 40.0,
+    "excluded_pct": 0.0
+   },
+   "prod_su_unmatched": {
+    "rows": 983,
+    "lt1": 309,
+    "lt0": 369,
+    "excluded_nan": 305,
+    "valid": 678,
+    "lost_time_rate_pct": 45.58,
+    "excluded_pct": 31.03
+   },
+   "prod_su_matched": {
+    "rows": 124735,
+    "lt1": 50975,
+    "lt0": 53538,
+    "excluded_nan": 20222,
+    "valid": 104513,
+    "lost_time_rate_pct": 48.77,
+    "excluded_pct": 16.21
+   },
+   "prod_my_rate_diff_pp": 6.81,
+   "prod_my_two_prop_z": 1.63,
+   "prod_su_rate_diff_pp": -3.2,
+   "prod_su_two_prop_z": -1.66,
+   "prod_my_unmatched_by_year": {
+    "2010": {
+     "unmatched": 27,
+     "pct_of_year": 0.25
+    },
+    "2011": {
+     "unmatched": 16,
+     "pct_of_year": 0.14
+    },
+    "2012": {
+     "unmatched": 16,
+     "pct_of_year": 0.16
+    },
+    "2013": {
+     "unmatched": 19,
+     "pct_of_year": 0.2
+    },
+    "2014": {
+     "unmatched": 36,
+     "pct_of_year": 0.38
+    },
+    "2015": {
+     "unmatched": 50,
+     "pct_of_year": 0.61
+    },
+    "2016": {
+     "unmatched": 32,
+     "pct_of_year": 0.45
+    },
+    "2017": {
+     "unmatched": 17,
+     "pct_of_year": 0.24
+    },
+    "2018": {
+     "unmatched": 12,
+     "pct_of_year": 0.17
+    },
+    "2019": {
+     "unmatched": 9,
+     "pct_of_year": 0.13
+    },
+    "2020": {
+     "unmatched": 6,
+     "pct_of_year": 0.11
+    },
+    "2021": {
+     "unmatched": 5,
+     "pct_of_year": 0.09
+    },
+    "2022": {
+     "unmatched": 10,
+     "pct_of_year": 0.17
+    },
+    "2023": {
+     "unmatched": 8,
+     "pct_of_year": 0.13
+    },
+    "2024": {
+     "unmatched": 3,
+     "pct_of_year": 0.05
+    },
+    "2025": {
+     "unmatched": 8,
+     "pct_of_year": 0.14
+    },
+    "2026": {
+     "unmatched": 12,
+     "pct_of_year": 0.29
+    }
+   },
+   "prod_my_unmatched_by_subunit": [
+    {
+     "value": "01",
+     "n": 96,
+     "pct": 33.57,
+     "pct_of_subunit": 0.2
+    },
+    {
+     "value": "03",
+     "n": 82,
+     "pct": 28.67,
+     "pct_of_subunit": 0.21
+    },
+    {
+     "value": "30",
+     "n": 61,
+     "pct": 21.33,
+     "pct_of_subunit": 0.2
+    },
+    {
+     "value": "02",
+     "n": 32,
+     "pct": 11.19,
+     "pct_of_subunit": 0.57
+    },
+    {
+     "value": "05",
+     "n": 10,
+     "pct": 3.5,
+     "pct_of_subunit": 9.52
+    },
+    {
+     "value": "99",
+     "n": 4,
+     "pct": 1.4,
+     "pct_of_subunit": 0.48
+    },
+    {
+     "value": "04",
+     "n": 1,
+     "pct": 0.35,
+     "pct_of_subunit": 0.69
+    }
+   ],
+   "prod_my_unmatched_by_cm": [
+    {
+     "value": "C",
+     "n": 246,
+     "pct": 86.01
+    },
+    {
+     "value": "M",
+     "n": 40,
+     "pct": 13.99
+    }
+   ],
+   "prod_my_unmatched_degree_injury": [
+    {
+     "value": "07",
+     "n": 102,
+     "pct": 35.66
+    },
+    {
+     "value": "03",
+     "n": 61,
+     "pct": 21.33
+    },
+    {
+     "value": "06",
+     "n": 47,
+     "pct": 16.43
+    },
+    {
+     "value": "00",
+     "n": 23,
+     "pct": 8.04
+    },
+    {
+     "value": "05",
+     "n": 17,
+     "pct": 5.94
+    },
+    {
+     "value": "04",
+     "n": 13,
+     "pct": 4.55
+    },
+    {
+     "value": "10",
+     "n": 7,
+     "pct": 2.45
+    },
+    {
+     "value": "09",
+     "n": 6,
+     "pct": 2.1
+    },
+    {
+     "value": "02",
+     "n": 4,
+     "pct": 1.4
+    },
+    {
+     "value": "08",
+     "n": 4,
+     "pct": 1.4
+    },
+    {
+     "value": "01",
+     "n": 2,
+     "pct": 0.7
+    }
+   ],
+   "prod_my_matched_degree_injury": [
+    {
+     "value": "03",
+     "n": 38543,
+     "pct": 30.73
+    },
+    {
+     "value": "06",
+     "n": 32464,
+     "pct": 25.88
+    },
+    {
+     "value": "05",
+     "n": 21379,
+     "pct": 17.04
+    },
+    {
+     "value": "00",
+     "n": 12587,
+     "pct": 10.03
+    },
+    {
+     "value": "04",
+     "n": 10909,
+     "pct": 8.7
+    },
+    {
+     "value": "07",
+     "n": 5553,
+     "pct": 4.43
+    },
+    {
+     "value": "02",
+     "n": 1163,
+     "pct": 0.93
+    },
+    {
+     "value": "08",
+     "n": 1034,
+     "pct": 0.82
+    },
+    {
+     "value": "10",
+     "n": 861,
+     "pct": 0.69
+    },
+    {
+     "value": "01",
+     "n": 589,
+     "pct": 0.47
+    },
+    {
+     "value": "09",
+     "n": 350,
+     "pct": 0.28
+    }
+   ],
+   "prod_my_unmatched_mine_status_current": [
+    {
+     "value": "Abandoned",
+     "n": 101,
+     "pct": 35.31
+    },
+    {
+     "value": "Abandoned and Sealed",
+     "n": 72,
+     "pct": 25.17
+    },
+    {
+     "value": "Active",
+     "n": 53,
+     "pct": 18.53
+    },
+    {
+     "value": "Temporarily Idled",
+     "n": 31,
+     "pct": 10.84
+    },
+    {
+     "value": "NonProducing",
+     "n": 22,
+     "pct": 7.69
+    },
+    {
+     "value": "Intermittent",
+     "n": 7,
+     "pct": 2.45
+    }
+   ],
+   "prod_my_unmatched_mine_type_current": [
+    {
+     "value": "Underground",
+     "n": 124,
+     "pct": 43.36
+    },
+    {
+     "value": "Surface",
+     "n": 98,
+     "pct": 34.27
+    },
+    {
+     "value": "Facility",
+     "n": 64,
+     "pct": 22.38
+    }
+   ],
+   "prod_my_unmatched_distinct_mines": 172,
+   "prod_my_unmatched_has_prev_year_prod": 125,
+   "prod_my_unmatched_has_next_year_prod": 65,
+   "prod_my_unmatched_mine_has_any_prod_year": 266,
+   "prod_my_unmatched_mine_never_in_prod": 20
+  },
+  "partial_2026": {
+   "mines_in_both_2025_2026": 11453,
+   "median_ratio_2026_over_2025": 0.484,
+   "total_hours_2026_over_2025": 0.491,
+   "accident_rows_2026": 4177,
+   "last_accident_date": "2026-10-06"
+  },
+  "recommendation": {
+   "mines": "left join on MINE_ID, validate many_to_one, indicator; keep stable + dated columns",
+   "production": "aggregate to mine-year (sum hours, sum employees); left join on MINE_ID and CAL_YR-1 = CALENDAR_YR, validate many_to_one, indicator; same-year join for EDA only",
+   "unmatched": "keep rows, exposure features NaN, indicator as feature",
+   "coal_metal_ind": "keep Accidents copy after 100 % agreement assertion"
+  }
+ },
+ "features": {
+  "n_valid_target_rows": 105191,
+  "prevalence": 0.4875,
+  "missingness_after_join": {
+   "CURRENT_MINE_TYPE": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "PRIMARY_CANVASS": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "PRIMARY_SIC": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "COAL_METAL_IND (Mines)": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "STATE": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "COMPANY_TYPE": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "NO_EMPLOYEES": {
+    "missing_pct_2010_plus": 1.48,
+    "n_rows": 125718
+   },
+   "NO_EMPLOYEES (>0)": {
+    "missing_pct_2010_plus": 20.76,
+    "n_rows": 125718
+   },
+   "DAYS_PER_WEEK": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "HOURS_PER_SHIFT": {
+    "missing_pct_2010_plus": 1.56,
+    "n_rows": 125718
+   },
+   "HOURS_PER_SHIFT (>0)": {
+    "missing_pct_2010_plus": 27.65,
+    "n_rows": 125718
+   },
+   "PROD_SHIFTS_PER_DAY": {
+    "missing_pct_2010_plus": 1.59,
+    "n_rows": 125718
+   },
+   "MAINT_SHIFTS_PER_DAY": {
+    "missing_pct_2010_plus": 0.93,
+    "n_rows": 125718
+   },
+   "CURRENT_103I": {
+    "missing_pct_2010_plus": 6.35,
+    "n_rows": 125718
+   },
+   "PORTABLE_OPERATION": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "MINERS_REP_IND": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "SAFETY_COMMITTEE_IND": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "PART48_TRAINING": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "AVG_MINE_HEIGHT": {
+    "missing_pct_2010_plus": 59.95,
+    "n_rows": 125718
+   },
+   "AVG_MINE_HEIGHT (coal rows only)": {
+    "missing_pct_2010_plus": 9.36,
+    "n_rows": 55304
+   },
+   "LATITUDE/LONGITUDE valid US": {
+    "missing_pct_2010_plus": 0.17,
+    "n_rows": 125718
+   },
+   "MILES_FROM_OFFICE": {
+    "missing_pct_2010_plus": 0.0,
+    "n_rows": 125718
+   },
+   "my_hours (same-year mine total)": {
+    "missing_pct_2010_plus": 0.23,
+    "n_rows": 125718
+   },
+   "my_hours (>0)": {
+    "missing_pct_2010_plus": 0.23,
+    "n_rows": 125718
+   },
+   "my_employees (same-year)": {
+    "missing_pct_2010_plus": 0.23,
+    "n_rows": 125718
+   },
+   "my_hours_per_employee (same-year)": {
+    "missing_pct_2010_plus": 0.23,
+    "n_rows": 125718
+   },
+   "su_hours (same-year subunit)": {
+    "missing_pct_2010_plus": 0.78,
+    "n_rows": 125718
+   },
+   "su_hours (>0)": {
+    "missing_pct_2010_plus": 0.82,
+    "n_rows": 125718
+   },
+   "prev_hours (previous-year mine total)": {
+    "missing_pct_2010_plus": 1.14,
+    "n_rows": 125718
+   },
+   "prev_hours (>0)": {
+    "missing_pct_2010_plus": 1.14,
+    "n_rows": 125718
+   },
+   "prev_employees": {
+    "missing_pct_2010_plus": 1.14,
+    "n_rows": 125718
+   },
+   "prev_hours_per_employee": {
+    "missing_pct_2010_plus": 1.14,
+    "n_rows": 125718
+   },
+   "prev_incident_rate_200k": {
+    "missing_pct_2010_plus": 1.14,
+    "n_rows": 125718
+   },
+   "prev_lost_time_rate_200k": {
+    "missing_pct_2010_plus": 1.14,
+    "n_rows": 125718
+   },
+   "prev_lost_time_share": {
+    "missing_pct_2010_plus": 18.81,
+    "n_rows": 125718
+   }
+  },
+  "lag": {
+   "rows": 125718,
+   "prev_year_production_present": 124291,
+   "prev_year_hours_positive": 124291,
+   "prev_year_hours_positive_pct": 98.86,
+   "prev_year_hours_zero": 0,
+   "prev_year_no_production_row": 1427,
+   "coverage_by_year_pct": {
+    "2010": 98.3,
+    "2011": 98.3,
+    "2012": 98.6,
+    "2013": 99.2,
+    "2014": 98.7,
+    "2015": 98.9,
+    "2016": 99.3,
+    "2017": 98.8,
+    "2018": 98.3,
+    "2019": 99.2,
+    "2020": 99.2,
+    "2021": 99.1,
+    "2022": 99.0,
+    "2023": 99.4,
+    "2024": 99.3,
+    "2025": 99.1,
+    "2026": 99.2
+   },
+   "prev_incidents": {
+    "n": 124291,
+    "missing": 0,
+    "missing_pct": 0.0,
+    "zeros": 20520,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 1.0,
+    "q50": 6.0,
+    "q75": 20.0,
+    "q95": 68.0,
+    "q99": 137.0,
+    "q100": 190.0,
+    "mean": 16.75875968493294,
+    "std": 26.529070950987183
+   },
+   "prev_incident_rate_200k": {
+    "n": 125718,
+    "missing": 1427,
+    "missing_pct": 1.14,
+    "zeros": 20520,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 1.7991496769044368,
+    "q50": 4.51191450287848,
+    "q75": 8.335169055089514,
+    "q95": 15.96774515478733,
+    "q99": 31.903532597270782,
+    "q100": 20000.0,
+    "mean": 7.955051082517177,
+    "std": 163.57396196627175
+   },
+   "prev_lost_time_rate_200k": {
+    "n": 125718,
+    "missing": 1427,
+    "missing_pct": 1.14,
+    "zeros": 38894,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.0,
+    "q50": 1.2881659415365887,
+    "q75": 3.4627737394782176,
+    "q95": 8.797554279910184,
+    "q99": 16.737218692683744,
+    "q100": 20000.0,
+    "mean": 2.9770616714433595,
+    "std": 71.54877536778775
+   },
+   "prev_lost_time_share": {
+    "n": 125718,
+    "missing": 23642,
+    "missing_pct": 18.81,
+    "zeros": 16641,
+    "negatives": 0,
+    "q00": 0.0,
+    "q01": 0.0,
+    "q05": 0.0,
+    "q25": 0.25,
+    "q50": 0.5,
+    "q75": 0.75,
+    "q95": 1.0,
+    "q99": 1.0,
+    "q100": 1.0,
+    "mean": 0.4926061260535404,
+    "std": 0.3257798148200393
+   },
+   "prev_incident_rate_gt_50": 472,
+   "prev_incident_rate_gt_50_prev_hours_lt_10000": 309,
+   "prev_hours_lt_2000_among_positive": 902,
+   "same_year_incident_rate_200k": {
+    "n": 125718,
+    "missing": 291,
+    "missing_pct": 0.23,
+    "zeros": 0,
+    "negatives": 0,
+    "q00": 0.133816141973574,
+    "q01": 0.9336902711811346,
+    "q05": 1.6777092557821551,
+    "q25": 3.877156183482539,
+    "q50": 6.740681998413957,
+    "q75": 11.002145420833028,
+    "q95": 26.717965560255436,
+    "q99": 78.10914324746324,
+    "q100": 200000.0,
+    "mean": 26.74629412053271,
+    "std": 1130.3858441923503
+   },
+   "prev_hours_pos_by_year_rows": {
+    "2010": 10571,
+    "2011": 10848,
+    "2012": 9896,
+    "2013": 9504,
+    "2014": 9293,
+    "2015": 8147,
+    "2016": 7021,
+    "2017": 6897,
+    "2018": 6745,
+    "2019": 6771,
+    "2020": 5349,
+    "2021": 5625,
+    "2022": 5923,
+    "2023": 6057,
+    "2024": 5948,
+    "2025": 5554,
+    "2026": 4142
+   }
+  },
+  "point_biserial": [
+   {
+    "feature": "NO_EMPLOYEES (Mines, current)",
+    "point_biserial_r": -0.0335,
+    "n_nonmissing": 103566,
+    "missing_pct": 1.54
+   },
+   {
+    "feature": "log1p NO_EMPLOYEES",
+    "point_biserial_r": -0.0457,
+    "n_nonmissing": 103566,
+    "missing_pct": 1.54
+   },
+   {
+    "feature": "DAYS_PER_WEEK (Mines, current)",
+    "point_biserial_r": -0.0926,
+    "n_nonmissing": 105191,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "HOURS_PER_SHIFT (Mines, current)",
+    "point_biserial_r": -0.1099,
+    "n_nonmissing": 103456,
+    "missing_pct": 1.65
+   },
+   {
+    "feature": "PROD_SHIFTS_PER_DAY (Mines, current)",
+    "point_biserial_r": -0.0514,
+    "n_nonmissing": 103420,
+    "missing_pct": 1.68
+   },
+   {
+    "feature": "MAINT_SHIFTS_PER_DAY (Mines, current)",
+    "point_biserial_r": -0.0754,
+    "n_nonmissing": 104115,
+    "missing_pct": 1.02
+   },
+   {
+    "feature": "AVG_MINE_HEIGHT (Mines, coal, current)",
+    "point_biserial_r": -0.0375,
+    "n_nonmissing": 38339,
+    "missing_pct": 63.55
+   },
+   {
+    "feature": "MILES_FROM_OFFICE (Mines)",
+    "point_biserial_r": -0.1334,
+    "n_nonmissing": 105191,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "LATITUDE",
+    "point_biserial_r": -0.0038,
+    "n_nonmissing": 104989,
+    "missing_pct": 0.19
+   },
+   {
+    "feature": "LONGITUDE",
+    "point_biserial_r": 0.1333,
+    "n_nonmissing": 104993,
+    "missing_pct": 0.19
+   },
+   {
+    "feature": "my_hours (mine-year, same year)",
+    "point_biserial_r": 0.0045,
+    "n_nonmissing": 105047,
+    "missing_pct": 0.14
+   },
+   {
+    "feature": "log1p my_hours",
+    "point_biserial_r": 0.0325,
+    "n_nonmissing": 105047,
+    "missing_pct": 0.14
+   },
+   {
+    "feature": "my_employees (mine-year, same year)",
+    "point_biserial_r": -0.0042,
+    "n_nonmissing": 105047,
+    "missing_pct": 0.14
+   },
+   {
+    "feature": "log1p my_employees",
+    "point_biserial_r": 0.0327,
+    "n_nonmissing": 105047,
+    "missing_pct": 0.14
+   },
+   {
+    "feature": "my_hours_per_employee (same year)",
+    "point_biserial_r": 0.0279,
+    "n_nonmissing": 105042,
+    "missing_pct": 0.14
+   },
+   {
+    "feature": "su_hours (subunit-year, same year)",
+    "point_biserial_r": 0.0481,
+    "n_nonmissing": 104513,
+    "missing_pct": 0.64
+   },
+   {
+    "feature": "log1p su_hours",
+    "point_biserial_r": 0.0538,
+    "n_nonmissing": 104513,
+    "missing_pct": 0.64
+   },
+   {
+    "feature": "prev_hours (mine, previous year)",
+    "point_biserial_r": 0.0091,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "log1p prev_hours",
+    "point_biserial_r": 0.0369,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "prev_employees (previous year)",
+    "point_biserial_r": -0.0003,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "log1p prev_employees",
+    "point_biserial_r": 0.036,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "prev_hours_per_employee",
+    "point_biserial_r": 0.0409,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "prev_incidents (count, previous year)",
+    "point_biserial_r": 0.1033,
+    "n_nonmissing": 104013,
+    "missing_pct": 1.12
+   },
+   {
+    "feature": "prev_incident_rate_200k (lag exposure)",
+    "point_biserial_r": 0.0033,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "log1p prev_incident_rate_200k",
+    "point_biserial_r": 0.0746,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "prev_lost_time_rate_200k (lag)",
+    "point_biserial_r": 0.0093,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "log1p prev_lost_time_rate_200k",
+    "point_biserial_r": 0.2047,
+    "n_nonmissing": 103951,
+    "missing_pct": 1.18
+   },
+   {
+    "feature": "prev_lost_time_share (lag)",
+    "point_biserial_r": 0.2936,
+    "n_nonmissing": 84359,
+    "missing_pct": 19.8
+   },
+   {
+    "feature": "same_year_incident_rate_200k (LEAKY, reference only)",
+    "point_biserial_r": -0.0003,
+    "n_nonmissing": 105042,
+    "missing_pct": 0.14
+   },
+   {
+    "feature": "same_year_lt_rate_200k (LEAKY, reference only)",
+    "point_biserial_r": 0.013,
+    "n_nonmissing": 105042,
+    "missing_pct": 0.14
+   }
+  ],
+  "within_commodity_point_biserial": {
+   "C": {
+    "n": 42581,
+    "lost_time_rate_pct": 63.2,
+    "prev_lost_time_share": [
+     0.2399,
+     38596
+    ],
+    "log1p_prev_lost_time_rate_200k": [
+     0.1472,
+     41971
+    ],
+    "log1p_prev_incident_rate_200k": [
+     0.0415,
+     41971
+    ],
+    "prev_incidents_count": [
+     0.1307,
+     42032
+    ],
+    "MILES_FROM_OFFICE": [
+     -0.0351,
+     42581
+    ],
+    "MILES_FROM_OFFICE_nonzero_only": [
+     -0.0331,
+     33262
+    ],
+    "HOURS_PER_SHIFT_nonzero_only": [
+     -0.1321,
+     22841
+    ],
+    "DAYS_PER_WEEK_nonzero_only": [
+     -0.0033,
+     27659
+    ]
+   },
+   "M": {
+    "n": 62610,
+    "lost_time_rate_pct": 38.9,
+    "prev_lost_time_share": [
+     0.1959,
+     45763
+    ],
+    "log1p_prev_lost_time_rate_200k": [
+     0.0892,
+     61980
+    ],
+    "log1p_prev_incident_rate_200k": [
+     -0.0376,
+     61980
+    ],
+    "prev_incidents_count": [
+     -0.0356,
+     61981
+    ],
+    "MILES_FROM_OFFICE": [
+     -0.0123,
+     62610
+    ],
+    "MILES_FROM_OFFICE_nonzero_only": [
+     -0.0099,
+     61226
+    ],
+    "HOURS_PER_SHIFT_nonzero_only": [
+     -0.031,
+     55222
+    ],
+    "DAYS_PER_WEEK_nonzero_only": [
+     -0.0855,
+     55842
+    ]
+   }
+  },
+  "cramers_v": [
+   {
+    "feature": "CURRENT_MINE_TYPE",
+    "cramers_v": 0.1501,
+    "n_nonmissing": 105191,
+    "n_levels": 3,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "COAL_METAL_IND (Mines)",
+    "cramers_v": 0.2385,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "COAL_METAL_IND (Accidents)",
+    "cramers_v": 0.2385,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "PRIMARY_CANVASS",
+    "cramers_v": 0.2404,
+    "n_nonmissing": 105191,
+    "n_levels": 5,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "PRIMARY_SIC",
+    "cramers_v": 0.2709,
+    "n_nonmissing": 105191,
+    "n_levels": 100,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "STATE",
+    "cramers_v": 0.2429,
+    "n_nonmissing": 105191,
+    "n_levels": 54,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "COMPANY_TYPE",
+    "cramers_v": 0.0428,
+    "n_nonmissing": 105189,
+    "n_levels": 4,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "CURRENT_MINE_STATUS (current, leaky-ish)",
+    "cramers_v": 0.0878,
+    "n_nonmissing": 105191,
+    "n_levels": 6,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "CURRENT_103I",
+    "cramers_v": 0.209,
+    "n_nonmissing": 97816,
+    "n_levels": 7,
+    "missing_pct": 7.01
+   },
+   {
+    "feature": "PORTABLE_OPERATION",
+    "cramers_v": 0.0109,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "MINERS_REP_IND",
+    "cramers_v": null,
+    "n_nonmissing": 105191,
+    "n_levels": 1,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "SAFETY_COMMITTEE_IND",
+    "cramers_v": 0.1152,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "PART48_TRAINING",
+    "cramers_v": 0.1378,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "DISTRICT",
+    "cramers_v": 0.2067,
+    "n_nonmissing": 105191,
+    "n_levels": 13,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "SUBUNIT_CD (Accidents)",
+    "cramers_v": 0.1842,
+    "n_nonmissing": 105191,
+    "n_levels": 10,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "MINE_GAS_CATEGORY_CD",
+    "cramers_v": 0.0848,
+    "n_nonmissing": 8631,
+    "n_levels": 7,
+    "missing_pct": 91.79
+   },
+   {
+    "feature": "HIGHWALL_MINER_USED",
+    "cramers_v": 0.026,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "MULTIPLE_PITS",
+    "cramers_v": 0.0176,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "PILLAR_RECOVERY_USED",
+    "cramers_v": 0.0395,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "_m_mines indicator",
+    "cramers_v": null,
+    "n_nonmissing": 105191,
+    "n_levels": 1,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "_m_prodmy indicator",
+    "cramers_v": 0.005,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   },
+   {
+    "feature": "_m_prodsu indicator",
+    "cramers_v": 0.0051,
+    "n_nonmissing": 105191,
+    "n_levels": 2,
+    "missing_pct": 0.0
+   }
+  ],
+  "lost_time_rate_by_category": {
+   "CURRENT_MINE_TYPE": [
+    {
+     "value": "Surface",
+     "n": 51634,
+     "lost_time_rate_pct": 43.8
+    },
+    {
+     "value": "Underground",
+     "n": 36816,
+     "lost_time_rate_pct": 58.9
+    },
+    {
+     "value": "Facility",
+     "n": 16741,
+     "lost_time_rate_pct": 41.8
+    }
+   ],
+   "PRIMARY_CANVASS": [
+    {
+     "value": "Coal",
+     "n": 42581,
+     "lost_time_rate_pct": 63.2
+    },
+    {
+     "value": "Stone",
+     "n": 27351,
+     "lost_time_rate_pct": 38.5
+    },
+    {
+     "value": "Metal",
+     "n": 17457,
+     "lost_time_rate_pct": 36.7
+    },
+    {
+     "value": "Nonmetal",
+     "n": 9146,
+     "lost_time_rate_pct": 40.8
+    },
+    {
+     "value": "SandAndGravel",
+     "n": 8656,
+     "lost_time_rate_pct": 42.7
+    }
+   ],
+   "COAL_METAL_IND": [
+    {
+     "value": "M",
+     "n": 62610,
+     "lost_time_rate_pct": 38.9
+    },
+    {
+     "value": "C",
+     "n": 42581,
+     "lost_time_rate_pct": 63.2
+    }
+   ],
+   "COMPANY_TYPE": [
+    {
+     "value": "Other",
+     "n": 52860,
+     "lost_time_rate_pct": 50.7
+    },
+    {
+     "value": "Corporation",
+     "n": 49979,
+     "lost_time_rate_pct": 46.6
+    },
+    {
+     "value": "Partnership",
+     "n": 2212,
+     "lost_time_rate_pct": 49.5
+    },
+    {
+     "value": "Sole Proprietor",
+     "n": 138,
+     "lost_time_rate_pct": 66.7
+    }
+   ],
+   "CURRENT_103I": [
+    {
+     "value": "Never Had 103I Status",
+     "n": 63764,
+     "lost_time_rate_pct": 42.5
+    },
+    {
+     "value": "Removed From 103I Status",
+     "n": 16773,
+     "lost_time_rate_pct": 59.0
+    },
+    {
+     "value": "Inspect Once Every 5-days",
+     "n": 12149,
+     "lost_time_rate_pct": 71.0
+    },
+    {
+     "value": "Inspect Once Every 10-days",
+     "n": 2508,
+     "lost_time_rate_pct": 58.7
+    },
+    {
+     "value": "Inspect Once Every 15-days",
+     "n": 2355,
+     "lost_time_rate_pct": 56.6
+    },
+    {
+     "value": "Hazard",
+     "n": 149,
+     "lost_time_rate_pct": 28.2
+    },
+    {
+     "value": "Ignition or Explosion",
+     "n": 118,
+     "lost_time_rate_pct": 55.1
+    }
+   ],
+   "SAFETY_COMMITTEE_IND": [
+    {
+     "value": "N",
+     "n": 88496,
+     "lost_time_rate_pct": 46.3
+    },
+    {
+     "value": "Y",
+     "n": 16695,
+     "lost_time_rate_pct": 62.0
+    }
+   ],
+   "MINERS_REP_IND": [
+    {
+     "value": "N",
+     "n": 105191,
+     "lost_time_rate_pct": 48.8
+    }
+   ],
+   "PORTABLE_OPERATION": [
+    {
+     "value": "N",
+     "n": 99499,
+     "lost_time_rate_pct": 48.9
+    },
+    {
+     "value": "Y",
+     "n": 5692,
+     "lost_time_rate_pct": 46.5
+    }
+   ],
+   "CURRENT_MINE_STATUS": [
+    {
+     "value": "Active",
+     "n": 76168,
+     "lost_time_rate_pct": 46.5
+    },
+    {
+     "value": "Abandoned",
+     "n": 12621,
+     "lost_time_rate_pct": 51.8
+    },
+    {
+     "value": "Abandoned and Sealed",
+     "n": 5852,
+     "lost_time_rate_pct": 57.0
+    },
+    {
+     "value": "NonProducing",
+     "n": 5795,
+     "lost_time_rate_pct": 60.7
+    },
+    {
+     "value": "Intermittent",
+     "n": 2744,
+     "lost_time_rate_pct": 46.2
+    },
+    {
+     "value": "Temporarily Idled",
+     "n": 2011,
+     "lost_time_rate_pct": 60.5
+    }
+   ],
+   "STATE_top12": [
+    {
+     "value": "WV",
+     "n": 14888,
+     "lost_time_rate_pct": 68.1
+    },
+    {
+     "value": "KY",
+     "n": 8396,
+     "lost_time_rate_pct": 59.3
+    },
+    {
+     "value": "PA",
+     "n": 7900,
+     "lost_time_rate_pct": 55.9
+    },
+    {
+     "value": "TX",
+     "n": 5596,
+     "lost_time_rate_pct": 34.5
+    },
+    {
+     "value": "AZ",
+     "n": 5391,
+     "lost_time_rate_pct": 36.6
+    },
+    {
+     "value": "IL",
+     "n": 4532,
+     "lost_time_rate_pct": 55.4
+    },
+    {
+     "value": "NV",
+     "n": 4200,
+     "lost_time_rate_pct": 33.6
+    },
+    {
+     "value": "AL",
+     "n": 3792,
+     "lost_time_rate_pct": 60.6
+    },
+    {
+     "value": "IN",
+     "n": 3151,
+     "lost_time_rate_pct": 45.2
+    },
+    {
+     "value": "CA",
+     "n": 3037,
+     "lost_time_rate_pct": 38.2
+    },
+    {
+     "value": "VA",
+     "n": 3002,
+     "lost_time_rate_pct": 54.5
+    },
+    {
+     "value": "WY",
+     "n": 2796,
+     "lost_time_rate_pct": 44.2
+    }
+   ],
+   "_m_prodmy": [
+    {
+     "value": "both",
+     "n": 105047,
+     "lost_time_rate_pct": 48.7
+    },
+    {
+     "value": "left_only",
+     "n": 144,
+     "lost_time_rate_pct": 55.6
+    }
+   ],
+   "_m_mines": [
+    {
+     "value": "both",
+     "n": 105191,
+     "lost_time_rate_pct": 48.8
+    }
+   ]
+  },
+  "prev_lost_time_share_bins": {
+   "(-0.01, 0.0]": {
+    "n": 14451,
+    "lost_time_rate_pct": 31.8
+   },
+   "(0.0, 0.25]": {
+    "n": 9450,
+    "lost_time_rate_pct": 30.1
+   },
+   "(0.25, 0.5]": {
+    "n": 22464,
+    "lost_time_rate_pct": 41.4
+   },
+   "(0.5, 0.75]": {
+    "n": 18186,
+    "lost_time_rate_pct": 59.8
+   },
+   "(0.75, 0.999]": {
+    "n": 10155,
+    "lost_time_rate_pct": 76.9
+   },
+   "(0.999, 1.0]": {
+    "n": 9653,
+    "lost_time_rate_pct": 61.4
+   }
+  },
+  "prev_incident_rate_bins": {
+   "(-0.01, 0.0]": {
+    "n": 18467,
+    "lost_time_rate_pct": 47.4
+   },
+   "(0.0, 2.0]": {
+    "n": 11459,
+    "lost_time_rate_pct": 40.2
+   },
+   "(2.0, 5.0]": {
+    "n": 28885,
+    "lost_time_rate_pct": 44.2
+   },
+   "(5.0, 10.0]": {
+    "n": 27921,
+    "lost_time_rate_pct": 51.8
+   },
+   "(10.0, 20.0]": {
+    "n": 14378,
+    "lost_time_rate_pct": 59.0
+   },
+   "(20.0, 50.0]": {
+    "n": 2468,
+    "lost_time_rate_pct": 55.3
+   },
+   "(50.0, 1000000000.0]": {
+    "n": 373,
+    "lost_time_rate_pct": 43.7
+   }
+  },
+  "prev_year_q4_share_pct": 22.0
+ },
+ "production_per_column": [
+  {
+   "column": "MINE_ID",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 33871
+  },
+  {
+   "column": "CURR_MINE_NM",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 29949
+  },
+  {
+   "column": "STATE_ABBR",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 55
+  },
+  {
+   "column": "SUBUNIT_CD",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 10
+  },
+  {
+   "column": "SUBUNIT_DESC",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 10
+  },
+  {
+   "column": "CALENDAR_YR",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 27
+  },
+  {
+   "column": "ANNUAL_HRS",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 85359
+  },
+  {
+   "column": "ANNUAL_COAL_PROD",
+   "blank": 72210,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 72210,
+   "missing_pct": 10.96,
+   "distinct_nonmissing": 26021
+  },
+  {
+   "column": "AVG_ANNUAL_EMPL",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 850
+  },
+  {
+   "column": "AVG_EMPLOYEE_HOURS",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 4466
+  },
+  {
+   "column": "C_M_IND",
+   "blank": 0,
+   "ws_only": 0,
+   "qmark": 0,
+   "no_value_found": 0,
+   "missing_total": 0,
+   "missing_pct": 0.0,
+   "distinct_nonmissing": 2
+  }
+ ]
+}
