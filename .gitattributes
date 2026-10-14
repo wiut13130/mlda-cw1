@@ -7,3 +7,4 @@
 *.pdf binary
 data/raw/*.txt binary
 data/raw/SNAPSHOT.json binary
+tests/fixtures/*.txt binary
