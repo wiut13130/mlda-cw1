@@ -5,3 +5,5 @@
 *.png binary
 *.docx binary
 *.pdf binary
+data/raw/*.txt binary
+data/raw/SNAPSHOT.json binary
