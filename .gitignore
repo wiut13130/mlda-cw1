@@ -6,7 +6,9 @@ __pycache__/
 .ruff_cache/
 .ipynb_checkpoints/
 # raw data: large text extracts are re-created by `uv run mlda-download`
-data/raw/*.txt
+data/raw/Accidents.txt
+data/raw/Mines.txt
+data/raw/MinesProdYearly.txt
 data/raw/*.zip
 # local artefacts
 *.zip

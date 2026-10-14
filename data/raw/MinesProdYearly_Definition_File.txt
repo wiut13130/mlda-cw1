@@ -1,0 +1,12 @@
+TABLE_NAME|COLUMN_NAME|DATA_TYPE|DATA_LENGTH|FIELD_DESCRIPTION
+ANNUAL EMPLOY/PROD|MINE_ID|VARCHAR2|7|Identification number assigned to the operation by MSHA.  Use mine_id to join to the Mines table.
+ANNUAL EMPLOY/PROD|MINE_NAME|VARCHAR2|50|Current mine name.
+ANNUAL EMPLOY/PROD|STATE|VARCHAR2|2|State in which the mine is located that is reporting employment and coal production.
+ANNUAL EMPLOY/PROD|SUBUNIT_CD|VARCHAR2|2|Code that identifies the location within a mine.
+ANNUAL EMPLOY/PROD|SUBUNIT|VARCHAR2|32|Description of the subunit code referring to a location within a mine: (01) Underground operation;  (02) Surface operation at underground mine;  (03) Strip, quarry or open pit;  (04) Auger (Coal only);  (05) Culm bank or refuse pile (Coal only);  (06) Dredge;  (12) Other surface(Metal/Non-Metal only);  (17) Independent shop or yard;  (30) Mill operation, preparation plant or breaker;  (99) Office workers at mine site.  
+ANNUAL EMPLOY/PROD|CAL_YR|NUMBER|4|The 4-digit year on which the record is summarized.
+ANNUAL EMPLOY/PROD|ANNUAL_HOURS|NUMBER|9|The annual summation of hours where the average quarterly employment is greater than zero with grouping by calendar year, subunit code and mine id.
+ANNUAL EMPLOY/PROD|ANNUAL_COAL_PRODUCTION|NUMBER|9|The annual summation of coal production where the average quarterly employment is greater than zero with grouping by calendar year, subunit code and mine id.  Production may not have been reported and may not contain data (null values).
+ANNUAL EMPLOY/PROD|AVG_EMPLOYEE_CNT|NUMBER|9|The average of the quarterly average employee count, where the average quarterly employment is greater than zero and is grouped by calendar year, subunit code and mine ID.
+ANNUAL EMPLOY/PROD|AVG_EMPLOYEE_HOURS|NUMBER|7|Average employee hours derived by the following:  hours reported for year / avg subunit employment for year
+ANNUAL EMPLOY/PROD|COAL_METAL_IND|VARCHAR2|1|Identifies if the employment and production are being reported for a Coal or Metal/Non-Metal mine.
