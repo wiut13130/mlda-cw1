@@ -15,20 +15,20 @@ uv run python report/build_report.py --check
 
 ## Before the first block (by Sunday 18 October)
 
-- [ ] You: post the dataset in the module Discussions forum (topic title, source URL https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp, one line on the target). Copy the topic title and URL.
-- [ ] You: create a GitLab account with an ID-based username and a public project. Point the remote at it (`git remote set-url origin <url>`; `git remote add origin <url>` if there is none) and run `git push -u origin main --tags`. Put the URL into the "Repository" line of `README.md` and into `repo_url` in `report/report_meta.json`. The submission zip carries the history as a git bundle, so the hosting site is not the only copy.
-- [ ] `.github/workflows/ci.yml` runs only on GitHub, so nothing runs on GitLab after the push. Run the checks listed above by hand before every push. A `.gitlab-ci.yml` is optional and is not part of this plan.
+- [x] Dataset reserved in the module Discussions forum on 10 October 2026 (source URL https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp). Keep the topic title and URL to hand for the viva.
+- [x] Public repository: https://github.com/wiut13130/mlda-cw1 (account `wiut13130`; every commit carries that identity and the noreply address). The URL is in README and in `repo_url` of `report/report_meta.json`.
+- [x] CI runs on GitHub Actions on every push (seven jobs: lint and tests on Ubuntu and Windows, lock and export check, plain pip installs, notebook execution, Docker build). Run the checks above by hand before each push anyway.
 
 ## Week of 19 October (mid-term week): deploy
 
-Commit: `Deploy: Streamlit app on Render (Docker, free plan, low-memory mode) with measured memory and cold start`
+Commit: the deployment was made on 15 October (TW12 commits); this week's commit records the live-app measurements.
 
-- [ ] `git status` shows nothing untracked under `app/`, `notebooks/` and `tests/` (on 14 October `app/`, `notebooks/`, `tests/test_app_smoke.py` and `tests/test_notebook.py` were untracked). Commit them first, with their tests.
-- [ ] You: deploy following README section "Deployment". Primary route, no GitHub needed: Render, New, Web Service, Public Git Repository, paste the repository URL, runtime Docker, instance Free, branch `main`, environment variable `MLDA_LOW_MEMORY=1`, health check path `/_stcore/health`. Streamlit Community Cloud (repository, branch `main`, entrypoint `app/streamlit_app.py`, Python 3.12 in Advanced settings) is the alternative and needs a GitHub repository.
-- [ ] Visit all seven pages on the Render URL. Read the resident memory on the About page (it uses psutil) and time a cold start after the 15-minute spin-down (the README expects about one minute). Add both numbers to "Memory and speed budget" in `docs/architecture.md`, next to the 690 MB Cloud figure it cites, and set them beside the local figures in README "Deployment" (458 MB without and 462 MB with `MLDA_LOW_MEMORY` after seven pages, measured on Windows). The pages alone use close to the 512 MB of the free instance. If the instance restarts during a live search, lower the caps in `app/_common.py` again or use a host with more memory, and keep the live search for the local app.
-- [ ] Replace the "Deployed at" line and the GitLab placeholder in `README.md`, and set `repo_url` and `app_url` in `report/report_meta.json` (`repo_url` still holds the GitHub address).
-- [ ] You: replace `(done: posted 10 October 2026)` in `report/sections/01_introduction.md` (line 66) with the topic title and URL from the forum post, then run `uv run python report/build_report.py`.
-- [ ] Confirm `report/sections/90_references.md` exists. The builder renders it as the reference list, and on 14 October the folder had no such file.
+- [x] `app/`, `notebooks/` and `tests/` committed with their tests (14 October).
+- [x] Deployed on Streamlit Community Cloud on 15 October: https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app (entrypoint `app/streamlit_app.py`, Python 3.12). Render (Docker, free plan, `MLDA_LOW_MEMORY=1`, health check `/_stcore/health`) stays documented in README "Deployment" as the fallback.
+- [ ] Visit all seven pages on the live URL. Read the resident memory on the About page (it uses psutil) and time a cold start after the app has slept. Add both numbers to "Memory and speed budget" in `docs/architecture.md` and beside the local figures in README "Deployment" (458 MB without and 462 MB with `MLDA_LOW_MEMORY` after seven pages, measured on Windows). If a live search restarts the app, lower the caps in `app/_common.py` and keep the live search for the local app.
+- [x] README "Deployed at" line, `repo_url` and `app_url` in `report/report_meta.json` set (15 October).
+- [x] Forum reservation date (10 October 2026) recorded in `report/sections/01_introduction.md`; report rebuilt.
+- [x] `report/sections/90_references.md` exists and renders as the reference list.
 
 ## Week of 26 October (TW7): mine-profile view on the EDA page
 

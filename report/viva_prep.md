@@ -330,8 +330,8 @@ State the fact first, give the evidence second, then say what you did and what y
 
 ## Open items to fill in before the viva
 
-- The Discussions forum topic title, URL and date of the post (question 1). The introduction still contains the placeholder `{{DISCUSSIONS_POST}}` (Section 1.3) until the post exists; `docs/weekly_plan.md` sets 18 October as the date.
-- The repository URL and the deployed app URL (`report/report_meta.json` still says "to be added").
+- The Discussions forum post: the report states 10 October 2026 (Section 1.3). Check that the topic title and the forum timestamp agree with that date and keep the URL to hand (question 1).
+- Repository https://github.com/wiut13130/mlda-cw1 and live app https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app are on the report cover, in the README and in Appendix C.
 - Open the live app the day before and again 30 minutes before the viva, because a Community Cloud app sleeps when idle; the fallback is `uv run streamlit run app/streamlit_app.py`.
 - Re-check Table and Figure numbers against the final docx if any section changes.
 
