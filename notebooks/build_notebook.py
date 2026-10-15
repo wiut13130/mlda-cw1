@@ -1753,7 +1753,7 @@ for name in tuned:                          # the live search should reproduce t
     both = live.merge(stored, on="params", suffixes=("", "_stored"), validate="one_to_one")
     score_columns = [c for c in live.columns if c.startswith("mean_test_")]
     stored_choice = as_tuple_params(manifest[name]["best_params"])
-    stored_choice_plain = {key.removeprefix("clf__"): value for key, value in stored_choice.items()}   # the params column has no step prefix
+    stored_choice_plain = {key.rsplit("__", 1)[-1]: value for key, value in stored_choice.items()}   # the params column has no step prefix
     is_stored_choice = [as_tuple_params(json.loads(p)) == stored_choice_plain for p in live["params"]]
     live_best = float(live["mean_test_average_precision"].max())
     live_score_of_stored_choice = (float(live.loc[is_stored_choice, "mean_test_average_precision"].max())

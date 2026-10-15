@@ -7855,7 +7855,7 @@ uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_end_to_e
 <p><strong>The <code>FULL_RUN</code> switch.</strong> By default (variable unset) the notebook runs the hyper-parameter
 search itself, with <code>mlda.tuning.tune</code>, for the three models whose search is cheap (Gaussian
 naive Bayes, logistic regression and the decision tree) and checks that it reproduces the tables
-stored by <code>uv run mlda-train</code>. For the other five models (k-nearest neighbours, random forest,
+stored by <code>uv run mlda-train</code> within 0.001 of each mean score. For the other five models (k-nearest neighbours, random forest,
 histogram gradient boosting, support vector machine and perceptron) it loads the stored
 cross-validation tables and selected hyper-parameters. It then refits every selected pipeline on
 the training split, so training happens here, and the whole notebook runs in under ten minutes on eight workers (section F.6 lists the stage times of the executed run). With
@@ -9795,7 +9795,7 @@ def _join_production(base: pd.DataFrame, mine_years: pd.DataFrame) -&gt; pd.Data
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>  base table built in 5.5 s: 101609 rows x 91 columns
+<pre>  base table built in 9.6 s: 101609 rows x 91 columns
 </pre>
 </div>
 </div>
@@ -16493,7 +16493,7 @@ a.param-doc-link::before {
                   transformers=[('num',
                                  Pipeline(steps=[('cast',
                                                   FunctionTransformer(feature_names_out='one-to-one',
-                                                                      func=&lt;function _to_float32 at 0x000001F2BDEDD8A0&gt;)),
+                                                                      func=&lt;function _to_float32 at 0x0000024B4AC3D760&gt;)),
                                                  ('clipper', 'passthrough'),
                                                  ('imputer',
                                                   SimpleImputer(strategy='median')),
@@ -16620,7 +16620,7 @@ a.param-doc-link::before {
             func: callable, default=None<br/><br/>The callable to use for the transformation. This will be passed<br/>the same arguments as transform, with args and kwargs forwarded.<br/>If func is None, then func will be the identity function.</span>
 </a>
 </td>
-<td class="value">&lt;function _to...001F2BDEDD8A0&gt;</td>
+<td class="value">&lt;function _to...0024B4AC3D760&gt;</td>
 </tr>
 <tr class="user-set">
 <td><button aria-label="Copy feature_names_out to clipboard" class="copy-paste-icon" onclick="copyToClipboard('feature_names_out',
@@ -19064,7 +19064,7 @@ a.param-doc-link::before {
                                    transformers=[('num',
                                                   Pipeline(steps=[('cast',
                                                                    FunctionTransformer(feature_names_out='one-to-one',
-                                                                                       func=&lt;function _to_float32 at 0x000001F2BDEDD8A0&gt;)),
+                                                                                       func=&lt;function _to_float32 at 0x0000024B4AC3D760&gt;)),
                                                                   ('clipper',
                                                                    'passthrough'),
                                                                   ('imputer',
@@ -19256,7 +19256,7 @@ a.param-doc-link::before {
             func: callable, default=None<br/><br/>The callable to use for the transformation. This will be passed<br/>the same arguments as transform, with args and kwargs forwarded.<br/>If func is None, then func will be the identity function.</span>
 </a>
 </td>
-<td class="value">&lt;function _to...001F2BDEDD8A0&gt;</td>
+<td class="value">&lt;function _to...0024B4AC3D760&gt;</td>
 </tr>
 <tr class="user-set">
 <td><button aria-label="Copy feature_names_out to clipboard" class="copy-paste-icon" onclick="copyToClipboard('feature_names_out',
@@ -20032,7 +20032,11 @@ every candidate and fold, the grid, the scorers and the refit metric.</p>
 it runs <code>tune</code> live for the three models whose search is cheap (Gaussian naive Bayes, logistic
 regression and the decision tree; a few minutes on eight workers) and compares each result with
 the table that <code>uv run mlda-train</code> stored, which was produced with exactly the same code, folds
-and seed. For the other five models it loads the stored table of every candidate with its
+and seed. The tree and naive Bayes reproduce the stored scores exactly on any machine; the lbfgs
+solver of logistic regression differs in the last decimals between BLAS builds (the Windows and
+Linux wheels of NumPy and SciPy), so mean validation scores are compared within 0.001, a third of
+the smallest fold standard deviation, and the stored choice must lie within that tolerance of the
+live best. For the other five models it loads the stored table of every candidate with its
 per-fold scores (<code>reports/cv/&lt;model&gt;_cv_results.csv</code>) and the selected parameters
 (<code>models/manifest.json</code>). Section D.3 refits every selected pipeline live.</p>
 </div>
@@ -20792,7 +20796,7 @@ a.param-doc-link::before {
                                                           transformers=[('num',
                                                                          Pipeline(steps=[('cast',
                                                                                           FunctionTransformer(feature_names_out='one-to-one',
-                                                                                                              func=&lt;function _to_float32 at 0x000001F2BDEDD8A0&gt;)),
+                                                                                                              func=&lt;function _to_float32 at 0x0000024B4AC3D760&gt;)),
                                                                                          ('clipper',
                                                                                           'passthrough'),
                                                                                          ('imputer...
@@ -21043,7 +21047,7 @@ a.param-doc-link::before {
             func: callable, default=None<br/><br/>The callable to use for the transformation. This will be passed<br/>the same arguments as transform, with args and kwargs forwarded.<br/>If func is None, then func will be the identity function.</span>
 </a>
 </td>
-<td class="value">&lt;function _to...001F2BDEDD8A0&gt;</td>
+<td class="value">&lt;function _to...0024B4AC3D760&gt;</td>
 </tr>
 <tr class="user-set">
 <td><button aria-label="Copy feature_names_out to clipboard" class="copy-paste-icon" onclick="copyToClipboard('feature_names_out',
@@ -21854,26 +21858,39 @@ forceTheme('sk-container-id-3');</script></body>
           <span class="s2">"run `uv run mlda-train` for the full search"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"searched in this notebook: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tuned</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">; loaded from reports/cv and models/manifest.json: "</span>
       <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">MODEL_NAMES</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">tuned</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">SCORE_TOLERANCE</span> <span class="o">=</span> <span class="mf">1e-3</span>                      <span class="c1"># a third of the smallest fold standard deviation in the stored tables</span>
+<span class="n">stored_environment</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">METRICS_DIR</span> <span class="o">/</span> <span class="s2">"run_manifest.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))[</span><span class="s2">"environment"</span><span class="p">]</span>
 <span class="n">agreement</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">tuned</span><span class="p">:</span>                          <span class="c1"># the live search should reproduce the stored table, candidate by candidate</span>
     <span class="n">live</span><span class="p">,</span> <span class="n">stored</span> <span class="o">=</span> <span class="n">tuned</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">cv_results_df</span><span class="p">,</span> <span class="n">read_cv_table</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="n">both</span> <span class="o">=</span> <span class="n">live</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">stored</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"params"</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"_stored"</span><span class="p">),</span> <span class="n">validate</span><span class="o">=</span><span class="s2">"one_to_one"</span><span class="p">)</span>
     <span class="n">score_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">live</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"mean_test_"</span><span class="p">)]</span>
+    <span class="n">stored_choice</span> <span class="o">=</span> <span class="n">as_tuple_params</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">"best_params"</span><span class="p">])</span>
+    <span class="n">stored_choice_plain</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"__"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">stored_choice</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>   <span class="c1"># the params column has no step prefix</span>
+    <span class="n">is_stored_choice</span> <span class="o">=</span> <span class="p">[</span><span class="n">as_tuple_params</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="o">==</span> <span class="n">stored_choice_plain</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">live</span><span class="p">[</span><span class="s2">"params"</span><span class="p">]]</span>
+    <span class="n">live_best</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">live</span><span class="p">[</span><span class="s2">"mean_test_average_precision"</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">live_score_of_stored_choice</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">live</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">is_stored_choice</span><span class="p">,</span> <span class="s2">"mean_test_average_precision"</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+                                   <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_stored_choice</span><span class="p">)</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"nan"</span><span class="p">))</span>
     <span class="n">agreement</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"candidates (live)"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">live</span><span class="p">),</span>
         <span class="s2">"candidates (stored)"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">stored</span><span class="p">),</span>
         <span class="s2">"same candidates"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">both</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">live</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">stored</span><span class="p">),</span>
         <span class="s2">"largest difference in a mean validation score"</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">((</span><span class="n">both</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">-</span> <span class="n">both</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">_stored"</span><span class="p">])</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">score_columns</span><span class="p">),</span>
-        <span class="s2">"same selected parameters"</span><span class="p">:</span> <span class="n">as_tuple_params</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">"best_params"</span><span class="p">])</span> <span class="o">==</span> <span class="n">tuned</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">best_params</span><span class="p">,</span>
+        <span class="s2">"same selected parameters"</span><span class="p">:</span> <span class="n">stored_choice</span> <span class="o">==</span> <span class="n">tuned</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">best_params</span><span class="p">,</span>
+        <span class="s2">"stored choice within tolerance of the live best"</span><span class="p">:</span> <span class="n">live_best</span> <span class="o">-</span> <span class="n">live_score_of_stored_choice</span> <span class="o">&lt;</span> <span class="n">SCORE_TOLERANCE</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="n">agreement</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">agreement</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
 <span class="n">show_table</span><span class="p">(</span><span class="n">agreement</span><span class="p">,</span> <span class="s2">"The live search against the table that mlda-train stored"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">agreement</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"stored tables: </span><span class="si">{</span><span class="n">stored_environment</span><span class="p">[</span><span class="s1">'platform'</span><span class="p">]</span><span class="si">}</span><span class="s2">, numpy </span><span class="si">{</span><span class="n">stored_environment</span><span class="p">[</span><span class="s1">'numpy_version'</span><span class="p">]</span><span class="si">}</span><span class="s2">; "</span>
+      <span class="sa">f</span><span class="s2">"this run: </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">()</span><span class="si">}</span><span class="s2">, numpy </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <span class="n">reproduced</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span>
-    <span class="n">agreement</span><span class="p">[</span><span class="s2">"same candidates"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="n">agreement</span><span class="p">[</span><span class="s2">"same selected parameters"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-    <span class="ow">and</span> <span class="p">(</span><span class="n">agreement</span><span class="p">[</span><span class="s2">"largest difference in a mean validation score"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">agreement</span><span class="p">[</span><span class="s2">"same candidates"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="ow">and</span> <span class="p">(</span><span class="n">agreement</span><span class="p">[</span><span class="s2">"largest difference in a mean validation score"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">SCORE_TOLERANCE</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="ow">and</span> <span class="n">agreement</span><span class="p">[</span><span class="s2">"stored choice within tolerance of the live best"</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
 <span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"every search run in this notebook reproduces the stored table and the selected parameters: </span><span class="si">{</span><span class="n">reproduced</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">FULL_RUN</span><span class="p">:</span>                            <span class="c1"># the cheap searches are deterministic, so a difference is an error</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"every search run in this notebook reproduces the stored table and the selected parameters within </span><span class="si">{</span><span class="n">SCORE_TOLERANCE</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">reproduced</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">FULL_RUN</span><span class="p">:</span>                            <span class="c1"># the same code, folds and seed: a difference beyond floating-point drift is an error</span>
     <span class="k">assert</span> <span class="n">reproduced</span><span class="p">,</span> <span class="s2">"the live search differs from the stored table"</span>
 </pre></div>
 </div>
@@ -21887,56 +21904,56 @@ forceTheme('sk-container-id-3');</script></body>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>logreg         best average precision 0.8202 in 67 s: {'C': 1.0, 'class_weight': None}
+<pre>logreg         best average precision 0.8202 in 83 s: {'C': 1.0, 'class_weight': None}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>knn            best average precision 0.7643 in 294 s: {'n_neighbors': 51, 'p': 2, 'weights': 'distance'}
+<pre>knn            best average precision 0.7643 in 302 s: {'n_neighbors': 51, 'p': 2, 'weights': 'distance'}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>gaussian_nb    best average precision 0.7345 in 27 s: {'var_smoothing': 0.1}
+<pre>gaussian_nb    best average precision 0.7345 in 28 s: {'var_smoothing': 0.1}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>decision_tree  best average precision 0.8034 in 149 s: {'criterion': 'gini', 'max_depth': 12, 'min_samples_leaf': 50}
+<pre>decision_tree  best average precision 0.8034 in 148 s: {'criterion': 'gini', 'max_depth': 12, 'min_samples_leaf': 50}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>random_forest  best average precision 0.8214 in 139 s: {'n_estimators': 100, 'min_samples_leaf': 5, 'max_features': 'sqrt', 'max_depth': None}
+<pre>random_forest  best average precision 0.8214 in 123 s: {'n_estimators': 100, 'min_samples_leaf': 5, 'max_features': 'sqrt', 'max_depth': None}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>hist_gb        best average precision 0.8381 in 550 s: {'early_stopping': True, 'l2_regularization': 0.0, 'learning_rate': 0.05, 'max_iter': 400, 'max_leaf_nodes': 31}
+<pre>hist_gb        best average precision 0.8381 in 524 s: {'early_stopping': True, 'l2_regularization': 0.0, 'learning_rate': 0.05, 'max_iter': 400, 'max_leaf_nodes': 31}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>svc_rbf        best average precision 0.7945 in 1266 s: {'C': 1.0, 'gamma': 0.01}
+<pre>svc_rbf        best average precision 0.7945 in 976 s: {'C': 1.0, 'gamma': 0.01}
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>mlp            best average precision 0.8327 in 152 s: {'alpha': 0.01, 'hidden_layer_sizes': (128,)}
+<pre>mlp            best average precision 0.8327 in 153 s: {'alpha': 0.01, 'hidden_layer_sizes': (128,)}
 searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_forest, hist_gb, svc_rbf, mlp; loaded from reports/cv and models/manifest.json: none
 </pre>
 </div>
@@ -21973,6 +21990,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <th>same candidates</th>
 <th>largest difference in a mean validation score</th>
 <th>same selected parameters</th>
+<th>stored choice within tolerance of the live best</th>
 </tr>
 </thead>
 <tbody>
@@ -21983,6 +22001,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>True</td>
 <td>0.000</td>
 <td>True</td>
+<td>True</td>
 </tr>
 <tr>
 <th>knn</th>
@@ -21990,6 +22009,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>6</td>
 <td>True</td>
 <td>0.000</td>
+<td>True</td>
 <td>True</td>
 </tr>
 <tr>
@@ -21999,6 +22019,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>True</td>
 <td>0.000</td>
 <td>True</td>
+<td>True</td>
 </tr>
 <tr>
 <th>decision_tree</th>
@@ -22006,6 +22027,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>24</td>
 <td>True</td>
 <td>0.000</td>
+<td>True</td>
 <td>True</td>
 </tr>
 <tr>
@@ -22015,6 +22037,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>True</td>
 <td>0.000</td>
 <td>True</td>
+<td>True</td>
 </tr>
 <tr>
 <th>hist_gb</th>
@@ -22022,6 +22045,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>16</td>
 <td>True</td>
 <td>0.000</td>
+<td>True</td>
 <td>True</td>
 </tr>
 <tr>
@@ -22031,6 +22055,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>True</td>
 <td>0.000</td>
 <td>True</td>
+<td>True</td>
 </tr>
 <tr>
 <th>mlp</th>
@@ -22038,6 +22063,7 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <td>9</td>
 <td>True</td>
 <td>0.000</td>
+<td>True</td>
 <td>True</td>
 </tr>
 </tbody>
@@ -22048,7 +22074,17 @@ searched in this notebook: logreg, knn, gaussian_nb, decision_tree, random_fores
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>every search run in this notebook reproduces the stored table and the selected parameters: True
+<pre>              candidates (live) candidates (stored) same candidates largest difference in a mean validation score same selected parameters stored choice within tolerance of the live best
+logreg                        8                   8            True                                         0.000                     True                                            True
+knn                           6                   6            True                                         0.000                     True                                            True
+gaussian_nb                   5                   5            True                                         0.000                     True                                            True
+decision_tree                24                  24            True                                         0.000                     True                                            True
+random_forest                 4                   4            True                                         0.000                     True                                            True
+hist_gb                      16                  16            True                                         0.000                     True                                            True
+svc_rbf                       4                   4            True                                         0.000                     True                                            True
+mlp                           9                   9            True                                         0.000                     True                                            True
+stored tables: Windows-11-10.0.26200-SP0, numpy 2.5.4; this run: Windows-11-10.0.26200-SP0, numpy 2.5.4
+every search run in this notebook reproduces the stored table and the selected parameters within 0.001: True
 </pre>
 </div>
 </div>
@@ -22596,7 +22632,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>81289</td>
 <td>5</td>
 <td>70.890</td>
-<td>67.256</td>
+<td>83.207</td>
 </tr>
 <tr>
 <th>knn</th>
@@ -22604,7 +22640,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>39999</td>
 <td>5</td>
 <td>281.380</td>
-<td>294.050</td>
+<td>301.816</td>
 </tr>
 <tr>
 <th>gaussian_nb</th>
@@ -22612,7 +22648,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>81289</td>
 <td>5</td>
 <td>29.040</td>
-<td>26.696</td>
+<td>27.508</td>
 </tr>
 <tr>
 <th>decision_tree</th>
@@ -22620,7 +22656,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>81289</td>
 <td>5</td>
 <td>161.160</td>
-<td>148.904</td>
+<td>147.842</td>
 </tr>
 <tr>
 <th>random_forest</th>
@@ -22628,7 +22664,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>81289</td>
 <td>5</td>
 <td>140.140</td>
-<td>138.906</td>
+<td>123.095</td>
 </tr>
 <tr>
 <th>hist_gb</th>
@@ -22636,7 +22672,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>81289</td>
 <td>5</td>
 <td>580.090</td>
-<td>549.719</td>
+<td>524.191</td>
 </tr>
 <tr>
 <th>svc_rbf</th>
@@ -22644,7 +22680,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>9913</td>
 <td>5</td>
 <td>1,193.060</td>
-<td>1,266.439</td>
+<td>976.125</td>
 </tr>
 <tr>
 <th>mlp</th>
@@ -22652,7 +22688,7 @@ the smallest gap but the one with the best validation score.</p>
 <td>81289</td>
 <td>5</td>
 <td>187.810</td>
-<td>152.115</td>
+<td>152.665</td>
 </tr>
 </tbody>
 </table>
@@ -23075,56 +23111,56 @@ does not change their results. The table times every fit.</p>
 <th>logreg</th>
 <td>LogisticRegression</td>
 <td>81289</td>
-<td>67.256</td>
+<td>83.207</td>
 <td>552</td>
 </tr>
 <tr>
 <th>knn</th>
 <td>KNeighborsClassifier</td>
 <td>39999</td>
-<td>294.050</td>
+<td>301.816</td>
 <td>555</td>
 </tr>
 <tr>
 <th>gaussian_nb</th>
 <td>GaussianNB</td>
 <td>81289</td>
-<td>26.696</td>
+<td>27.508</td>
 <td>552</td>
 </tr>
 <tr>
 <th>decision_tree</th>
 <td>DecisionTreeClassifier</td>
 <td>81289</td>
-<td>148.904</td>
+<td>147.842</td>
 <td>552</td>
 </tr>
 <tr>
 <th>random_forest</th>
 <td>RandomForestClassifier</td>
 <td>81289</td>
-<td>138.906</td>
+<td>123.095</td>
 <td>552</td>
 </tr>
 <tr>
 <th>hist_gb</th>
 <td>HistGradientBoostingClassifier</td>
 <td>81289</td>
-<td>549.719</td>
+<td>524.191</td>
 <td>552</td>
 </tr>
 <tr>
 <th>svc_rbf</th>
 <td>CalibratedClassifierCV</td>
 <td>9913</td>
-<td>1,266.439</td>
+<td>976.125</td>
 <td>554</td>
 </tr>
 <tr>
 <th>mlp</th>
 <td>MLPClassifier</td>
 <td>81289</td>
-<td>152.115</td>
+<td>152.665</td>
 <td>552</td>
 </tr>
 </tbody>
@@ -23427,35 +23463,35 @@ at if a number in the report and a number in the notebook disagree.</p>
 <tbody>
 <tr>
 <th>logreg</th>
-<td>0.106</td>
+<td>0.091</td>
 </tr>
 <tr>
 <th>knn</th>
-<td>3.027</td>
+<td>2.749</td>
 </tr>
 <tr>
 <th>gaussian_nb</th>
-<td>0.206</td>
+<td>0.189</td>
 </tr>
 <tr>
 <th>decision_tree</th>
-<td>0.106</td>
+<td>0.085</td>
 </tr>
 <tr>
 <th>random_forest</th>
-<td>0.645</td>
+<td>0.466</td>
 </tr>
 <tr>
 <th>hist_gb</th>
-<td>0.330</td>
+<td>0.246</td>
 </tr>
 <tr>
 <th>svc_rbf</th>
-<td>8.373</td>
+<td>6.344</td>
 </tr>
 <tr>
 <th>mlp</th>
-<td>0.111</td>
+<td>0.092</td>
 </tr>
 </tbody>
 </table>
@@ -26476,8 +26512,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.161</td>
 <td>0.943</td>
 <td>5</td>
-<td>549.719</td>
-<td>16.218</td>
+<td>524.191</td>
+<td>12.112</td>
 <td>0.449</td>
 <td>medium (importances, SHAP)</td>
 </tr>
@@ -26490,8 +26526,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.163</td>
 <td>0.948</td>
 <td>6</td>
-<td>152.115</td>
-<td>5.458</td>
+<td>152.665</td>
+<td>4.527</td>
 <td>0.810</td>
 <td>low (weights)</td>
 </tr>
@@ -26504,8 +26540,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.170</td>
 <td>0.935</td>
 <td>5</td>
-<td>138.906</td>
-<td>31.742</td>
+<td>123.095</td>
+<td>22.943</td>
 <td>20.369</td>
 <td>medium (importances, SHAP)</td>
 </tr>
@@ -26518,8 +26554,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.169</td>
 <td>0.934</td>
 <td>5</td>
-<td>67.256</td>
-<td>5.216</td>
+<td>83.207</td>
+<td>4.478</td>
 <td>0.014</td>
 <td>high (coefficients, odds ratios)</td>
 </tr>
@@ -26532,8 +26568,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.174</td>
 <td>0.932</td>
 <td>5</td>
-<td>148.904</td>
-<td>5.215</td>
+<td>147.842</td>
+<td>4.203</td>
 <td>0.032</td>
 <td>high (readable rules)</td>
 </tr>
@@ -26546,8 +26582,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.173</td>
 <td>0.927</td>
 <td>5</td>
-<td>1,266.439</td>
-<td>412.063</td>
+<td>976.125</td>
+<td>312.204</td>
 <td>1.247</td>
 <td>low (kernel)</td>
 </tr>
@@ -26560,8 +26596,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.195</td>
 <td>0.886</td>
 <td>2</td>
-<td>294.050</td>
-<td>148.959</td>
+<td>301.816</td>
+<td>135.273</td>
 <td>5.227</td>
 <td>low (neighbours only)</td>
 </tr>
@@ -26574,8 +26610,8 @@ interpretability column is a judgement, not a measurement.</p>
 <td>0.298</td>
 <td>0.868</td>
 <td>0</td>
-<td>26.696</td>
-<td>10.138</td>
+<td>27.508</td>
+<td>9.297</td>
 <td>0.019</td>
 <td>high (per-feature likelihoods)</td>
 </tr>
@@ -26587,7 +26623,7 @@ interpretability column is a judgement, not a measurement.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output" data-mime-type="text/markdown" tabindex="0">
-<p><strong>Decision.</strong> By the primary rule the selected model is <strong><code>hist_gb</code></strong>: its cross-validated average precision is 0.8381 (std 0.0028), 0.0054 ahead of <code>mlp</code> (0.8327, std 0.0044), which is outside one fold standard deviation, so the ranking is clear enough to decide. On the held-out fold it reaches ROC-AUC 0.843, PR-AUC 0.841 and Brier 0.161, and at the capacity operating point it catches 94.3% of the lost-time cases. It passes 5 of the 6 success criteria and misses S5. Against the lookup rule the clustered McNemar p-value at threshold 0.5 is 8.02e-19 (significant at the 5 % level). The test PR-AUC of <code>mlp</code> (0.837) lies inside the clustered 95 % interval of <code>hist_gb</code> (0.825 to 0.856), so the two cannot be separated on the test fold. Further criteria: Brier 0.161 against 0.163 for <code>mlp</code>; interpretability medium (importances, SHAP) against low (weights); model file 0.45 MB against 0.81 MB and 16 ms against 5 ms per 1,000 rows (both inside the 20 MB budget for one model file in the web app). Model files above the 20 MB budget for one file: <code>random_forest</code> (20.4 MB). The 8 files together take 28.2 MB (budget 60 MB). <code>mlp</code> passes S5, which <code>hist_gb</code> misses. The shortfall is reported here; it does not change the choice, because the primary rule was fixed before the test fold was looked at.</p>
+<p><strong>Decision.</strong> By the primary rule the selected model is <strong><code>hist_gb</code></strong>: its cross-validated average precision is 0.8381 (std 0.0028), 0.0054 ahead of <code>mlp</code> (0.8327, std 0.0044), which is outside one fold standard deviation, so the ranking is clear enough to decide. On the held-out fold it reaches ROC-AUC 0.843, PR-AUC 0.841 and Brier 0.161, and at the capacity operating point it catches 94.3% of the lost-time cases. It passes 5 of the 6 success criteria and misses S5. Against the lookup rule the clustered McNemar p-value at threshold 0.5 is 8.02e-19 (significant at the 5 % level). The test PR-AUC of <code>mlp</code> (0.837) lies inside the clustered 95 % interval of <code>hist_gb</code> (0.825 to 0.856), so the two cannot be separated on the test fold. Further criteria: Brier 0.161 against 0.163 for <code>mlp</code>; interpretability medium (importances, SHAP) against low (weights); model file 0.45 MB against 0.81 MB and 12 ms against 5 ms per 1,000 rows (both inside the 20 MB budget for one model file in the web app). Model files above the 20 MB budget for one file: <code>random_forest</code> (20.4 MB). The 8 files together take 28.2 MB (budget 60 MB). <code>mlp</code> passes S5, which <code>hist_gb</code> misses. The shortfall is reported here; it does not change the choice, because the primary rule was fixed before the test fold was looked at.</p>
 </div>
 </div>
 </div>
@@ -29052,68 +29088,68 @@ section E.1 dominate; the SVM is the slowest model to refit and to score. <code>
 <tbody>
 <tr>
 <th>D.1 tune svc_rbf</th>
-<td>1,266.440</td>
-<td>21.107</td>
+<td>976.130</td>
+<td>16.269</td>
 </tr>
 <tr>
 <th>D.1 tune hist_gb</th>
-<td>549.730</td>
-<td>9.162</td>
+<td>524.200</td>
+<td>8.737</td>
 </tr>
 <tr>
 <th>D.1 tune knn</th>
-<td>294.060</td>
-<td>4.901</td>
+<td>301.820</td>
+<td>5.030</td>
 </tr>
 <tr>
 <th>D.1 tune mlp</th>
-<td>152.130</td>
-<td>2.535</td>
+<td>152.670</td>
+<td>2.544</td>
 </tr>
 <tr>
 <th>D.1 tune decision_tree</th>
-<td>148.910</td>
-<td>2.482</td>
+<td>147.850</td>
+<td>2.464</td>
 </tr>
 <tr>
 <th>D.1 tune random_forest</th>
-<td>138.910</td>
-<td>2.315</td>
+<td>123.100</td>
+<td>2.052</td>
 </tr>
 <tr>
 <th>D.1 tune logreg</th>
-<td>67.260</td>
-<td>1.121</td>
+<td>83.210</td>
+<td>1.387</td>
 </tr>
 <tr>
 <th>D.1 tune gaussian_nb</th>
-<td>26.700</td>
-<td>0.445</td>
-</tr>
-<tr>
-<th>E.1 score the test fold</th>
-<td>13.930</td>
-<td>0.232</td>
+<td>27.510</td>
+<td>0.459</td>
 </tr>
 <tr>
 <th>A.2 load the three tables</th>
-<td>8.870</td>
-<td>0.148</td>
-</tr>
-<tr>
-<th>B.5 histograms and box plots</th>
-<td>7.670</td>
-<td>0.128</td>
+<td>14.070</td>
+<td>0.235</td>
 </tr>
 <tr>
 <th>C.7 preprocessing ablation</th>
-<td>7.540</td>
-<td>0.126</td>
+<td>11.410</td>
+<td>0.190</td>
+</tr>
+<tr>
+<th>B.5 histograms and box plots</th>
+<td>10.990</td>
+<td>0.183</td>
+</tr>
+<tr>
+<th>E.1 score the test fold</th>
+<td>10.930</td>
+<td>0.182</td>
 </tr>
 <tr>
 <th>A.5 build the base table</th>
-<td>5.470</td>
-<td>0.091</td>
+<td>9.590</td>
+<td>0.160</td>
 </tr>
 </tbody>
 </table>
@@ -29123,7 +29159,7 @@ section E.1 dominate; the SVM is the slowest model to refit and to score. <code>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>wall-clock time of the notebook up to this cell: 2737 s (45.6 minutes); FULL_RUN = True
+<pre>wall-clock time of the notebook up to this cell: 2451 s (40.9 minutes); FULL_RUN = True
 </pre>
 </div>
 </div>

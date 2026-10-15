@@ -177,6 +177,10 @@ def test_runtime_is_under_fifteen_minutes(executed) -> None:
 def test_no_personal_name_in_the_executed_notebook(executed) -> None:
     notebook, _ = executed
     text = nbformat.writes(notebook).lower()
+    # The notebook prints its project root; a clone under a user profile would otherwise fail on that path alone.
+    root = str(PROJECT_ROOT).lower()
+    for variant in (root, root.replace("\\", "\\\\"), root.replace("\\", "/")):
+        text = text.replace(variant, "<project-root>")
     names = {getpass.getuser(), Path.home().name}
     for name in names:
         # Short or generic account names (CI runners) would match ordinary words, so only distinctive ones are checked.
