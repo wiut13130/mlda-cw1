@@ -74,7 +74,16 @@ jobs:
       - run: uv python install 3.12
       - run: uv sync --locked --all-groups
       - run: uv run mlda-download   # extracts the committed archives, verifies SHA-256
-      - run: uv run pytest -m slow
+      - name: slow tests (notebook execution, quick study run)
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run pytest -m slow -rA --tb=long --durations=10 2>&1 | tee slow-tests.log
+      - name: publish the failure details in the job summary
+        if: failure()
+        shell: bash
+        run: |
+          { echo '## Slow tests: last 150 log lines'; echo '```'; tail -n 150 slow-tests.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   docker:
     name: docker build + health check
