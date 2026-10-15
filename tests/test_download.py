@@ -3,7 +3,7 @@
 import pytest
 
 from mlda.config import SOURCES
-from mlda.data.download import sha256_of, verify
+from mlda.data.download import download, sha256_of, verify
 
 SMALL = ["accidents_codebook", "mines_codebook", "production_codebook"]
 LARGE = ["accidents", "mines", "production"]
@@ -22,6 +22,8 @@ def test_large_archives_match_when_present(name: str) -> None:
     if not source.path.exists():
         pytest.skip("archive not downloaded in this environment (run `uv run mlda-download`)")
     assert verify(source)
+    # the archives are committed, the text members are not: extracting is part of the contract
+    assert download(source) == source.extracted_path
     assert source.extracted_path.exists()
 
 

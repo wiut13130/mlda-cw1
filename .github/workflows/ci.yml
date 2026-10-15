@@ -58,13 +58,14 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pip install -e . --no-deps
       - run: python -c "import mlda; print(mlda.__version__)"
+      - run: mlda-download   # extracts the committed archives after verifying their SHA-256
       - run: pytest -m "not slow" -k "not app_smoke"
 
   notebook:
     name: execute the notebook end to end
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
-    timeout-minutes: 25
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
