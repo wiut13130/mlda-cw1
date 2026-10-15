@@ -84,6 +84,11 @@ jobs:
         shell: bash
         run: |
           { echo '## Slow tests: last 150 log lines'; echo '```'; tail -n 150 slow-tests.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          # annotations are visible without signing in; GitHub keeps at most ten per step
+          grep -n -E "^(FAILED|ERROR) |Error:|Error|assert |Traceback|Timeout|timed out|Killed|MemoryError" slow-tests.log | tail -n 10 | while IFS= read -r line; do
+            echo "::error title=slow tests::${line//%/%25}"
+          done
+          tail -n 3 slow-tests.log | while IFS= read -r line; do echo "::warning title=slow tests tail::${line//%/%25}"; done
 
   docker:
     name: docker build + health check
