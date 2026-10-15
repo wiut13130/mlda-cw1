@@ -225,7 +225,7 @@ The decision tree and the SVM swap places between cross-validation and the test 
 
 ### 19. Naive Bayes assumes independence; your heatmap shows correlation; why keep it?
 
-**Answer (30 seconds).** Gaussian naive Bayes assumes the features are independent given the class, and my heatmaps and Table 7 show they are not: previous-year hours and employees correlate at r = 0.996 with variance inflation factors above 160. The effect is that size evidence is counted twice and the probabilities become overconfident, which shows in a Brier score of 0.298 against 0.161 for HGB (Table 13) and in the calibration curves (Figure 14). It ranks poorly as well: its test ROC-AUC of 0.741 is the lowest of the eight (Table 12). I kept it deliberately as a fast generative baseline and as a test of calibration, not as a candidate for the final model.
+**Answer (30 seconds).** Gaussian naive Bayes assumes the features are independent given the class, and my heatmaps and Table 7 show they are not: previous-year hours and employees correlate at r = 0.996 with variance inflation factors above 160. The effect is that size evidence is counted twice and the probabilities become overconfident, which shows in a Brier score of 0.298 against 0.161 for HGB (Table 13) and in the calibration curves (Figure 15). It ranks poorly as well: its test ROC-AUC of 0.741 is the lowest of the eight (Table 12). I kept it deliberately as a fast generative baseline and as a test of calibration, not as a candidate for the final model.
 
 **Where to show it.** Report: Figure 3 (corr), Table 7, Table 13, Figure 15 (calibration). Notebook: "B.8 Collinearity: variance inflation factors", "E.7 Calibration". App: Exploratory analysis > Correlations; Evaluation > Curves (calibration panel, with naive Bayes selected).
 
@@ -310,7 +310,7 @@ State the fact first, give the evidence second, then say what you did and what y
 *Show.* Table 10 (SVM block); Table 15 (prediction time); Table 11.
 
 **6. All commits are dated 14 and 15 October, with weekly follow-ups planned.**
-*Answer.* "The history has 37 commits, 17 on 14 October and 3 on 15 October. Their messages carry the teaching-week milestone each covers, but the dates show the work was assembled in two days, and I did not edit them. `docs/weekly_plan.md` sets out follow-up commits for each week from 19 October to 30 November, each with its own tests, and I will show those dates."
+*Answer.* "The history has 38 commits, 17 on 14 October and 21 on 15 October. Their messages carry the teaching-week milestone each covers, but the dates show the work was assembled in two days, and I did not edit them. `docs/weekly_plan.md` sets out follow-up commits for each week from 19 October to 30 November, each with its own tests, and I will show those dates."
 *Before the viva.* Run `git log --date=short --format="%ad %s"` and quote only what the log shows. If the planned commits are missing, say so and say what was done instead. Do not describe a plan as completed work.
 *Show.* `git log`; `docs/weekly_plan.md`.
 
@@ -345,7 +345,7 @@ Figures: 1 target distribution; 2 Q-Q plots; 3 correlation heatmaps; 4 histogram
 
 Everything above is in `report/sections/*.md` or `reports/metrics` except the following.
 
-- Git history (37 commits, 17 on 14 October and 3 on 15 October): `git log`, read on 15 October 2026. The count rises as you commit.
+- Git history (38 commits, 17 on 14 October and 21 on 15 October): `git log`, read on 15 October 2026. The count rises as you commit.
 - No Kaggle copy of the accident file, and the data.gov access level "public": `docs/dataset_research.md` (research log of 14 October 2026).
 - HGB cost at 10:1 and 20:1 (USD 98,415 and 102,687) and the floor of 102,825 on the test set: `reports/metrics/success_criteria.json`.
 - The logistic-regression preprocessing comparison in questions 13 and 14 (average precision 0.808 to 0.809 across scalers, 0.757 with ordinal codes): output of the notebook cell "C.7 Do the preprocessing choices matter?" on a 12,000-row sample.
