@@ -64,6 +64,8 @@ jobs:
   notebook:
     name: execute the notebook end to end
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: github.event_name != 'pull_request'
     timeout-minutes: 90
     steps:
@@ -89,6 +91,16 @@ jobs:
             echo "::error title=slow tests::${line//%/%25}"
           done
           tail -n 3 slow-tests.log | while IFS= read -r line; do echo "::warning title=slow tests tail::${line//%/%25}"; done
+      - name: keep the failure log on a throwaway branch (anonymous readers cannot open job logs)
+        if: failure()
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/ci-logs && cp slow-tests.log /tmp/ci-logs/slow-tests.log
+          cd /tmp/ci-logs && git init -q -b ci-logs && git config user.name ci-logs && git config user.email ci-logs@users.noreply.github.com
+          git add slow-tests.log && git commit -q -m "slow-test log of ${GITHUB_SHA::7}"
+          git push -q --force "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-logs:ci-logs
 
   docker:
     name: docker build + health check
