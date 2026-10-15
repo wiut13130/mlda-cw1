@@ -1,6 +1,6 @@
 # Appendix C The deployed application
 
-The application at https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app serves the committed artefacts of the study through seven pages. {fig:app1} to {fig:app7} were captured from the live deployment on 15 October 2026 at a 1,400-pixel viewport. Every page imports the same `mlda` package as the notebook, so the numbers shown are the ones in Sections 2 to 5; the Preprocessing and Model training pages refit on samples of the training rows only, and the Inference page scores a new report through the saved pipeline.
+The application at https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app serves the committed artefacts of the study through seven pages. {fig:app1}, {fig:app2}, {fig:app3}, {fig:app4}, {fig:app5}, {fig:app6} and {fig:app7} were captured from the live deployment on 15 October 2026 at a 1,400-pixel viewport. Every page imports the same `mlda` package as the notebook, so the numbers shown are the ones in Sections 2 to 5; the Preprocessing and Model training pages refit on samples of the training rows only, and the Inference page scores a new report through the saved pipeline.
 
 ![Data explorer page of the deployed application, with the three source tables, their keys and licence, the joined base table size and tabs for the joins, the target, a filterable sample and the data dictionary. Source: screenshot of the deployed application.](reports/figures/app_1_data_explorer.png){#fig:app1 width=6.3}
 
