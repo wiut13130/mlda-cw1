@@ -10,7 +10,7 @@
   "marker": "Ruslan Isaev",
   "submission_date": "December 2026",
   "repo_url": "https://github.com/wiut13130/mlda-cw1",
-  "app_url": "to be added after deployment",
+  "app_url": "https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app",
   "abbreviations": {
     "ARIMA": "Autoregressive integrated moving average (a time-series model)",
     "AUC": "Area under the receiver operating characteristic curve",
