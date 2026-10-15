@@ -3,15 +3,15 @@
 ## 5.1 Key data analysis findings
 
 1. Lost-time cases are 48.6% of the 101,609 in-scope reports ({fig:target}), so a rule that finds none is right about half the time and the insurer needs a ranked review queue.
-2. Nature of injury and body part lead the association with lost time (Cramer's V of 0.391 and 0.364, {tab:associations}), with cuts near 18% lost-time ({fig:cat}), so the fields the safety officer completes on the form carry most of the signal at filing.
-3. The mine's previous-year lost-time share is the strongest numeric signal (point-biserial r = 0.292, {tab:associations}; {fig:box}), so mine history known before the accident shifts each score, though it partly reflects the restricted-duty practice behind the label.
+2. Nature of injury and body part lead the association with lost time (Cramer's V of 0.391 and 0.364, {tab:associations}), with cuts near 18% lost-time ({fig:cat}). The fields the safety officer completes on the form carry most of the signal at filing.
+3. The mine's previous-year lost-time share is the strongest numeric signal (point-biserial r = 0.292, {tab:associations}; {fig:box}). Mine history known before the accident shifts each score, though it partly reflects the restricted-duty practice behind the label.
 4. Coal reports are lost-time in 63.0% of cases against 38.6% in metal and non-metal mines, while the DART label hardly varies by sector ({tab:label}), so the label records employers' restricted-duty practice as well as severity, and scores must be read within sector.
-5. Gaps are mostly structural, but reports without total experience are lost-time in 59.3% of training cases against 48.5% of recorded ones ({fig:missing}; {tab:decisionlog}), so missing-value indicators keep that higher risk visible to the reserve decision.
+5. Gaps are mostly structural, but reports without total experience are lost-time in 59.3% of training cases against 48.5% of recorded ones ({fig:missing}; {tab:decisionlog}). Missing-value indicators keep that higher risk visible to the reserve decision.
 6. The classes overlap in every two-dimensional view ({fig:pair}; {fig:pca}), and the one-field hand rule reaches a specificity of 0.429 ({tab:criteria}), so sparing needless reviews without losing lost-time cases needs a model that combines many fields.
 
 ## 5.2 Interpretation of results
 
-Per 1,000 filed cases at the capacity threshold, HGB misses 27.6 lost-time cases against 49.5 for the one-field hand rule, for a slightly larger review load ({tab:per1000}). Its cost-optimal thresholds undercut reviewing everything at low cost ratios. At the base ratio of {tab:costs} the cheapest threshold flags almost every case ({fig:cost}), leaving the score to order the queue when capacity binds.
+Per 1,000 filed cases at the capacity threshold, HGB misses 27.6 lost-time cases against 49.5 for the one-field hand rule and flags 32 more ({tab:per1000}). Its cost-optimal thresholds undercut reviewing everything at low cost ratios. At the base ratio of {tab:costs} the cheapest threshold flags almost every case ({fig:cost}), leaving the score to order the queue when capacity binds.
 
 Table: Outcomes per 1,000 filed cases on the 20,320-row held-out test set for HGB at three thresholds fixed on out-of-fold probabilities and at two other review capacities, for the lookup baseline at its capacity threshold, for the one-field hand rule built for this study and for reviewing everything, with the expected cost at the 2:1 and 5:1 cost ratios at USD 200 per review; counts are test confusion counts scaled to 1,000 cases, the two capacity rows take their cut-off from the test scores (labels only count the hits), and reviewing everything costs USD 102,825 per 1,000 on the test set against USD 102,829 on all in-scope reports. Source: author's analysis of MSHA open data. {#tab:per1000}
 
