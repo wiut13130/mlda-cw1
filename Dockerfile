@@ -1,6 +1,8 @@
 # Container for the Streamlit app (CW1, student ID 13130).
 # Build:  docker build -t mlda-cw1 .
 # Run:    docker run --rm -p 8501:8501 mlda-cw1
+# Hosts that assign the port (Render sets PORT) are served on it; without PORT the app listens on 8501.
+# Add -e MLDA_LOW_MEMORY=1 on a host with 512 MB of RAM (render.yaml sets it for Render).
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -28,6 +30,7 @@ COPY reports ./reports
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8501
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD python -c "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8501/_stcore/health').status == 200 else 1)"
+  CMD python -c "import os, sys, urllib.request; url = 'http://localhost:%s/_stcore/health' % os.environ.get('PORT', '8501'); sys.exit(0 if urllib.request.urlopen(url).status == 200 else 1)"
 
-CMD ["streamlit", "run", "app/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Shell form so that ${PORT:-8501} is expanded; exec makes Streamlit PID 1, so it receives SIGTERM on a redeploy.
+CMD exec streamlit run app/streamlit_app.py --server.port=${PORT:-8501} --server.address=0.0.0.0

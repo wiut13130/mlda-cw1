@@ -5,18 +5,22 @@ preprocessing option and run one live tuning job. They read the committed artefa
 (data/processed, models, reports) and are skipped when those are missing, as in a fresh clone
 before ``uv run mlda-train``. Two further tests check that the inference path rebuilds the
 training features: the lookup of mine history from MINE_ID and the accident date, and the
-FeatureEngineer applied to raw rows, must agree with ``data/processed/features.parquet``.
+FeatureEngineer applied to raw rows, must agree with ``data/processed/features.parquet``. A last
+group re-imports ``_common`` with MLDA_LOW_MEMORY set and unset to check the caps of the hosted app.
 """
 
 from __future__ import annotations
 
+import importlib
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
+from types import ModuleType
 
 import numpy as np
 import pandas as pd
 import pytest
+import streamlit as st
 from sklearn.model_selection import ParameterGrid
 from streamlit.testing.v1 import AppTest
 
@@ -189,6 +193,94 @@ def test_training_page_tunes_with_the_preprocessing_page_choice() -> None:
     assert not app.exception
     change = metrics_of(app)["PR-AUC change from the Preprocessing page choice"]
     assert change != "+0.000"   # ordinal codes read as magnitudes change what logistic regression learns
+
+
+@pytest.fixture
+def reload_common(monkeypatch: pytest.MonkeyPatch) -> Iterator[Callable[[str | None], ModuleType]]:
+    """Re-import ``_common`` with MLDA_LOW_MEMORY set (or unset) and restore the original module afterwards.
+
+    The caps are module constants read at import time, so the environment variable has to be set before
+    the module is executed again. The pages import the constants from the module that is in ``sys.modules``.
+    The cached results are cleared on every switch: their keys do not hold the mode, because a server
+    process runs in one mode only, so a result computed in the other mode would be served as a hit.
+    """
+    import _common
+
+    def load(value: str | None) -> ModuleType:
+        if value is None:
+            monkeypatch.delenv("MLDA_LOW_MEMORY", raising=False)
+        else:
+            monkeypatch.setenv("MLDA_LOW_MEMORY", value)
+        reloaded = importlib.reload(_common)
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        return reloaded
+
+    yield load
+    monkeypatch.undo()  # puts the environment back before the module is executed one last time
+    importlib.reload(_common)
+    st.cache_data.clear()
+    st.cache_resource.clear()
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [("1", True), ("true", True), ("TRUE", True), (" Yes ", True)]
+    + [("", False), ("0", False), ("false", False), ("no", False), ("2", False)],
+)
+def test_low_memory_switch_accepts_only_the_documented_values(value: str, expected: bool) -> None:
+    import _common as common
+
+    assert common.low_memory_enabled({"MLDA_LOW_MEMORY": value}) is expected
+    assert common.low_memory_enabled({}) is False
+
+
+def test_training_page_in_low_memory_mode_shows_the_note_and_caps_the_slider(
+    reload_common: Callable[[str | None], ModuleType],
+) -> None:
+    common = reload_common("1")
+    assert (common.LOW_MEMORY, common.LIVE_N_JOBS, common.LIVE_CV_FOLDS) == (True, 1, 2)
+    app = new_app().run()
+    app.switch_page("pages/4_Model_Training.py").run()
+    assert not app.exception
+    assert any("low-memory mode" in caption.value for caption in app.caption)
+    assert any("2-fold" in markdown.value for markdown in app.markdown)
+    slider = app.slider(key="mt_rows")
+    assert (slider.min, slider.max, slider.value) == (2_000, 5_000, 3_000)
+    app.selectbox(key="mt_model").select("logreg")
+    slider.set_value(2_000)
+    app.button(key="mt_run").click().run()
+    assert not app.exception
+    assert "Best PR-AUC (CV mean)" in metrics_of(app)
+    version = common.stamp(common.FEATURES_PATH, common.SPLIT_PATH)
+    assert len(common.live_tuning("logreg", 2_000, RANDOM_STATE, version)["fold_scores"]) == 2
+
+
+def test_training_page_keeps_the_full_caps_when_the_switch_is_off(
+    reload_common: Callable[[str | None], ModuleType],
+) -> None:
+    common = reload_common(None)
+    assert (common.LOW_MEMORY, common.LIVE_N_JOBS, common.LIVE_CV_FOLDS) == (False, 1, 3)
+    app = new_app().run()
+    app.switch_page("pages/4_Model_Training.py").run()
+    assert not app.exception
+    assert not any("low-memory mode" in caption.value for caption in app.caption)
+    slider = app.slider(key="mt_rows")
+    assert (slider.min, slider.max, slider.value) == (2_000, 20_000, 4_000)
+
+
+def test_preprocessing_page_caps_the_sample_in_low_memory_mode(
+    reload_common: Callable[[str | None], ModuleType],
+) -> None:
+    reload_common("1")
+    app = new_app().run()
+    app.switch_page("pages/3_Preprocessing.py").run()
+    assert not app.exception
+    assert app.slider(key="pp_rows").max == 5_000
+    reload_common(None)
+    app = new_app().run()
+    app.switch_page("pages/3_Preprocessing.py").run()
+    assert app.slider(key="pp_rows").max == 10_000
 
 
 def test_mine_history_lookup_reproduces_the_training_join(

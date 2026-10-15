@@ -17,7 +17,9 @@ stored held-out scores.
 from __future__ import annotations
 
 import json
+import os
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from datetime import date, time
 from pathlib import Path
@@ -89,11 +91,35 @@ MSHA_LANDING_PAGE = "https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp"
 
 MAX_TABLE_ROWS = 10_000  # st.dataframe never receives more rows than this
 MAX_CHART_ROWS = 20_000  # Altair never receives more rows than this
-LIVE_CV_FOLDS = 3
 MAX_LIVE_CANDIDATES = 4  # hard cap on the grid points of the live tuning page
-# One worker for the live search. Each joblib worker holds its own copy of the sample and of the design
-# matrix; measured on a 20,000-row run, four workers peaked at 1.3 to 2.0 GB and one worker at 0.4 to 0.7 GB,
-# and Streamlit Community Cloud gives the app less memory than the larger figure.
+
+LOW_MEMORY_VALUES = frozenset({"1", "true", "yes"})
+
+
+def low_memory_enabled(environ: Mapping[str, str] | None = None) -> bool:
+    """True when MLDA_LOW_MEMORY is "1", "true" or "yes" (any case, surrounding spaces ignored).
+
+    The switch is for hosts with about 512 MB of RAM (the Render free plan). It is read once, when this
+    module is imported, because the caps below are module constants that the pages import.
+    """
+    value = (os.environ if environ is None else environ).get("MLDA_LOW_MEMORY", "")
+    return value.strip().lower() in LOW_MEMORY_VALUES
+
+
+LOW_MEMORY = low_memory_enabled()
+# Low-memory mode shrinks every user-controlled sample and the cross-validation of the live search; the
+# committed artefacts and the saved models are the same in both modes.
+LIVE_CV_FOLDS = 2 if LOW_MEMORY else 3
+LIVE_ROWS_MIN = 2_000
+LIVE_ROWS_MAX = 5_000 if LOW_MEMORY else 20_000  # largest sample of the Model training slider
+LIVE_ROWS_DEFAULT = 3_000 if LOW_MEMORY else 4_000
+PREPROCESS_ROWS_MAX = 5_000 if LOW_MEMORY else 10_000  # largest sample of the Preprocessing slider
+# Fitted objects that stay in memory between interactions: one model and one design matrix on a small host.
+MODEL_CACHE_ENTRIES = 1 if LOW_MEMORY else 4
+MATRIX_CACHE_ENTRIES = 1 if LOW_MEMORY else 2
+# One worker for the live search, in both modes. Each joblib worker holds its own copy of the sample and of
+# the design matrix; measured on a 20,000-row run, four workers peaked at 1.3 to 2.0 GB and one worker at
+# 0.4 to 0.7 GB, and the free hosts give the app less memory than the larger figure.
 LIVE_N_JOBS = 1
 # The RBF SVM costs about 28 s per candidate even on 4,000 rows (quadratic in rows, plus a five-fold Platt
 # calibration inside every fit), so its live grid is cut to two points. The other models need at most 50 s.
@@ -241,7 +267,7 @@ def axis_label(column: str) -> str:
     return _labels()[1].get(column, column.replace("_", " "))
 
 
-@st.cache_resource(show_spinner="Loading model", max_entries=4)
+@st.cache_resource(show_spinner="Loading model", max_entries=MODEL_CACHE_ENTRIES)
 def _pipeline(name: str, version: float) -> Any:
     """Cached load of one saved pipeline; ``version`` is the file's modification time, so a retrained model reloads."""
     return persistence.load_model(name)
@@ -581,7 +607,9 @@ class PreprocessResult:
     seconds: float
 
 
-@st.cache_resource(show_spinner="Fitting the preprocessor on the training sample", max_entries=2)
+@st.cache_resource(
+    show_spinner="Fitting the preprocessor on the training sample", max_entries=MATRIX_CACHE_ENTRIES
+)
 def preprocess_sample(
     options: tuple[str | None, str, str, str | None, float], n_rows: int, seed: int, version: float
 ) -> PreprocessResult:

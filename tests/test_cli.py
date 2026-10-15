@@ -61,18 +61,21 @@ def test_download_passes_force_to_the_downloader(monkeypatch: pytest.MonkeyPatch
     assert "accidents" in capsys.readouterr().out
 
 
-def test_zip_submission_exits_with_a_message_while_the_builder_is_missing(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setitem(sys.modules, "mlda.submission", None)  # an import of it raises ModuleNotFoundError
-    with pytest.raises(SystemExit) as exit_info:
-        cli.zip_submission()
-    assert "mlda-zip is not available yet" in str(exit_info.value)
+def test_zip_submission_passes_its_options_to_the_packer(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    from mlda import submission
 
-
-def test_zip_submission_prints_the_archive_path_when_the_builder_exists(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
-    import types
-
-    module = types.ModuleType("mlda.submission")
-    module.build_zip = lambda: "MLDA.CW1.13130.zip"  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "mlda.submission", module)
+    calls: list[tuple] = []
+    monkeypatch.setattr(submission, "build_zip", lambda out, forbid, bundle=False: calls.append((out, forbid, bundle)))
+    monkeypatch.setattr(sys, "argv", ["mlda-zip", "--output-dir", str(tmp_path), "--forbid", "Jane", "--bundle"])
     cli.zip_submission()
-    assert capsys.readouterr().out.strip() == "MLDA.CW1.13130.zip"
+    assert calls == [(tmp_path, ["Jane"], True)]
+
+
+def test_zip_submission_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    from mlda import submission
+
+    calls: list[tuple] = []
+    monkeypatch.setattr(submission, "build_zip", lambda out, forbid, bundle=False: calls.append((out, forbid, bundle)))
+    monkeypatch.setattr(sys, "argv", ["mlda-zip"])
+    cli.zip_submission()
+    assert calls == [(None, None, False)]

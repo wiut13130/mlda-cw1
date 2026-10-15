@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 from _common import (
     FEATURES_PATH,
+    PREPROCESS_ROWS_MAX,
     PREPROCESSING_CHOICE_KEY,
     SPLIT_PATH,
     axis_label,
@@ -21,8 +22,6 @@ from mlda.features import FEATURE_SPEC
 from mlda.preprocessing import OPTIONS
 
 ensure_entrypoint(__file__)
-
-MAX_SAMPLE = 10_000
 
 st.title("Preprocessing choices")
 st.write(
@@ -59,7 +58,12 @@ min_frequency = freq_col.slider(
     help="Levels rarer than this share of the sample share one 'infrequent' column. Used by the one-hot encoder only.",
 )
 n_rows = size_col.slider(
-    "Training rows in the sample", 1_000, MAX_SAMPLE, 5_000, step=1_000, key="pp_rows"
+    "Training rows in the sample",
+    1_000,
+    PREPROCESS_ROWS_MAX,
+    min(5_000, PREPROCESS_ROWS_MAX),
+    step=1_000,
+    key="pp_rows",
 )
 # Kept under a plain key so that the Model training page can tune with this choice.
 st.session_state[PREPROCESSING_CHOICE_KEY] = {

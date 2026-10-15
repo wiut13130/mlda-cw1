@@ -1,0 +1,19 @@
+# Render Blueprint for the Streamlit app (CW1, student ID 13130).
+# It documents the settings of the hosted app and lets a Blueprint reproduce them. The manual route in
+# README.md ("Deployment": New, Web Service, Public Git Repository) needs no Blueprint and no Git account
+# linked to Render; it uses the same values.
+services:
+  - type: web
+    name: mlda-cw1
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free            # 512 MB RAM, sleeps after 15 minutes without traffic
+    region: frankfurt
+    healthCheckPath: /_stcore/health
+    autoDeploy: false     # a deploy is started by hand, so a late commit cannot change the marked app
+    envVars:
+      - key: MLDA_LOW_MEMORY    # caps the live-training and preprocessing samples (app/_common.py)
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"

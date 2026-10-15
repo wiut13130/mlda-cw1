@@ -48,12 +48,7 @@ def zip_submission() -> None:
     ``mlda.submission`` is outside the module contracts of docs/interfaces.md (sections 1-11).
     Until it is written, the command exits with a one-line message instead of a traceback.
     """
-    try:
-        from mlda.submission import build_zip
-    except ModuleNotFoundError as error:
-        if error.name != "mlda.submission":
-            raise
-        raise SystemExit("mlda-zip is not available yet: mlda.submission has not been written") from error
+    from mlda.submission import main as _main
 
     _configure_logging()
-    print(build_zip())
+    _main()

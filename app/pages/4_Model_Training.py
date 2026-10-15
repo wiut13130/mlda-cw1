@@ -8,6 +8,10 @@ from _common import (
     FEATURES_PATH,
     LIVE_CV_FOLDS,
     LIVE_N_JOBS,
+    LIVE_ROWS_DEFAULT,
+    LIVE_ROWS_MAX,
+    LIVE_ROWS_MIN,
+    LOW_MEMORY,
     MAX_LIVE_CANDIDATES,
     SPLIT_PATH,
     bar_chart,
@@ -57,12 +61,22 @@ st.write(
     f"It runs on {LIVE_N_JOBS} worker so that the hosted app stays within its memory limit. It shows how the "
     "search works; the committed models come from the full run."
 )
+if LOW_MEMORY:
+    st.caption(
+        f"This host runs in low-memory mode: samples of up to {LIVE_ROWS_MAX:,} rows, "
+        f"{LIVE_CV_FOLDS}-fold cross-validation and {LIVE_N_JOBS} worker."
+    )
 require_files(FEATURES_PATH, SPLIT_PATH)
 
 model_col, rows_col, seed_col = st.columns([2, 2, 1])
 model_name = model_col.selectbox("Model", list(MODEL_ZOO), format_func=model_label, key="mt_model")
 n_rows = rows_col.slider(
-    "Training rows in the sample", 2_000, 20_000, 4_000, step=1_000, key="mt_rows"
+    "Training rows in the sample",
+    LIVE_ROWS_MIN,
+    LIVE_ROWS_MAX,
+    LIVE_ROWS_DEFAULT,
+    step=1_000,
+    key="mt_rows",
 )
 seed = int(seed_col.number_input("Seed", min_value=0, value=RANDOM_STATE, step=1, key="mt_seed"))
 spec = MODEL_ZOO[model_name]
