@@ -27,89 +27,89 @@
   "models": {
     "hist_gb": {
       "S1": {
-        "value": 0.8430423369227206,
+        "value": 0.8433871438446601,
         "pass": true
       },
       "S2": {
-        "value": 0.8414021427599513,
+        "value": 0.8418512189779543,
         "pass": true
       },
       "S3": {
-        "value": 0.9431783652385293,
-        "specificity_achieved": 0.40346510960084236,
-        "threshold": 0.21028013793420935,
+        "value": 0.9413552111820116,
+        "specificity_achieved": 0.4061453048722121,
+        "threshold": 0.21126273631055856,
         "pass": true
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 65895.66929133858,
+            "cost_per_1000": 65816.92913385827,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -36929.13385826773,
+            "distance_to_floor": -37007.874015748035,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 77696.85039370079,
+            "cost_per_1000": 76781.49606299213,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -25127.952755905513,
+            "distance_to_floor": -26043.30708661418,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 87637.79527559056,
+            "cost_per_1000": 87204.72440944881,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -15187.007874015748,
+            "distance_to_floor": -15620.078740157493,
             "counts_for_pass": true
           },
           "10": {
-            "cost_per_1000": 98415.35433070867,
+            "cost_per_1000": 98129.92125984252,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -4409.448818897639,
+            "distance_to_floor": -4694.881889763783,
             "counts_for_pass": false
           },
           "20": {
-            "cost_per_1000": 102687.00787401575,
+            "cost_per_1000": 103346.45669291339,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
-            "below_floor": true,
-            "below_lookup": true,
-            "distance_to_floor": -137.79527559055714,
+            "below_floor": false,
+            "below_lookup": false,
+            "distance_to_floor": 521.6535433070821,
             "counts_for_pass": false
           },
           "30": {
-            "cost_per_1000": 102519.68503937007,
+            "cost_per_1000": 103110.23622047243,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
-            "below_floor": true,
-            "below_lookup": true,
-            "distance_to_floor": -305.1181102362316,
+            "below_floor": false,
+            "below_lookup": false,
+            "distance_to_floor": 285.4330708661291,
             "counts_for_pass": false
           }
         },
         "pass": true
       },
       "S5": {
-        "value": 0.7750430466930011,
-        "flag_rate_achieved": 0.5062992125984253,
+        "value": 0.7773726324318849,
+        "flag_rate_achieved": 0.5072342519685039,
         "pass": false
       },
       "S6": {
-        "value": 0.1610149967602578,
+        "value": 0.16087394797308388,
         "temporal_brier_by_sector": {
-          "C": 0.12477115883083359,
-          "M": 0.18658748805355097,
-          "all": 0.1659460069381488
+          "C": 0.12527566290186687,
+          "M": 0.18636637051337138,
+          "all": 0.16596718629545748
         },
         "pass": true
       },
@@ -121,89 +121,89 @@
     },
     "mlp": {
       "S1": {
-        "value": 0.8394862383165018,
+        "value": 0.838914111581399,
         "pass": true
       },
       "S2": {
-        "value": 0.8368675998559368,
+        "value": 0.8361562518007521,
         "pass": true
       },
       "S3": {
-        "value": 0.9479388230527702,
-        "specificity_achieved": 0.3728343064994735,
-        "threshold": 0.1868068128824234,
+        "value": 0.9419629292008508,
+        "specificity_achieved": 0.3957116875658084,
+        "threshold": 0.1837102472782135,
         "pass": true
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 67273.62204724409,
+            "cost_per_1000": 67047.24409448818,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -35551.181102362214,
+            "distance_to_floor": -35777.55905511812,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 78031.49606299213,
+            "cost_per_1000": 77864.17322834645,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -24793.30708661418,
+            "distance_to_floor": -24960.629921259853,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 89084.64566929133,
+            "cost_per_1000": 90000.0,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -13740.15748031497,
+            "distance_to_floor": -12824.803149606305,
             "counts_for_pass": true
           },
           "10": {
-            "cost_per_1000": 98464.56692913386,
+            "cost_per_1000": 100236.22047244094,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -4360.236220472449,
+            "distance_to_floor": -2588.5826771653665,
             "counts_for_pass": false
           },
           "20": {
-            "cost_per_1000": 101978.34645669292,
+            "cost_per_1000": 101988.18897637795,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -846.4566929133871,
+            "distance_to_floor": -836.6141732283577,
             "counts_for_pass": false
           },
           "30": {
-            "cost_per_1000": 101929.13385826771,
+            "cost_per_1000": 102746.06299212598,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -895.6692913385923,
+            "distance_to_floor": -78.74015748032252,
             "counts_for_pass": false
           }
         },
         "pass": true
       },
       "S5": {
-        "value": 0.7902359971639826,
-        "flag_rate_achieved": 0.5249507874015747,
-        "pass": true
+        "value": 0.7774739187683581,
+        "flag_rate_achieved": 0.5107775590551181,
+        "pass": false
       },
       "S6": {
-        "value": 0.16309073751412512,
+        "value": 0.1633302854992373,
         "temporal_brier_by_sector": {
-          "C": 0.13147534672638783,
-          "M": 0.1931783076236923,
-          "all": 0.17257468204221652
+          "C": 0.1263888954051213,
+          "M": 0.18896193215590545,
+          "all": 0.16806777404808274
         },
         "pass": true
       },
@@ -211,89 +211,89 @@
         "pass": true,
         "see": "statistical_tests.json"
       },
-      "all_pass": true
+      "all_pass": false
     },
     "random_forest": {
       "S1": {
-        "value": 0.832793603295208,
+        "value": 0.8330665538294024,
         "pass": true
       },
       "S2": {
-        "value": 0.8265710289479542,
+        "value": 0.8268754912956588,
         "pass": true
       },
       "S3": {
-        "value": 0.9351767446571457,
-        "specificity_achieved": 0.4082511725854312,
-        "threshold": 0.28967000936666865,
+        "value": 0.9360883216854047,
+        "specificity_achieved": 0.41160141667464345,
+        "threshold": 0.2903044405529421,
         "pass": true
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 67647.63779527559,
+            "cost_per_1000": 67736.22047244094,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -35177.16535433072,
+            "distance_to_floor": -35088.58267716537,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 78838.58267716535,
+            "cost_per_1000": 78946.85039370079,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -23986.220472440953,
+            "distance_to_floor": -23877.952755905513,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 90462.59842519685,
+            "cost_per_1000": 90059.05511811023,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -12362.204724409457,
+            "distance_to_floor": -12765.74803149607,
             "counts_for_pass": true
           },
           "10": {
-            "cost_per_1000": 99035.43307086614,
+            "cost_per_1000": 98592.51968503937,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -3789.3700787401613,
+            "distance_to_floor": -4232.283464566935,
             "counts_for_pass": false
           },
           "20": {
-            "cost_per_1000": 104625.9842519685,
+            "cost_per_1000": 103543.30708661418,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": false,
             "below_lookup": false,
-            "distance_to_floor": 1801.1811023621995,
+            "distance_to_floor": 718.5039370078739,
             "counts_for_pass": false
           },
           "30": {
-            "cost_per_1000": 102775.5905511811,
+            "cost_per_1000": 102460.62992125984,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -49.212598425205215,
+            "distance_to_floor": -364.1732283464662,
             "counts_for_pass": false
           }
         },
         "pass": true
       },
       "S5": {
-        "value": 0.7591410918667072,
-        "flag_rate_achieved": 0.4968503937007874,
+        "value": 0.7585333738478679,
+        "flag_rate_achieved": 0.496998031496063,
         "pass": false
       },
       "S6": {
-        "value": 0.17022330215260334,
+        "value": 0.17012673058903638,
         "temporal_brier_by_sector": {},
         "pass": true
       },
@@ -305,85 +305,85 @@
     },
     "logreg": {
       "S1": {
-        "value": 0.8291269545356786,
+        "value": 0.8291306144947117,
         "pass": true
       },
       "S2": {
-        "value": 0.8247578495021872,
+        "value": 0.8246718969630563,
         "pass": true
       },
       "S3": {
         "value": 0.9335561632735744,
-        "specificity_achieved": 0.40480520723652724,
-        "threshold": 0.2223244458436966,
+        "specificity_achieved": 0.40442232219776014,
+        "threshold": 0.2226109355688095,
         "pass": true
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 68759.84251968504,
+            "cost_per_1000": 68622.04724409449,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -34064.96062992126,
+            "distance_to_floor": -34202.75590551182,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 80078.74015748031,
+            "cost_per_1000": 80137.79527559056,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -22746.062992125997,
+            "distance_to_floor": -22687.007874015748,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 90944.88188976378,
+            "cost_per_1000": 91299.21259842519,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -11879.921259842522,
+            "distance_to_floor": -11525.590551181114,
             "counts_for_pass": true
           },
           "10": {
-            "cost_per_1000": 100216.53543307087,
+            "cost_per_1000": 100157.48031496063,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -2608.26771653544,
+            "distance_to_floor": -2667.3228346456744,
             "counts_for_pass": false
           },
           "20": {
-            "cost_per_1000": 103602.36220472441,
+            "cost_per_1000": 103789.37007874016,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": false,
             "below_lookup": false,
-            "distance_to_floor": 777.5590551181085,
+            "distance_to_floor": 964.5669291338563,
             "counts_for_pass": false
           },
           "30": {
-            "cost_per_1000": 103149.6062992126,
+            "cost_per_1000": 102962.59842519685,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": false,
             "below_lookup": false,
-            "distance_to_floor": 324.8031496062904,
+            "distance_to_floor": 137.7952755905426,
             "counts_for_pass": false
           }
         },
         "pass": true
       },
       "S5": {
-        "value": 0.7545832067254128,
-        "flag_rate_achieved": 0.49808070866141735,
+        "value": 0.755190924744252,
+        "flag_rate_achieved": 0.4974409448818898,
         "pass": false
       },
       "S6": {
-        "value": 0.1686329517536825,
+        "value": 0.1686291161768359,
         "temporal_brier_by_sector": {},
         "pass": true
       },
@@ -395,55 +395,55 @@
     },
     "decision_tree": {
       "S1": {
-        "value": 0.8170511160349437,
+        "value": 0.8170840944472644,
         "pass": true
       },
       "S2": {
-        "value": 0.8046173991064273,
+        "value": 0.8052033152133353,
         "pass": true
       },
       "S3": {
-        "value": 0.931935581890003,
-        "specificity_achieved": 0.37589738680961043,
+        "value": 0.9320368682264762,
+        "specificity_achieved": 0.37666315688714463,
         "threshold": 0.23891625615763548,
         "pass": true
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 72224.4094488189,
+            "cost_per_1000": 72155.51181102362,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -30600.393700787405,
+            "distance_to_floor": -30669.291338582683,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 83001.96850393701,
+            "cost_per_1000": 82893.70078740157,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -19822.834645669296,
+            "distance_to_floor": -19931.102362204736,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 95049.21259842519,
+            "cost_per_1000": 94803.14960629921,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -7775.590551181114,
+            "distance_to_floor": -8021.653543307097,
             "counts_for_pass": true
           },
           "10": {
-            "cost_per_1000": 103503.93700787402,
+            "cost_per_1000": 103543.30708661418,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": false,
             "below_lookup": false,
-            "distance_to_floor": 679.1338582677126,
+            "distance_to_floor": 718.5039370078739,
             "counts_for_pass": false
           },
           "20": {
@@ -468,12 +468,12 @@
         "pass": true
       },
       "S5": {
-        "value": 0.6762888686316216,
-        "flag_rate_achieved": 0.43188976377952754,
+        "value": 0.6761875822951484,
+        "flag_rate_achieved": 0.431742125984252,
         "pass": false
       },
       "S6": {
-        "value": 0.17395880261411245,
+        "value": 0.1739421812332887,
         "temporal_brier_by_sector": {},
         "pass": true
       },
@@ -485,46 +485,46 @@
     },
     "svc_rbf": {
       "S1": {
-        "value": 0.8195930084835136,
+        "value": 0.8198674133060655,
         "pass": true
       },
       "S2": {
-        "value": 0.8113334457003498,
+        "value": 0.8113302603524625,
         "pass": true
       },
       "S3": {
-        "value": 0.9265674060569229,
-        "specificity_achieved": 0.41073992533741743,
-        "threshold": 0.23675565156670397,
+        "value": 0.9267699787298693,
+        "specificity_achieved": 0.40853833636450654,
+        "threshold": 0.2354905185416386,
         "pass": true
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 70954.72440944881,
+            "cost_per_1000": 70659.44881889764,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -31870.078740157493,
+            "distance_to_floor": -32165.354330708666,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 82234.25196850394,
+            "cost_per_1000": 82194.88188976378,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -20590.55118110236,
+            "distance_to_floor": -20629.921259842522,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 93316.92913385827,
+            "cost_per_1000": 92696.85039370079,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -9507.874015748035,
+            "distance_to_floor": -10127.952755905513,
             "counts_for_pass": true
           },
           "10": {
@@ -537,33 +537,33 @@
             "counts_for_pass": false
           },
           "20": {
-            "cost_per_1000": 102204.72440944881,
+            "cost_per_1000": 101751.96850393701,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -620.0787401574926,
+            "distance_to_floor": -1072.8346456692962,
             "counts_for_pass": false
           },
           "30": {
-            "cost_per_1000": 102598.4251968504,
+            "cost_per_1000": 102618.11023622047,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -226.37795275590906,
+            "distance_to_floor": -206.6929133858357,
             "counts_for_pass": false
           }
         },
         "pass": true
       },
       "S5": {
-        "value": 0.7484047402005469,
-        "flag_rate_achieved": 0.4984251968503937,
+        "value": 0.7510381849488504,
+        "flag_rate_achieved": 0.4999507874015748,
         "pass": false
       },
       "S6": {
-        "value": 0.17304475559672824,
+        "value": 0.17291316859895464,
         "temporal_brier_by_sector": {},
         "pass": true
       },
@@ -575,85 +575,85 @@
     },
     "knn": {
       "S1": {
-        "value": 0.7731692640111303,
+        "value": 0.7731666802254817,
         "pass": false
       },
       "S2": {
-        "value": 0.7697756008081409,
+        "value": 0.7686810020470947,
         "pass": true
       },
       "S3": {
-        "value": 0.8862554441405854,
-        "specificity_achieved": 0.4120800229731023,
-        "threshold": 0.30848448371873644,
+        "value": 0.8865593031500051,
+        "specificity_achieved": 0.41437733320570497,
+        "threshold": 0.3001393830740642,
         "pass": false
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 82490.15748031496,
+            "cost_per_1000": 82027.55905511811,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": false,
-            "distance_to_floor": -20334.64566929135,
+            "distance_to_floor": -20797.244094488196,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 91850.3937007874,
+            "cost_per_1000": 91072.8346456693,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": false,
-            "distance_to_floor": -10974.4094488189,
+            "distance_to_floor": -11751.968503937009,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 98661.41732283465,
+            "cost_per_1000": 98986.22047244094,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": false,
-            "distance_to_floor": -4163.385826771657,
+            "distance_to_floor": -3838.5826771653665,
             "counts_for_pass": true
           },
           "10": {
-            "cost_per_1000": 102362.20472440944,
+            "cost_per_1000": 102391.73228346456,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
             "below_floor": true,
             "below_lookup": true,
-            "distance_to_floor": -462.5984251968621,
+            "distance_to_floor": -433.0708661417448,
             "counts_for_pass": false
           },
           "20": {
-            "cost_per_1000": 102962.59842519685,
+            "cost_per_1000": 102352.36220472441,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
-            "below_floor": false,
-            "below_lookup": false,
-            "distance_to_floor": 137.7952755905426,
+            "below_floor": true,
+            "below_lookup": true,
+            "distance_to_floor": -472.4409448818915,
             "counts_for_pass": false
           },
           "30": {
-            "cost_per_1000": 103061.02362204724,
+            "cost_per_1000": 102775.5905511811,
             "floor": 102824.8031496063,
             "lookup": 102824.8031496063,
-            "below_floor": false,
-            "below_lookup": false,
-            "distance_to_floor": 236.22047244093847,
+            "below_floor": true,
+            "below_lookup": true,
+            "distance_to_floor": -49.212598425205215,
             "counts_for_pass": false
           }
         },
         "pass": false
       },
       "S5": {
-        "value": 0.6961409905803707,
-        "flag_rate_achieved": 0.48932086614173226,
+        "value": 0.695330699888585,
+        "flag_rate_achieved": 0.4906003937007874,
         "pass": false
       },
       "S6": {
-        "value": 0.1948660094529733,
+        "value": 0.194969443614352,
         "temporal_brier_by_sector": {},
         "pass": true
       },
@@ -665,46 +665,46 @@
     },
     "gaussian_nb": {
       "S1": {
-        "value": 0.7409871569759143,
+        "value": 0.7453111537682973,
         "pass": false
       },
       "S2": {
-        "value": 0.7405563587928871,
+        "value": 0.7416729698539836,
         "pass": false
       },
       "S3": {
-        "value": 0.8679226172389345,
-        "specificity_achieved": 0.4067196324303628,
-        "threshold": 0.0010519721545279026,
+        "value": 0.874911374455586,
+        "specificity_achieved": 0.4072939599885135,
+        "threshold": 0.001402895781211555,
         "pass": false
       },
       "S4": {
         "by_ratio": {
           "2": {
-            "cost_per_1000": 87194.88188976378,
+            "cost_per_1000": 85285.43307086614,
             "floor": 102824.8031496063,
             "lookup": 73553.14960629921,
             "below_floor": true,
             "below_lookup": false,
-            "distance_to_floor": -15629.921259842522,
+            "distance_to_floor": -17539.37007874016,
             "counts_for_pass": true
           },
           "3": {
-            "cost_per_1000": 94881.88976377953,
+            "cost_per_1000": 94557.08661417323,
             "floor": 102824.8031496063,
             "lookup": 85472.44094488189,
             "below_floor": true,
             "below_lookup": false,
-            "distance_to_floor": -7942.913385826774,
+            "distance_to_floor": -8267.71653543308,
             "counts_for_pass": true
           },
           "5": {
-            "cost_per_1000": 102637.79527559056,
+            "cost_per_1000": 102677.1653543307,
             "floor": 102824.8031496063,
             "lookup": 98061.02362204724,
             "below_floor": true,
             "below_lookup": false,
-            "distance_to_floor": -187.0078740157478,
+            "distance_to_floor": -147.6377952756011,
             "counts_for_pass": true
           },
           "10": {
@@ -738,12 +738,12 @@
         "pass": false
       },
       "S5": {
-        "value": 0.6642357945913097,
-        "flag_rate_achieved": 0.4922244094488189,
+        "value": 0.6706168337891218,
+        "flag_rate_achieved": 0.49311023622047245,
         "pass": false
       },
       "S6": {
-        "value": 0.29793897554808635,
+        "value": 0.29147054290851016,
         "temporal_brier_by_sector": {},
         "pass": false
       },
@@ -852,85 +852,85 @@
     "criteria": {
       "hist_gb": {
         "S1": {
-          "value": 0.8375548429193915,
+          "value": 0.8381390502280774,
           "pass": true
         },
         "S2": {
-          "value": 0.836464688237796,
+          "value": 0.8374146759598446,
           "pass": true
         },
         "S3": {
-          "value": 0.9361874809779852,
-          "specificity_achieved": 0.41037193251533743,
-          "threshold": 0.21401880439219598,
+          "value": 0.9337526630820736,
+          "specificity_achieved": 0.4157400306748466,
+          "threshold": 0.2139984226874993,
           "pass": true
         },
         "S4": {
           "by_ratio": {
             "2": {
-              "cost_per_1000": 67376.41086302923,
+              "cost_per_1000": 67484.84400414018,
               "floor": 102834.04800630883,
               "lookup": 74917.44294938144,
               "below_floor": true,
               "below_lookup": true,
-              "distance_to_floor": -35457.6371432796,
+              "distance_to_floor": -35349.204002168655,
               "counts_for_pass": true
             },
             "3": {
-              "cost_per_1000": 78732.3180048302,
+              "cost_per_1000": 78091.57671644734,
               "floor": 102834.04800630883,
               "lookup": 86273.35009118241,
               "below_floor": true,
               "below_lookup": true,
-              "distance_to_floor": -24101.73000147863,
+              "distance_to_floor": -24742.471289861496,
               "counts_for_pass": true
             },
             "5": {
-              "cost_per_1000": 90107.94026319681,
+              "cost_per_1000": 89654.49258218739,
               "floor": 102834.04800630883,
               "lookup": 97855.9810734881,
               "below_floor": true,
               "below_lookup": true,
-              "distance_to_floor": -12726.107743112021,
+              "distance_to_floor": -13179.555424121441,
               "counts_for_pass": true
             },
             "10": {
-              "cost_per_1000": 99561.33865641481,
+              "cost_per_1000": 99255.7543496476,
               "floor": 102834.04800630883,
               "lookup": 102834.04800630883,
               "below_floor": true,
               "below_lookup": true,
-              "distance_to_floor": -3272.709349894023,
+              "distance_to_floor": -3578.2936566612334,
               "counts_for_pass": false
             },
             "20": {
-              "cost_per_1000": 102311.59741731973,
+              "cost_per_1000": 102804.4753314604,
               "floor": 102834.04800630883,
               "lookup": 102834.04800630883,
               "below_floor": true,
               "below_lookup": true,
-              "distance_to_floor": -522.4505889891007,
+              "distance_to_floor": -29.572674848430324,
               "counts_for_pass": false
             },
             "30": {
-              "cost_per_1000": 102843.90556459165,
+              "cost_per_1000": 102804.4753314604,
               "floor": 102834.04800630883,
               "lookup": 102834.04800630883,
-              "below_floor": false,
-              "below_lookup": false,
-              "distance_to_floor": 9.85755828281981,
+              "below_floor": true,
+              "below_lookup": true,
+              "distance_to_floor": -29.572674848430324,
               "counts_for_pass": false
             }
           },
           "pass": true
         },
         "S5": {
-          "value": 0.7618950999289845,
-          "flag_rate_achieved": 0.49553945487702694,
+          "value": 0.7615907476919955,
+          "flag_rate_achieved": 0.49455369904874563,
           "pass": false
         },
         "S6": {
-          "value": 0.16385279337824588,
+          "value": 0.16343336981930237,
           "temporal_brier_by_sector": {},
           "pass": true
         },

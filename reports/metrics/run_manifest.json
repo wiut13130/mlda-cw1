@@ -28,8 +28,8 @@
   "n_test": 20320,
   "prevalence_train": 0.4858467935391012,
   "prevalence_test": 0.4858759842519685,
-  "n_input_features": 55,
-  "n_transformed_features_default_preprocessor": 552,
+  "n_input_features": 52,
+  "n_transformed_features_default_preprocessor": 546,
   "cv_folds": 5,
   "quick_sample_cap": null,
   "n_jobs": 8,
@@ -65,19 +65,19 @@
     "ranking_rule": "cross-validated mean average_precision of the selected candidate",
     "mcnemar_best_vs_lookup": {
       "at_0.5": {
-        "statistic": 131.74306205176177,
-        "p_value": 1.7029329621290245e-30,
-        "n_both_correct": 13553,
-        "n_a_only": 1929,
-        "n_b_only": 1278,
-        "n_neither": 3560,
-        "accuracy_a": 0.7619094488188977,
+        "statistic": 148.73477038425492,
+        "p_value": 3.27730141034268e-34,
+        "n_both_correct": 13576,
+        "n_a_only": 1946,
+        "n_b_only": 1255,
+        "n_neither": 3543,
+        "accuracy_a": 0.7638779527559055,
         "accuracy_b": 0.7298720472440945,
         "method": "chi-square with continuity correction",
-        "clustered_statistic": 78.49620300055565,
-        "clustered_p_value": 8.015215213446284e-19,
+        "clustered_statistic": 87.53088909257562,
+        "clustered_p_value": 8.297380917188844e-21,
         "n_clusters": 6724,
-        "n_discordant_clusters": 1910,
+        "n_discordant_clusters": 1892,
         "clustered_method": "Durkalski et al. (2003) clustered McNemar, chi-square on 1 df",
         "model_a": "hist_gb",
         "model_b": "lookup_nature_bodypart_coal",
@@ -85,23 +85,23 @@
         "threshold_b": 0.5
       },
       "at_specificity_0.40": {
-        "statistic": 35.174880069777586,
-        "p_value": 3.013861703284694e-09,
-        "n_both_correct": 12238,
-        "n_a_only": 1289,
-        "n_b_only": 1004,
-        "n_neither": 5789,
-        "accuracy_a": 0.6656988188976378,
+        "statistic": 36.92268261426741,
+        "p_value": 1.229077140572799e-09,
+        "n_both_correct": 12219,
+        "n_a_only": 1318,
+        "n_b_only": 1023,
+        "n_neither": 5760,
+        "accuracy_a": 0.6661909448818898,
         "accuracy_b": 0.6516732283464567,
         "method": "chi-square with continuity correction",
-        "clustered_statistic": 24.443274149864582,
-        "clustered_p_value": 7.65302152295729e-07,
+        "clustered_statistic": 24.47960618846695,
+        "clustered_p_value": 7.510056081764736e-07,
         "n_clusters": 6724,
-        "n_discordant_clusters": 1489,
+        "n_discordant_clusters": 1511,
         "clustered_method": "Durkalski et al. (2003) clustered McNemar, chi-square on 1 df",
         "model_a": "hist_gb",
         "model_b": "lookup_nature_bodypart_coal",
-        "threshold_a": 0.21028013793420935,
+        "threshold_a": 0.21126273631055856,
         "threshold_b": 0.225
       }
     },
@@ -113,18 +113,18 @@
         "roc_auc": {
           "rows": {
             "metric": "roc_auc",
-            "estimate": 0.8430423369227206,
-            "lower": 0.8377118174740834,
-            "upper": 0.8482346606786684,
+            "estimate": 0.8433871438446601,
+            "lower": 0.8380396555880294,
+            "upper": 0.8486806872087814,
             "n_boot": 1000,
             "alpha": 0.05,
             "resampling": "rows"
           },
           "mine_years": {
             "metric": "roc_auc",
-            "estimate": 0.8430423369227206,
-            "lower": 0.8350343046759194,
-            "upper": 0.851285288392877,
+            "estimate": 0.8433871438446601,
+            "lower": 0.8356037577467673,
+            "upper": 0.8515440332071357,
             "n_boot": 1000,
             "alpha": 0.05,
             "resampling": "6724 clusters"
@@ -133,18 +133,18 @@
         "pr_auc": {
           "rows": {
             "metric": "pr_auc",
-            "estimate": 0.8414021427599513,
-            "lower": 0.8345552129765597,
-            "upper": 0.848440343785034,
+            "estimate": 0.8418512189779543,
+            "lower": 0.8349052890473585,
+            "upper": 0.8488376363851259,
             "n_boot": 1000,
             "alpha": 0.05,
             "resampling": "rows"
           },
           "mine_years": {
             "metric": "pr_auc",
-            "estimate": 0.8414021427599513,
-            "lower": 0.825228878007825,
-            "upper": 0.8558218598492298,
+            "estimate": 0.8418512189779543,
+            "lower": 0.8260164214696659,
+            "upper": 0.8562356918970228,
             "n_boot": 1000,
             "alpha": 0.05,
             "resampling": "6724 clusters"
@@ -153,18 +153,18 @@
         "recall_at_specificity_0.40": {
           "rows": {
             "metric": "recall",
-            "estimate": 0.9431783652385293,
-            "lower": 0.9389932029902471,
-            "upper": 0.9474530455131626,
+            "estimate": 0.9413552111820116,
+            "lower": 0.9370575994961463,
+            "upper": 0.9461996315256068,
             "n_boot": 1000,
             "alpha": 0.05,
             "resampling": "rows"
           },
           "mine_years": {
             "metric": "recall",
-            "estimate": 0.9431783652385293,
-            "lower": 0.9379944430350693,
-            "upper": 0.9488204151882349,
+            "estimate": 0.9413552111820116,
+            "lower": 0.9363724127215978,
+            "upper": 0.9470036081347037,
             "n_boot": 1000,
             "alpha": 0.05,
             "resampling": "6724 clusters"
@@ -181,29 +181,29 @@
       "same_fit_rows": true,
       "note": null,
       "scores_a": [
-        0.8336527573447058,
-        0.8359522982909282,
-        0.8399310362667148,
-        0.8395984681956963,
-        0.8412353358962763
+        0.8326664102216885,
+        0.8353800082113753,
+        0.8383740794850153,
+        0.8400720330694854,
+        0.8417470204084412
       ],
       "scores_b": [
-        0.8283344230167231,
-        0.8266963663493426,
-        0.8372309133575542,
-        0.8367376070563839,
-        0.8344242960201852
+        0.8270960085419791,
+        0.8288785924757849,
+        0.8365455425970133,
+        0.8320820143855375,
+        0.8328324083507723
       ],
       "n_folds": 5,
-      "mean_a": 0.8380739791988644,
-      "mean_b": 0.8326847211600379,
-      "mean_difference": 0.005389258038826483,
-      "std_difference": 0.002765949179887847,
-      "t_statistic": 4.356821669294678,
-      "t_p_value": 0.012092214799014159,
+      "mean_a": 0.8376479102792012,
+      "mean_b": 0.8314869132702174,
+      "mean_difference": 0.006160997008983715,
+      "std_difference": 0.0027460250625274715,
+      "t_statistic": 5.016854474219733,
+      "t_p_value": 0.00740176264910417,
       "test_train_ratio": 0.25,
-      "corrected_t_statistic": 2.9045477795297856,
-      "corrected_t_p_value": 0.04391730476251742,
+      "corrected_t_statistic": 3.3445696494798223,
+      "corrected_t_p_value": 0.028713432821822413,
       "wilcoxon_statistic": 0.0,
       "wilcoxon_p_value": 0.0625
     }
@@ -215,7 +215,7 @@
   "undocumented_pure_levels": [],
   "success_all_pass": {
     "hist_gb": false,
-    "mlp": true,
+    "mlp": false,
     "random_forest": false,
     "logreg": false,
     "decision_tree": false,
@@ -226,64 +226,64 @@
   },
   "comparison_at_0.5": {
     "hist_gb": {
-      "TPR": 0.7378,
-      "TNR": 0.7847,
-      "AUC": 0.843,
-      "Recall": 0.7378,
-      "Precision": 0.7641,
-      "F1": 0.7507,
-      "PR-AUC": 0.8414,
-      "Accuracy": 0.7619
+      "TPR": 0.74,
+      "TNR": 0.7864,
+      "AUC": 0.8434,
+      "Recall": 0.74,
+      "Precision": 0.7661,
+      "F1": 0.7528,
+      "PR-AUC": 0.8419,
+      "Accuracy": 0.7639
     },
     "mlp": {
-      "TPR": 0.7494,
-      "TNR": 0.7689,
-      "AUC": 0.8395,
-      "Recall": 0.7494,
-      "Precision": 0.754,
-      "F1": 0.7517,
-      "PR-AUC": 0.8369,
-      "Accuracy": 0.7594
+      "TPR": 0.7375,
+      "TNR": 0.7892,
+      "AUC": 0.8389,
+      "Recall": 0.7375,
+      "Precision": 0.7678,
+      "F1": 0.7523,
+      "PR-AUC": 0.8362,
+      "Accuracy": 0.7641
     },
     "random_forest": {
-      "TPR": 0.7075,
-      "TNR": 0.7995,
-      "AUC": 0.8328,
-      "Recall": 0.7075,
-      "Precision": 0.7693,
-      "F1": 0.7371,
-      "PR-AUC": 0.8266,
-      "Accuracy": 0.7548
+      "TPR": 0.7103,
+      "TNR": 0.7982,
+      "AUC": 0.8331,
+      "Recall": 0.7103,
+      "Precision": 0.7689,
+      "F1": 0.7384,
+      "PR-AUC": 0.8269,
+      "Accuracy": 0.7555
     },
     "logreg": {
-      "TPR": 0.7442,
-      "TNR": 0.7584,
+      "TPR": 0.7443,
+      "TNR": 0.7587,
       "AUC": 0.8291,
-      "Recall": 0.7442,
-      "Precision": 0.7443,
-      "F1": 0.7442,
-      "PR-AUC": 0.8248,
-      "Accuracy": 0.7515
+      "Recall": 0.7443,
+      "Precision": 0.7446,
+      "F1": 0.7444,
+      "PR-AUC": 0.8247,
+      "Accuracy": 0.7517
     },
     "svc_rbf": {
-      "TPR": 0.7306,
-      "TNR": 0.7626,
-      "AUC": 0.8196,
-      "Recall": 0.7306,
-      "Precision": 0.7441,
+      "TPR": 0.7309,
+      "TNR": 0.762,
+      "AUC": 0.8199,
+      "Recall": 0.7309,
+      "Precision": 0.7438,
       "F1": 0.7373,
       "PR-AUC": 0.8113,
-      "Accuracy": 0.747
+      "Accuracy": 0.7469
     },
     "decision_tree": {
-      "TPR": 0.6763,
-      "TNR": 0.7991,
+      "TPR": 0.6762,
+      "TNR": 0.7993,
       "AUC": 0.8171,
-      "Recall": 0.6763,
-      "Precision": 0.7608,
+      "Recall": 0.6762,
+      "Precision": 0.761,
       "F1": 0.7161,
-      "PR-AUC": 0.8046,
-      "Accuracy": 0.7394
+      "PR-AUC": 0.8052,
+      "Accuracy": 0.7395
     },
     "lookup_nature_bodypart_coal": {
       "TPR": 0.6548,
@@ -296,24 +296,24 @@
       "Accuracy": 0.7299
     },
     "knn": {
-      "TPR": 0.5894,
-      "TNR": 0.8074,
+      "TPR": 0.5836,
+      "TNR": 0.8054,
       "AUC": 0.7732,
-      "Recall": 0.5894,
-      "Precision": 0.7431,
-      "F1": 0.6574,
-      "PR-AUC": 0.7698,
-      "Accuracy": 0.7015
+      "Recall": 0.5836,
+      "Precision": 0.7392,
+      "F1": 0.6523,
+      "PR-AUC": 0.7687,
+      "Accuracy": 0.6976
     },
     "gaussian_nb": {
-      "TPR": 0.5244,
-      "TNR": 0.8023,
-      "AUC": 0.741,
-      "Recall": 0.5244,
-      "Precision": 0.7149,
-      "F1": 0.605,
-      "PR-AUC": 0.7406,
-      "Accuracy": 0.6673
+      "TPR": 0.5239,
+      "TNR": 0.8044,
+      "AUC": 0.7453,
+      "Recall": 0.5239,
+      "Precision": 0.7168,
+      "F1": 0.6053,
+      "PR-AUC": 0.7417,
+      "Accuracy": 0.6681
     },
     "rule_not_cut_or_dust": {
       "TPR": 0.8982,
@@ -363,79 +363,79 @@
       "top_10": [
         {
           "feature": "NATURE_INJURY_CD_180",
-          "mean_abs_shap": 0.5747764120844294
+          "mean_abs_shap": 0.5703190473897006
         },
         {
           "feature": "prev_lost_time_share",
-          "mean_abs_shap": 0.36535263799067647
+          "mean_abs_shap": 0.36085151749775035
         },
         {
           "feature": "COAL_METAL_IND_C",
-          "mean_abs_shap": 0.34959580860802286
+          "mean_abs_shap": 0.3438331817863564
         },
         {
           "feature": "INJ_BODY_PART_CD_340",
-          "mean_abs_shap": 0.20625931570947187
+          "mean_abs_shap": 0.20528395857222229
         },
         {
           "feature": "longitude",
-          "mean_abs_shap": 0.08163143846965298
+          "mean_abs_shap": 0.08297430367305636
         },
         {
           "feature": "NATURE_INJURY_CD_100",
-          "mean_abs_shap": 0.07274537376950758
+          "mean_abs_shap": 0.07285220448573244
         },
         {
           "feature": "NATURE_INJURY_CD_220",
-          "mean_abs_shap": 0.06811883563356165
+          "mean_abs_shap": 0.0687113596659231
         },
         {
           "feature": "INJ_BODY_PART_CD_130",
-          "mean_abs_shap": 0.06742705065132833
+          "mean_abs_shap": 0.06502439303138592
         },
         {
           "feature": "INJ_BODY_PART_CD_142",
-          "mean_abs_shap": 0.05910520238294369
+          "mean_abs_shap": 0.059500179264844875
         },
         {
-          "feature": "prev_incidents",
-          "mean_abs_shap": 0.050054748437021436
+          "feature": "prev_employees",
+          "mean_abs_shap": 0.05433846040321257
         }
       ]
     }
   },
   "stage_seconds": {
-    "load_and_clean": 0.6,
-    "features_and_split": 8.94,
-    "eda": 19.65,
-    "baselines": 15.25,
-    "model_logreg": 71.38,
-    "model_knn": 285.17,
-    "model_gaussian_nb": 29.55,
-    "model_decision_tree": 161.62,
-    "model_random_forest": 142.16,
-    "model_hist_gb": 580.79,
-    "model_svc_rbf": 1238.87,
-    "model_mlp": 188.35,
-    "predictions_and_comparison": 16.22,
-    "evaluation_figures": 3.09,
-    "learning_curve": 28.96,
-    "temporal_split": 2535.29,
-    "sensitivity": 325.09,
-    "explanations": 23.94,
-    "success_criteria": 0.01
+    "load_and_clean": 0.46,
+    "features_and_split": 8.42,
+    "eda": 18.52,
+    "baselines": 15.41,
+    "model_logreg": 66.32,
+    "model_knn": 266.5,
+    "model_gaussian_nb": 25.46,
+    "model_decision_tree": 151.06,
+    "model_random_forest": 140.74,
+    "model_hist_gb": 505.71,
+    "model_svc_rbf": 902.03,
+    "model_mlp": 161.07,
+    "predictions_and_comparison": 14.88,
+    "evaluation_figures": 2.84,
+    "learning_curve": 24.73,
+    "temporal_split": 2422.89,
+    "sensitivity": 410.69,
+    "explanations": 15.91,
+    "success_criteria": 0.0
   },
-  "total_seconds": 5674.9,
+  "total_seconds": 5154.1,
   "environment": {
     "student_id": "13130",
-    "saved_at_utc": "2026-10-14T18:06:53+00:00",
+    "saved_at_utc": "2026-10-20T13:37:17+00:00",
     "python_version": "3.12.15",
     "sklearn_version": "1.9.1",
     "numpy_version": "2.5.4",
     "pandas_version": "2.3.3",
     "joblib_version": "1.6.0",
     "platform": "Windows-11-10.0.26200-SP0",
-    "git_sha": "6e0d04121f2479dada517467df1d87ed77279ee6",
+    "git_sha": "95c56ba0acc1b315a0895499f337416c39bad1ad",
     "data_checksum": "797016b4aac29e768aa81a8a82f67e86ec9b407ddf8ef244f30ec6bce9ce2a8b",
     "data_snapshot_utc": "2026-10-14T12:06:01Z"
   },
@@ -448,7 +448,7 @@
     {
       "directory": "processed",
       "file": "features.parquet",
-      "bytes": 5885589
+      "bytes": 5859068
     },
     {
       "directory": "processed",
@@ -468,77 +468,82 @@
     {
       "directory": "models",
       "file": "decision_tree.joblib",
-      "bytes": 32204
+      "bytes": 32174
     },
     {
       "directory": "models",
       "file": "gaussian_nb.joblib",
-      "bytes": 19182
+      "bytes": 18868
     },
     {
       "directory": "models",
       "file": "hist_gb.joblib",
-      "bytes": 449045
+      "bytes": 481218
     },
     {
       "directory": "models",
       "file": "knn.joblib",
-      "bytes": 5227333
+      "bytes": 5119210
     },
     {
       "directory": "models",
       "file": "logreg.joblib",
-      "bytes": 13509
+      "bytes": 13260
     },
     {
       "directory": "models",
       "file": "manifest.json",
-      "bytes": 10611
+      "bytes": 10625
     },
     {
       "directory": "models",
       "file": "mlp.joblib",
-      "bytes": 810108
+      "bytes": 801227
     },
     {
       "directory": "models",
       "file": "random_forest.joblib",
-      "bytes": 20369277
+      "bytes": 20323965
     },
     {
       "directory": "models",
       "file": "svc_rbf.joblib",
-      "bytes": 1246971
+      "bytes": 1220526
     },
     {
       "directory": "metrics",
       "file": "baselines.json",
-      "bytes": 55362
+      "bytes": 54988
+    },
+    {
+      "directory": "metrics",
+      "file": "code_descriptions.json",
+      "bytes": 18838
     },
     {
       "directory": "metrics",
       "file": "coefficients_logreg.csv",
-      "bytes": 47177
+      "bytes": 46648
     },
     {
       "directory": "metrics",
       "file": "comparison.csv",
-      "bytes": 1877
+      "bytes": 1878
     },
     {
       "directory": "metrics",
       "file": "comparison_operating_point.csv",
-      "bytes": 3201
+      "bytes": 3159
     },
     {
       "directory": "metrics",
       "file": "cv_summary.csv",
-      "bytes": 2556
+      "bytes": 2553
     },
     {
       "directory": "metrics",
       "file": "decision_tree.json",
-      "bytes": 15939
+      "bytes": 15980
     },
     {
       "directory": "metrics",
@@ -558,12 +563,12 @@
     {
       "directory": "metrics",
       "file": "eda_cramers_v.csv",
-      "bytes": 1696
+      "bytes": 1448
     },
     {
       "directory": "metrics",
       "file": "eda_describe_categorical.csv",
-      "bytes": 1577
+      "bytes": 1404
     },
     {
       "directory": "metrics",
@@ -597,143 +602,203 @@
     },
     {
       "directory": "metrics",
+      "file": "followup_capacity_policy.csv",
+      "bytes": 4137
+    },
+    {
+      "directory": "metrics",
+      "file": "followup_checks.json",
+      "bytes": 56867
+    },
+    {
+      "directory": "metrics",
       "file": "gaussian_nb.json",
-      "bytes": 16259
+      "bytes": 16270
     },
     {
       "directory": "metrics",
       "file": "hist_gb.json",
-      "bytes": 16328
+      "bytes": 16313
     },
     {
       "directory": "metrics",
       "file": "knn.json",
-      "bytes": 16284
+      "bytes": 16256
     },
     {
       "directory": "metrics",
       "file": "logreg.json",
-      "bytes": 16218
+      "bytes": 16207
     },
     {
       "directory": "metrics",
       "file": "mlp.json",
-      "bytes": 16215
+      "bytes": 16226
     },
     {
       "directory": "metrics",
       "file": "permutation_importance_hist_gb.csv",
-      "bytes": 3239
+      "bytes": 3051
     },
     {
       "directory": "metrics",
       "file": "random_forest.json",
-      "bytes": 16307
+      "bytes": 16331
     },
     {
       "directory": "metrics",
       "file": "run_manifest.json",
-      "bytes": 19966
+      "bytes": 20424
     },
     {
       "directory": "metrics",
       "file": "sensitivity.json",
-      "bytes": 30109
+      "bytes": 31950
     },
     {
       "directory": "metrics",
       "file": "shap_summary_hist_gb.csv",
-      "bytes": 22962
+      "bytes": 22867
     },
     {
       "directory": "metrics",
       "file": "statistical_tests.json",
-      "bytes": 5336
+      "bytes": 5338
     },
     {
       "directory": "metrics",
       "file": "success_criteria.json",
-      "bytes": 32578
+      "bytes": 32570
     },
     {
       "directory": "metrics",
       "file": "svc_rbf.json",
-      "bytes": 16288
+      "bytes": 16305
     },
     {
       "directory": "metrics",
       "file": "temporal_split.json",
-      "bytes": 36172
+      "bytes": 36166
     },
     {
       "directory": "metrics",
       "file": "threshold_sweep_test_hist_gb.csv",
-      "bytes": 5987929
+      "bytes": 5990342
     },
     {
       "directory": "metrics",
       "file": "thresholds.json",
-      "bytes": 3696
+      "bytes": 3648
     },
     {
       "directory": "cv",
       "file": "decision_tree_cv_results.csv",
-      "bytes": 52906
+      "bytes": 52893
+    },
+    {
+      "directory": "cv",
+      "file": "followup_hist_gb_cv_results.csv",
+      "bytes": 54830
+    },
+    {
+      "directory": "cv",
+      "file": "followup_knn_cv_results.csv",
+      "bytes": 14509
+    },
+    {
+      "directory": "cv",
+      "file": "followup_random_forest_cv_results.csv",
+      "bytes": 53556
     },
     {
       "directory": "cv",
       "file": "gaussian_nb_cv_results.csv",
-      "bytes": 12589
+      "bytes": 12603
     },
     {
       "directory": "cv",
       "file": "hist_gb_cv_results.csv",
-      "bytes": 36947
+      "bytes": 36942
     },
     {
       "directory": "cv",
       "file": "hist_gb_learning_curve.csv",
-      "bytes": 478
+      "bytes": 471
     },
     {
       "directory": "cv",
       "file": "knn_cv_results.csv",
-      "bytes": 14451
+      "bytes": 14413
     },
     {
       "directory": "cv",
       "file": "logreg_cv_results.csv",
-      "bytes": 18897
+      "bytes": 18886
     },
     {
       "directory": "cv",
       "file": "mlp_cv_results.csv",
-      "bytes": 20974
+      "bytes": 20997
     },
     {
       "directory": "cv",
       "file": "random_forest_cv_results.csv",
-      "bytes": 10949
+      "bytes": 10955
     },
     {
       "directory": "cv",
       "file": "svc_rbf_cv_results.csv",
-      "bytes": 10576
+      "bytes": 10558
     },
     {
       "directory": "predictions",
       "file": "oof_predictions.parquet",
-      "bytes": 5773350
+      "bytes": 5769681
     },
     {
       "directory": "predictions",
       "file": "test_predictions.parquet",
-      "bytes": 1436880
+      "bytes": 1438524
+    },
+    {
+      "directory": "figures",
+      "file": "app_1_data_explorer.png",
+      "bytes": 254345
+    },
+    {
+      "directory": "figures",
+      "file": "app_2_eda.png",
+      "bytes": 337138
+    },
+    {
+      "directory": "figures",
+      "file": "app_3_preprocessing.png",
+      "bytes": 351270
+    },
+    {
+      "directory": "figures",
+      "file": "app_4_model_training.png",
+      "bytes": 305782
+    },
+    {
+      "directory": "figures",
+      "file": "app_5_inference.png",
+      "bytes": 315109
+    },
+    {
+      "directory": "figures",
+      "file": "app_6_evaluation.png",
+      "bytes": 328866
+    },
+    {
+      "directory": "figures",
+      "file": "app_7_about.png",
+      "bytes": 276450
     },
     {
       "directory": "figures",
       "file": "F01_pipeline.png",
-      "bytes": 168945
+      "bytes": 168975
     },
     {
       "directory": "figures",
@@ -788,47 +853,47 @@
     {
       "directory": "figures",
       "file": "F12_roc_curves.png",
-      "bytes": 130111
+      "bytes": 132499
     },
     {
       "directory": "figures",
       "file": "F13_pr_curves.png",
-      "bytes": 116913
+      "bytes": 119427
     },
     {
       "directory": "figures",
       "file": "F14_validation_curves.png",
-      "bytes": 356944
+      "bytes": 346015
     },
     {
       "directory": "figures",
       "file": "F15_learning_curve_hist_gb.png",
-      "bytes": 49764
+      "bytes": 50368
     },
     {
       "directory": "figures",
       "file": "F16_confusion_matrices.png",
-      "bytes": 119312
+      "bytes": 122506
     },
     {
       "directory": "figures",
       "file": "F17_feature_importance_hist_gb.png",
-      "bytes": 76324
+      "bytes": 103482
     },
     {
       "directory": "figures",
       "file": "F17b_coefficients_logreg.png",
-      "bytes": 91502
+      "bytes": 115108
     },
     {
       "directory": "figures",
       "file": "F18_threshold_cost_curve_hist_gb.png",
-      "bytes": 221533
+      "bytes": 222221
     },
     {
       "directory": "figures",
       "file": "F19_calibration.png",
-      "bytes": 154107
+      "bytes": 154537
     }
   ]
 }

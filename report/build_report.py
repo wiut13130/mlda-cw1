@@ -69,7 +69,7 @@ TAB_CAPTION_RE = re.compile(r"^Table:\s*(?P<caption>.*?)(?:\s*\{#tab:(?P<key>[\w
 HEADING_RE = re.compile(r"^(#{1,3})\s+(.*)$")
 XREF_RE = re.compile(r"\{(fig|tab):([\w-]+)\}")
 INLINE_RE = re.compile(r"(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)")
-PLACEHOLDER_RE = re.compile(r"\{\{[^{}]*\}\}")
+PLACEHOLDER_RE = re.compile(r"\{\{[^{}]*\}\}|\[\[[A-Z0-9_]+\]\]")   # {{name}} and [[NAME]] tokens block a build
 CAPTION_MARKER = " || "
 
 # Children of w:settings that the schema (CT_Settings is a sequence) places after w:updateFields;

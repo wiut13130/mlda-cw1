@@ -30,6 +30,20 @@ Commit: the deployment was made on 15 October (TW12 commits); this week's commit
 - [x] Forum reservation date (10 October 2026) recorded in `report/sections/01_introduction.md`; report rebuilt.
 - [x] `report/sections/90_references.md` exists and renders as the reference list.
 
+## Week of 19 October: response to an external review (started 20 October)
+
+A strict external marking of the 15 October submission (estimate 83/100) was checked item by item; every point below was verified against the artefacts before it was changed.
+
+- [x] Prediction moment defined once (receipt of Form 7000-1, its filing date); reports that already carry a return-to-work date are not scored; the open-at-filing cohort is the operational population; the study is stated as retrospective with prospective validation as the condition for use (report Sections 1.1, 4.4, 5, model card).
+- [x] The capacity threshold (0.210) flags 90.3% of open-at-filing test reports, so the recommendation became a workload rule (top three in four open reports by score) evaluated at equal workloads for HGB, the MLP, the lookup baseline and the hand rule (`reports/metrics/followup_capacity_policy.csv`, report Table "Equal-workload capacity policy").
+- [x] Three Mines-snapshot flags (SAFETY_COMMITTEE_IND, PART48_TRAINING, PORTABLE_OPERATION) removed from the model inputs (52 remain); full study rerun with `uv run mlda-train`, `python -m mlda.followup` and the notebook with `FULL_RUN=1`.
+- [x] History audit: 14.1% of training rows carry a previous-year history drawn from a test mine-year; sensitivity variant `history_without_test_outcomes` refits HGB without them; the temporal split is the leakage-free check.
+- [x] Statistical wording corrected (mean and standard deviation under skew, raw values and trees, association as a leakage screen, specificity and workload, Brier score and calibration); S5 random reference 0.50.
+- [x] Report build: static contents list cached in the TOC field with fields updated on opening, repeated table headers, rows kept together, landscape pages for wide tables, short caption titles in the lists of figures and tables.
+- [x] App: MINE_ID validated (malformed input refused, unknown mine warned, batch rows checked).
+- [ ] Follow-up checks extended: out-of-fold cut-off for the workload rule, calibration on the open cohort, open-only refit, paired mine-year bootstrap of the equal-workload comparison; numbers written into the report, notebook re-executed, README and viva pack refreshed, submission zip rebuilt.
+- [ ] You: export the report PDF from Word after the rebuild and keep making one dated commit per week with real changes until 4 December (the review awards the weekly-commit marks only for dated progress).
+
 ## Week of 26 October (TW7): mine-profile view on the EDA page
 
 Commit: `TW7: k-means mine profiles on the exploratory analysis page`
