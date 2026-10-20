@@ -339,7 +339,9 @@ def build_study_data(clean: pd.DataFrame, dirs: ArtefactDirs) -> StudyData:
         "split: %d train / %d test rows, prevalence %.4f / %.4f",
         len(split.train_idx), len(split.test_idx), y[split.train_idx].mean(), y[split.test_idx].mean(),
     )
-    variants = feature_variants(clean, parts.X)
+    # The split is passed so that run_sensitivity also refits the variant without test outcomes in
+    # the lagged case history; the cleaned base is released before run_sensitivity runs.
+    variants = feature_variants(clean, parts.X, split.train_idx, split.test_idx)
     return StudyData(parts.X, y, groups, parts.meta.reset_index(drop=True), years, sector, split, variants)
 
 
@@ -944,8 +946,11 @@ def run_sensitivity(
     100 % one class, documented or not), ``excluding_pure_levels`` (held-out metrics of every
     model and baseline with and without those rows), ``primary_split_variants`` (the selected
     pipeline refitted without ``immed_reportable``, without the 103(i) status, with resolved-case
-    lag counts and with blanked early-January exposure) and ``mine_grouped_split`` (S1-S6 when
-    the split and the cross-validation are grouped by ``MINE_ID``).
+    lag counts, with blanked early-January exposure and with the case history blanked on the
+    training rows whose previous mine-year is a test mine-year; each variant records how many
+    training rows it altered) and ``mine_grouped_split`` (S1-S6 when the split and the
+    cross-validation are grouped by ``MINE_ID``). The variants come from ``data.variants``, which
+    ``build_study_data`` builds with the same ``data.split`` that is used here.
     """
     best = ranked[0]
     assert best.result is not None and best.spec is not None

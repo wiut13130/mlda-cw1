@@ -3,8 +3,13 @@
 ``engineer_features`` turns the analytic base table (``mlda.data.join``, optionally
 passed through ``mlda.cleaning``) into the exact model-input frame that the
 ColumnTransformer in ``mlda.preprocessing`` and the Streamlit inference page expect:
-23 categorical columns as strings, 20 numeric columns as floats with NaN allowed and
-12 binary int8 flags with no NaN, in the order fixed by ``FEATURE_SPEC``.
+20 categorical columns as strings, 20 numeric columns as floats with NaN allowed and
+12 binary int8 flags with no NaN (52 in all), in the order fixed by ``FEATURE_SPEC``.
+
+Three Mines-table flags (SAFETY_COMMITTEE_IND, PART48_TRAINING, PORTABLE_OPERATION) are
+deliberately not inputs: the table holds them as recorded at the snapshot, so their value
+at the time of each accident is unknown and they were not known at filing. They stay in the
+base table (``mlda.config.MINES_KEEP_COLUMNS``) and in the data explorer.
 
 Every formula comes from ``docs/profile/decisions.json`` (``features.engineered``).
 The error rules that touch these inputs (E1-E12, E21, E23, E28-E30) are applied here
@@ -49,9 +54,6 @@ CATEGORICAL_FEATURES: tuple[str, ...] = (
     "type_at_time",
     "status_103i_at_accident",
     "mine_size_band",
-    "SAFETY_COMMITTEE_IND",
-    "PART48_TRAINING",
-    "PORTABLE_OPERATION",
     "accident_weekday",
     "accident_month",
 )
@@ -102,9 +104,6 @@ FEATURE_COLUMNS: tuple[str, ...] = CATEGORICAL_FEATURES + NUMERIC_FEATURES + BIN
 REQUIRED_INPUT_COLUMNS: tuple[str, ...] = (
     *ACCIDENT_CATEGORICAL,
     "PRIMARY_CANVASS",
-    "SAFETY_COMMITTEE_IND",
-    "PART48_TRAINING",
-    "PORTABLE_OPERATION",
     "ACCIDENT_DT",
     "ACCIDENT_TIME",
     "SHIFT_BEGIN_TIME",
@@ -295,14 +294,9 @@ def engineer_features(base_clean: pd.DataFrame) -> pd.DataFrame:
     frame = base_clean
     out: dict[str, pd.Series] = {}
 
-    # Categorical codes and mine attributes.
-    for column in (
-        *ACCIDENT_CATEGORICAL,
-        "PRIMARY_CANVASS",
-        "SAFETY_COMMITTEE_IND",
-        "PART48_TRAINING",
-        "PORTABLE_OPERATION",
-    ):
+    # Categorical codes and the mine's primary canvass. The snapshot-only Mines flags are not
+    # read here: their value at the accident date is unknown (see the module docstring).
+    for column in (*ACCIDENT_CATEGORICAL, "PRIMARY_CANVASS"):
         fill = PLACEHOLDER_LEVEL if column in PLACEHOLDER_AS_LEVEL else MISSING_LEVEL
         out[column] = _categorical(frame[column], fill)
     # E28: the retired scoop-car title has no successor code, so it is mapped to the

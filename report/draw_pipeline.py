@@ -51,7 +51,7 @@ def draw() -> Path:
     arrow(ax, c1 + BOX_W / 2, r1, c2 - BOX_W / 2, r1)
     arrow(ax, c2 + BOX_W / 2, r1, c3 - BOX_W / 2, r1)
 
-    box(ax, c3, r2, "Error rules and features", ["30 documented rules", "55 inputs: 23 categorical,", "20 numeric, 12 binary"], FILL_DATA)
+    box(ax, c3, r2, "Error rules and features", ["30 documented rules", "52 inputs: 20 categorical,", "20 numeric, 12 binary"], FILL_DATA)
     box(ax, c2, r2, "Grouped stratified split", ["StratifiedGroupKFold on", "mine-year groups; fold 0 held out", "(20 %); 5-fold CV on the rest"], FILL_DATA)
     arrow(ax, c3, r1 - BOX_H / 2, c3, r2 + BOX_H / 2)
     arrow(ax, c3 - BOX_W / 2, r2, c2 + BOX_W / 2, r2)

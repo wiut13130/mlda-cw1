@@ -35,9 +35,13 @@ from mlda.operating import (
 from mlda.pipeline import ArtefactDirs, StudyData, build_study_data, temporal_evaluation, train_all
 from mlda.preprocessing import build_preprocessor
 from mlda.sensitivity import (
+    HISTORY_FEATURES,
+    HISTORY_VARIANT,
+    VARIANT_DESCRIPTIONS,
     feature_variants,
     mine_grouped_robustness,
     refit_variants,
+    rows_with_test_history,
     simple_variants,
 )
 from mlda.split import cv_splitter, temporal_split
@@ -112,6 +116,57 @@ def test_variants_that_need_missing_base_columns_are_skipped(clean: pd.DataFrame
     assert set(feature_variants(stale, parts.X)) == {"without_immed_reportable", "without_status_103i"}
 
 
+def _two_mines_three_years(clean: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray, np.ndarray, np.ndarray]:
+    """Twelve rows, two per mine-year of mines A and B in 2015-2017, each with a non-empty history.
+
+    Test rows: both rows of A 2015 and of A 2016, and the first row of B 2016 (a mine-year with a
+    row on each side, to pin down "at least one test row"). The rows that must be blanked are the
+    training rows of A 2017 (after test A 2016) and of B 2017 (after the test row of B 2016). Kept:
+    B 2015 (no 2014 rows at all), the training row of B 2016 (its 2015 has test rows, but at mine
+    A only) and every test row, A 2016 included although its own previous year is a test year.
+    """
+    full_history = clean["prev_year_matched"] & (clean["prev_valid_cases"] > 0) & (clean["prev_lost_time_cases"] > 0)
+    frame = clean.loc[full_history].head(12).reset_index(drop=True)
+    frame["MINE_ID"] = ["A"] * 6 + ["B"] * 6
+    frame["CAL_YR"] = pd.array([2015, 2015, 2016, 2016, 2017, 2017] * 2, dtype="Int64")
+    test_idx = np.array([0, 1, 2, 3, 6 + 2])
+    train_idx = np.setdiff1d(np.arange(12), test_idx)
+    expected = np.zeros(12, dtype=bool)
+    expected[[4, 5, 6 + 4, 6 + 5]] = True
+    return frame, train_idx, test_idx, expected
+
+
+def test_rows_with_test_history_marks_training_rows_after_a_test_mine_year(clean: pd.DataFrame) -> None:
+    frame, train_idx, test_idx, expected = _two_mines_three_years(clean)
+    marked = rows_with_test_history(frame["MINE_ID"], frame["CAL_YR"], train_idx, test_idx)
+    np.testing.assert_array_equal(marked, expected)
+    assert not marked[test_idx].any()
+
+
+def test_history_variant_blanks_only_the_case_history_of_those_training_rows(clean: pd.DataFrame, parts: FeatureFrame) -> None:
+    frame, train_idx, test_idx, expected = _two_mines_three_years(clean)
+    X = feature_frame(frame).X
+    with_split = feature_variants(frame, X, train_idx, test_idx)
+    without_split = feature_variants(frame, X)
+    assert set(with_split) == set(without_split) | {HISTORY_VARIANT}
+    for name, variant in without_split.items():  # the split changes no other variant
+        pd.testing.assert_frame_equal(with_split[name], variant)
+
+    variant = with_split[HISTORY_VARIANT]
+    assert list(variant.columns) == list(X.columns)
+    history = list(HISTORY_FEATURES)
+    assert X.loc[expected, history].drop(columns="prev_share_missing").notna().all().all()  # there was a history to blank
+    # Every other row, the test rows included, is untouched, and so is every non-history input:
+    # exposure, the size band and prev_year_matched come from the production file.
+    pd.testing.assert_frame_equal(variant.loc[~expected], X.loc[~expected])
+    pd.testing.assert_frame_equal(variant.drop(columns=history), X.drop(columns=history))
+    # The blanked rows carry exactly the encoding of a row whose mine has no previous-year record.
+    no_record = parts.X.loc[parts.X["prev_year_matched"].eq(0), history].drop_duplicates().reset_index(drop=True)
+    blanked = variant.loc[expected, history].drop_duplicates().reset_index(drop=True)
+    assert len(no_record) == 1 and no_record["prev_share_missing"].iloc[0] == 1
+    pd.testing.assert_frame_equal(blanked, no_record)
+
+
 # ---------------------------------------------------------------------------
 # Refits
 # ---------------------------------------------------------------------------
@@ -148,6 +203,24 @@ def test_refit_variants_use_the_training_rows_only_and_report_deltas(clean: pd.D
         assert entry["description"]
     assert out["variants"]["without_immed_reportable"]["rows_changed"] == int(data.X["immed_reportable"].sum())
     assert out["variants"]["without_status_103i"]["rows_changed"] == len(data.X)
+
+
+def test_study_data_carries_the_history_variant_and_its_refit_counts_the_training_rows(clean: pd.DataFrame, tmp_path: Path) -> None:
+    """build_study_data passes its split, so the sensitivity refit sees the variant and reports its reach."""
+    data = study(clean, tmp_path)
+    assert HISTORY_VARIANT in data.variants
+    marked = rows_with_test_history(data.meta["MINE_ID"], data.years, data.train_idx, data.test_idx)
+    # a matched mine-year always has a count (0 or more), so every marked row with a match changes
+    altered = int((marked & data.X["prev_year_matched"].eq(1).to_numpy()).sum())
+    assert altered > 0
+    out = refit_variants(
+        template(), np.arange(len(data.train_idx)), {HISTORY_VARIANT: data.variants[HISTORY_VARIANT]}, data.X,
+        {"roc_auc": 0.8}, data.y, data.groups, data.train_idx, data.test_idx, data.sector, cv_splitter(CV_FOLDS),
+    )
+    entry = out["variants"][HISTORY_VARIANT]
+    assert entry["description"] == VARIANT_DESCRIPTIONS[HISTORY_VARIANT]
+    assert entry["train_rows_changed"] == entry["rows_changed"] == altered  # no test row is altered
+    assert entry["train_rows_changed_share"] == pytest.approx(altered / len(data.train_idx))
 
 
 def test_delta_compares_matching_numeric_entries_only() -> None:

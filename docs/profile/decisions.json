@@ -176,7 +176,8 @@
       {"name": "company_type_at_accident", "reason": "Unknown level encodes accident age (41.2% of 2010 rows -> 3.0% of 2025 rows; 34.4% vs 8.0% across the temporal split; 0% at deployment); raw COMPANY_TYPE Cramer's V 0.044; lost-time gap is commodity composition"}
     ],
     "mine_categorical": ["PRIMARY_CANVASS", "type_at_time", "status_103i_at_accident",
-                         "SAFETY_COMMITTEE_IND", "PART48_TRAINING", "PORTABLE_OPERATION", "mine_size_band"],
+                         "mine_size_band"],
+"snapshot_flags_removed_2026_10_20": {"columns": ["SAFETY_COMMITTEE_IND", "PART48_TRAINING", "PORTABLE_OPERATION"], "reason": "recorded as at the Mines snapshot with no effective date, so the value at the accident date is unknown and the feature is not known at filing; kept in the base table only"},
     "mine_categorical_optional": ["PRIMARY_SIC", "DISTRICT"],
     "mine_numeric": ["latitude", "longitude", "prev_hours", "log1p_prev_hours", "prev_employees", "prev_hours_per_employee",
                      "prev_incidents", "prev_incident_rate_200k", "prev_lost_time_rate_200k", "prev_lost_time_share",

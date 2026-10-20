@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
@@ -336,9 +337,6 @@ FEATURE_INFO: dict[str, tuple[str, str]] = {
         "Production join",
         "Band of last year's average employees: 1-4, 5-19, 20-49, 50-199, 200+.",
     ),
-    "SAFETY_COMMITTEE_IND": ("Mines join", "Y when the mine has a safety committee."),
-    "PART48_TRAINING": ("Mines join", "Y when the mine runs a Part 48 training programme."),
-    "PORTABLE_OPERATION": ("Mines join", "Y for a portable operation that moves between sites."),
     "accident_weekday": ("Derived", "Weekday of the accident, 0 for Monday to 6 for Sunday."),
     "accident_month": ("Derived", "Month of the accident, 1 to 12."),
     "TOT_EXPER": ("Accidents", "Total mining experience of the injured worker in years."),
@@ -896,9 +894,6 @@ SECTOR_LABELS = {"C": "C - Coal", "M": "M - Metal and non-metal"}
 STATUS_103I_LEVELS = ("Never had 103I", "In 103I at accident", "Formerly 103I", "Unknown")
 MINE_PROFILE_COLUMNS = (
     "PRIMARY_CANVASS",
-    "SAFETY_COMMITTEE_IND",
-    "PART48_TRAINING",
-    "PORTABLE_OPERATION",
     "LATITUDE",
     "LONGITUDE",
     "COAL_METAL_IND",
@@ -935,6 +930,8 @@ BATCH_REQUIRED = (
 )
 BATCH_OPTIONAL = ("CONTRACTOR_ID", "IMMED_NOTIFY_CD")
 MAX_BATCH_ROWS = 20_000
+MINE_ID_RULE = "MINE_ID is a 7-digit number, for example 0200024"
+_MINE_ID_DIGITS = re.compile(r"[0-9]{1,7}")  # ASCII digits only: str.isdigit() also accepts a superscript two
 
 
 def _tidy(label: str) -> str:
@@ -1040,6 +1037,18 @@ def with_history(frame: pd.DataFrame) -> pd.DataFrame:
     for column in counts.columns:
         out[column] = counts[column].to_numpy()
     return out
+
+
+def normalise_mine_id(value: Any) -> str | None:
+    """The 7-digit MINE_ID for ``value``, or None when it is not 1 to 7 digits after stripping spaces.
+
+    Why not a plain ``zfill``: it turns "abc" into "0000abc", which is then treated as an unmatched mine and
+    scored. Leading zeros are added only to an all-digit string, so a spreadsheet that dropped them ("200024")
+    still finds the mine, while text, blanks and ids longer than 7 digits are refused. Both the single-accident
+    form and the batch upload go through this function, so they apply the same rule.
+    """
+    text = str(value).strip()
+    return text.zfill(7) if _MINE_ID_DIGITS.fullmatch(text) else None
 
 
 def mine_history(mine_id: str, accident_date: date) -> dict[str, Any]:
@@ -1168,7 +1177,16 @@ def prepare_batch(upload: pd.DataFrame) -> pd.DataFrame:
     if len(upload) > MAX_BATCH_ROWS:
         raise ValueError(f"the file has {len(upload):,} rows; the limit is {MAX_BATCH_ROWS:,}")
     frame = upload.copy()
-    frame["MINE_ID"] = frame["MINE_ID"].astype(str).str.strip().str.zfill(7)
+    mine_ids = frame["MINE_ID"].map(normalise_mine_id)
+    if mine_ids.isna().any():
+        position = int(np.argmax(mine_ids.isna().to_numpy()))
+        value = frame["MINE_ID"].iloc[position]
+        shown = "a blank cell" if pd.isna(value) else repr(str(value)[:20])
+        raise ValueError(
+            f"{MINE_ID_RULE} (1 to 7 digits, padded with zeros) in every row; the first bad value is {shown} "
+            f"in data row {position + 1} (the first row under the header is row 1)"
+        )
+    frame["MINE_ID"] = mine_ids
     frame["ACCIDENT_DT"] = pd.to_datetime(frame["ACCIDENT_DT"], errors="coerce")
     if frame["ACCIDENT_DT"].isna().any():
         raise ValueError("ACCIDENT_DT must be a valid date (YYYY-MM-DD) in every row")
@@ -1181,15 +1199,7 @@ def prepare_batch(upload: pd.DataFrame) -> pd.DataFrame:
                 frame[column].isna(), frame[column].astype(str).str.strip().str.zfill(width)
             )
     profiles = mine_profiles()
-    for column in (
-        "PRIMARY_CANVASS",
-        "SAFETY_COMMITTEE_IND",
-        "PART48_TRAINING",
-        "PORTABLE_OPERATION",
-        "LATITUDE",
-        "LONGITUDE",
-        "STATE",
-    ):
+    for column in ("PRIMARY_CANVASS", "LATITUDE", "LONGITUDE", "STATE"):
         if column not in frame.columns:
             frame[column] = frame["MINE_ID"].map(profiles[column])
     if not set(HISTORY_COLUMNS) <= set(frame.columns):

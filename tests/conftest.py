@@ -392,7 +392,7 @@ def real_clean(real_base: pd.DataFrame) -> pd.DataFrame:
 
 @pytest.fixture(scope="session")
 def real_features(real_clean: pd.DataFrame) -> FeatureFrame:
-    """Model inputs, labels, groups and meta of the real data (X has the 55 FEATURE_SPEC columns)."""
+    """Model inputs, labels, groups and meta of the real data (X has the 52 FEATURE_SPEC columns)."""
     return feature_frame(real_clean)
 
 

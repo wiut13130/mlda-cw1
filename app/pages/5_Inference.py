@@ -16,6 +16,7 @@ from _common import (
     CODE_FIELDS,
     MAX_BATCH_ROWS,
     MAX_TABLE_ROWS,
+    MINE_ID_RULE,
     MINE_YEAR_PATH,
     NONE_LEVEL,
     STATUS_103I_LEVELS,
@@ -35,6 +36,7 @@ from _common import (
     mine_status_103i,
     model_label,
     model_thresholds,
+    normalise_mine_id,
     prepare_batch,
     ranked_models,
     raw_case_frame,
@@ -57,11 +59,6 @@ MINE_FIELDS = {
     "PRIMARY_CANVASS": "Commodity group",
     "FIPS_STATE_CD": "State",
 }
-FLAG_FIELDS = {
-    "SAFETY_COMMITTEE_IND": "Safety committee",
-    "PART48_TRAINING": "Part 48 training",
-    "PORTABLE_OPERATION": "Portable",
-}
 CASE_FIELDS = [
     c for c in CODE_FIELDS if c not in (*MINE_FIELDS, "IMMED_NOTIFY_CD")
 ]  # the circumstances of the accident
@@ -80,13 +77,20 @@ HISTORY_FIELDS = (
 TOP_N = 12
 
 
-def mine_block() -> tuple[str, date, dict[str, Any] | None, dict[str, Any]]:
-    """Mine id and accident date (outside the form so the lookup updates at once), with the lookup."""
+def mine_block() -> tuple[str, date, dict[str, Any] | None, dict[str, Any]] | None:
+    """Mine id and accident date (outside the form so the lookup updates at once), with the lookup.
+
+    Three cases are told apart, because they need different action from the reader. A malformed id is an
+    error and returns None: padding "abc" to "0000abc" used to score it as an unmatched mine, so nothing is
+    scored until the id is a number. A well-formed id that the reference data does not know is a warning (the
+    documented fallback for a new mine: the reader enters the context by hand). A known mine without
+    previous-year production is a notice only, since its profile is looked up and just the exposure is missing.
+    """
     profiles = mine_profiles()
     examples = profiles["n_cases"].nlargest(3).index.tolist()
     id_col, date_col = st.columns(2)
     entered = id_col.text_input("MINE_ID (7 digits)", examples[0], max_chars=7, key="mine_id")
-    mine_id = entered.strip().zfill(7)
+    mine_id = normalise_mine_id(entered)
     accident_date = date_col.date_input(
         "Accident date",
         date(YEAR_MAX, 6, 2),
@@ -94,6 +98,9 @@ def mine_block() -> tuple[str, date, dict[str, Any] | None, dict[str, Any]]:
         date(YEAR_MAX + 1, 12, 31),
         key="accident_date",
     )
+    if mine_id is None:
+        st.error(f"{MINE_ID_RULE}. Enter 1 to 7 digits; a shorter number is padded with leading zeros.")
+        return None
     profile = profiles.loc[mine_id].to_dict() if mine_id in profiles.index else None
     history = mine_history(mine_id, accident_date)
     previous = accident_date.year - 1
@@ -105,8 +112,20 @@ def mine_block() -> tuple[str, date, dict[str, Any] | None, dict[str, Any]]:
             f"{accident_date}, {history['prev_lost_time_cases']:.0f} of them lost-time. Mines with "
             f"many cases: {', '.join(examples)}."
         )
-    else:
+        if profile is None:
+            st.info(
+                f"Mine {mine_id} has no accident in the training data, so its profile is not on file: sector, "
+                "commodity group, state and location start at defaults. Check them under 'Mine context'."
+            )
+    elif profile is None:
         st.warning(
+            f"Mine {mine_id} is unknown to the reference data: it has no row in the mine profile table and no "
+            f"production record for {previous}. Its sector, commodity group, state and location are blank or "
+            "at defaults, and the exposure is 0, so enter them by hand under 'Mine context' (a new mine "
+            "is scored this way). Scoring continues."
+        )
+    else:
+        st.info(
             f"No previous-year production record for mine {mine_id} and {previous}. Enter the exposure by hand under "
             "'Mine context', or leave the hours at 0 to score the case as unmatched."
         )
@@ -157,11 +176,6 @@ def case_form(
                         label, column, f"f_{column}_{suffix}", known.get(column)
                     )
             with middle:
-                for column, label in FLAG_FIELDS.items():
-                    index = 0 if known.get(column) == "Y" else 1
-                    fields[column] = st.selectbox(
-                        label, ["Y", "N"], index=index, key=f"f_{column}_{suffix}"
-                    )
                 status = mine_status_103i(mine_id, accident_date)
                 fields["status_103i_at_accident"] = st.selectbox(
                     "Section 103(i) status",
@@ -338,13 +352,14 @@ model_name = st.selectbox(
 
 single_tab, batch_tab = st.tabs(["One accident", "Batch (CSV)"])
 with single_tab:
-    mine_id, accident_date, profile, history = mine_block()
-    submitted = case_form(mine_id, accident_date, profile, history)
-    if submitted is not None:
-        st.session_state["inf_case"] = raw_case_frame(submitted)
-    if "inf_case" in st.session_state:
-        show_result(st.session_state["inf_case"], model_name)
-    else:
-        st.info("Fill in the form and press **Score this case**.")
+    # A malformed id skips the form and any earlier result without st.stop(), which would also blank the Batch tab.
+    if (block := mine_block()) is not None:
+        submitted = case_form(*block)
+        if submitted is not None:
+            st.session_state["inf_case"] = raw_case_frame(submitted)
+        if "inf_case" in st.session_state:
+            show_result(st.session_state["inf_case"], model_name)
+        else:
+            st.info("Fill in the form and press **Score this case**.")
 with batch_tab:
     batch_section(model_name)

@@ -96,7 +96,7 @@ src/mlda/            shared package, imported by the notebook, the app and the t
   config.py          PROJECT_ROOT, paths, RANDOM_STATE = 42, pinned sources and SHA-256, cost ratios
   data/              download (checksum), load (typed readers), join (merge_sources), schema checks
   cleaning.py        error-correction rules, IQR and Z-score outlier flags
-  features.py        FeatureEngineer: the 55 model inputs
+  features.py        FeatureEngineer: the 52 model inputs
   preprocessing.py   ColumnTransformer builder: imputer, scaler, encoder, outlier options
   split.py           grouped stratified train/test split and CV splitter, persisted indices
   models.py          the eight classifiers and their search grids
@@ -127,7 +127,7 @@ Dockerfile render.yaml   container image of the app; Render Blueprint (free web 
 - **Filters and target.** Accident years 2010 to 2025 and degree-of-injury codes 01 to 06. `lost_time` = 1 for fatality, permanent disability, days away, or days away and restricted activity (codes 01 to 04); 0 for restricted activity only or no days away (05, 06). N = 101,609, prevalence 48.6 %.
 - **Joins.** Left joins from the accident rows, each with `validate="many_to_one"` and an asserted row count: Mines on `MINE_ID` (100.0 % matched), mine-year production on `MINE_ID` and the previous calendar year (98.8 %), and counts of earlier cases filed before each accident.
 - **Cleaning.** Thirty error rules (E1 to E30) are documented in `docs/data_profile.md`; the 17 implemented in `mlda.cleaning` are logged with row counts in `reports/metrics/error_rules.csv`.
-- **Features.** 55 inputs, 552 columns after the default one-hot preprocessor. Columns that encode the outcome (`DAYS_LOST`, `DAYS_RESTRICT`, `RETURN_TO_WORK_DT`, `CLOSED_DOC_NO` and others) are excluded.
+- **Features.** 52 inputs, 546 columns after the default one-hot preprocessor. The three Mines-snapshot flags (safety committee, Part 48 training, portable operation) are not inputs, because their value at the time of each accident is unknown. Columns that encode the outcome (`DAYS_LOST`, `DAYS_RESTRICT`, `RETURN_TO_WORK_DT`, `CLOSED_DOC_NO` and others) are excluded.
 - **Split.** `StratifiedGroupKFold` on mine-year groups (32,732 groups), because 82 % of rows share a mine-year with another row. One fold is the 20 % test set (20,320 rows); the 81,289 training rows are cross-validated with five grouped stratified folds. Imputers, scalers, encoders and models are fitted inside scikit-learn Pipelines on training rows only.
 - **Models.** Logistic regression, k-nearest neighbours, Gaussian naive Bayes, decision tree, random forest, histogram gradient boosting, RBF support vector machine and multi-layer perceptron. Seven are tuned with `GridSearchCV`; the random forest uses `RandomizedSearchCV`. Four reference rules give the baseline.
 - **Thresholds.** Operating thresholds come from out-of-fold training probabilities: specificity 0.40 (the review-capacity assumption), a 50 % flag rate, and the cost-optimal point for cost ratios from 2:1 to 30:1. The test rows only score them.

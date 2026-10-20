@@ -15,9 +15,15 @@ Supported Markdown subset:
     **bold** and *italic* inline    pipe tables (| a | b |) preceded by an optional
     'Table: caption text {#tab:key}' line
     ![Caption text](reports/figures/file.png){#fig:key width=6.3}   (the caption is also the alt text)
+    'Short title || explanation' in a figure or table caption: the short title goes into the
+    Caption paragraph (and so into the lists of figures and tables), the explanation into a
+    smaller paragraph under it; a caption without the marker is all title
     {fig:key} / {tab:key} cross-references replaced by the assigned numbers
     \\pagebreak                        > quote (rendered as an indented paragraph)
     \\landscape / \\portrait          start a landscape or a portrait section (for a wide table)
+Every table repeats its header row on each page and keeps each row on one page; tables of seven or
+more columns use smaller text, and a table of nine or more columns in a portrait section is put on
+landscape pages of its own automatically.
 Front matter (cover page, table of contents, lists of figures and tables, abbreviations) is generated
 from report/report_meta.json; sections render in file-name order; files whose name starts with
 "9" are treated as references (90_references.md) or appendices (9A_, 9B_, ...).
@@ -34,6 +40,7 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.section import WD_ORIENT, WD_SECTION
+from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
@@ -48,14 +55,37 @@ FONT = "Times New Roman"
 BODY_PT = 12
 CAPTION_PT = 12
 TABLE_PT = 11
+EXPLANATION_PT = 9  # caption explanation under the short title
 MARGIN_CM = 2.54
 TEXT_WIDTH_IN = 6.27  # A4 width 21.0 cm minus 2 x 2.54 cm margins
+# Column counts from which a table gets smaller text and, in a portrait section, landscape pages:
+# at 11 pt seven or more columns of a 16 cm text width wrap numbers and headers onto several lines.
+SMALL_TABLE_COLUMNS = 7
+SMALLER_TABLE_COLUMNS = 8
+LANDSCAPE_TABLE_COLUMNS = 9
 
 FIG_RE = re.compile(r"^!\[(?P<caption>.*?)\]\((?P<path>[^)]+)\)(?:\{(?P<attrs>[^}]*)\})?\s*$")
 TAB_CAPTION_RE = re.compile(r"^Table:\s*(?P<caption>.*?)(?:\s*\{#tab:(?P<key>[\w-]+)\})?\s*$")
+HEADING_RE = re.compile(r"^(#{1,3})\s+(.*)$")
 XREF_RE = re.compile(r"\{(fig|tab):([\w-]+)\}")
 INLINE_RE = re.compile(r"(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)")
 PLACEHOLDER_RE = re.compile(r"\{\{[^{}]*\}\}")
+CAPTION_MARKER = " || "
+
+# Children of w:settings that the schema (CT_Settings is a sequence) places after w:updateFields;
+# the element must go before the first of them that is present, not simply at the end.
+SETTINGS_AFTER_UPDATE_FIELDS = (
+    "w:hdrShapeDefaults", "w:footnotePr", "w:endnotePr", "w:compat", "w:docVars", "w:rsids",
+    "m:mathPr", "w:attachedSchema", "w:themeFontLang", "w:clrSchemeMapping",
+    "w:doNotIncludeSubdocsInStats", "w:doNotAutoCompressPictures", "w:forceUpgrade", "w:captions",
+    "w:readModeInkLockDown", "w:smartTagType", "sl:schemaLibrary", "w:shapeDefaults",
+    "w:doNotEmbedSmartTags", "w:decimalSymbol", "w:listSeparator",
+)
+# Children of w:tblPr that the schema places after w:tblW.
+TBLPR_AFTER_TBLW = (
+    "w:jc", "w:tblCellSpacing", "w:tblInd", "w:tblBorders", "w:shd", "w:tblLayout", "w:tblCellMar",
+    "w:tblLook", "w:tblCaption", "w:tblDescription", "w:tblPrChange",
+)
 
 
 @dataclass
@@ -64,45 +94,82 @@ class Counters:
     tables: dict[str, int] = field(default_factory=dict)
     figure_captions: list[str] = field(default_factory=list)
     table_captions: list[str] = field(default_factory=list)
+    # (level, text) of every level-1 to level-3 heading in rendering order, for the cached contents.
+    headings: list[tuple[int, str]] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)
     # True right after a page or section break, so that a level-1 heading does not add a second
     # break and leave a blank page (the front matter ends with a break before the first section).
     fresh_page: bool = False
+    # True while the renderer is in a landscape section it opened itself for a wide table; the
+    # return to portrait waits for the next block that is not another wide table, so consecutive
+    # wide tables share their landscape pages instead of leaving an empty portrait page between.
+    auto_landscape: bool = False
 
 
 # ----------------------------------------------------------------------------- helpers: OOXML
 
 
-def add_field(paragraph, instruction: str, cached: str = "") -> None:
-    """Insert a complex field (PAGE, NUMPAGES, SEQ, TOC) with a cached result Word can refresh."""
-    run = paragraph.add_run()
+def _field_code(instruction: str) -> list:
+    """The begin mark (flagged dirty so Word refreshes it), the instruction and the separate mark."""
     begin = OxmlElement("w:fldChar")
     begin.set(qn("w:fldCharType"), "begin")
     begin.set(qn("w:dirty"), "true")
-    run._r.append(begin)
     instr = OxmlElement("w:instrText")
     instr.set(qn("xml:space"), "preserve")
     instr.text = f" {instruction} "
-    run._r.append(instr)
     separate = OxmlElement("w:fldChar")
     separate.set(qn("w:fldCharType"), "separate")
-    run._r.append(separate)
-    result = paragraph.add_run(cached)
-    end_run = paragraph.add_run()
+    return [begin, instr, separate]
+
+
+def _field_end():
     end = OxmlElement("w:fldChar")
     end.set(qn("w:fldCharType"), "end")
-    end_run._r.append(end)
+    return end
+
+
+def add_field(paragraph, instruction: str, cached: str = "") -> None:
+    """Insert a complex field (PAGE, NUMPAGES, SEQ, TOC) with a cached result Word can refresh."""
+    run = paragraph.add_run()
+    run._r.extend(_field_code(instruction))
+    result = paragraph.add_run(cached)
+    end_run = paragraph.add_run()
+    end_run._r.append(_field_end())
     for r in (run, result, end_run):
         r.font.name = FONT
         r.font.size = Pt(BODY_PT)
 
 
+def wrap_in_field(paragraphs: list, instruction: str) -> None:
+    """Make already-filled paragraphs the cached result of one complex field (a TOC field).
+
+    Viewers that do not update fields (browser previews, most mobile apps, PDF converters) show
+    the cached result, so caching the real entries gives a usable list everywhere, while Word can
+    still rebuild it from the instruction with page numbers. The field begins in the first
+    paragraph and ends in the last, which is how Word itself stores a multi-paragraph TOC.
+    """
+    first, last = paragraphs[0], paragraphs[-1]
+    begin_run = first.add_run()
+    begin_run._r.extend(_field_code(instruction))
+    properties = first._p.pPr
+    if properties is None:
+        first._p.insert(0, begin_run._r)  # lxml moves the run rather than copying it
+    else:
+        properties.addnext(begin_run._r)
+    end_run = last.add_run()
+    end_run._r.append(_field_end())
+    for run in (begin_run, end_run):
+        run.font.name = FONT
+        run.font.size = Pt(BODY_PT)
+
+
 def set_update_fields_on_open(document) -> None:
+    """Ask Word to refresh every field (contents, lists, SEQ numbers, page counts) on opening."""
     settings = document.settings.element
     node = settings.find(qn("w:updateFields"))
     if node is None:
         node = OxmlElement("w:updateFields")
-        settings.append(node)
+        settings.insert_element_before(node, *SETTINGS_AFTER_UPDATE_FIELDS)
     node.set(qn("w:val"), "true")
 
 
@@ -117,6 +184,40 @@ def set_cell_shading(cell, hex_fill: str) -> None:
 
 def keep_with_next(paragraph) -> None:
     paragraph.paragraph_format.keep_with_next = True
+
+
+def set_row_flags(table, header_rows: int = 1) -> None:
+    """Repeat the first ``header_rows`` rows on every page and keep each row on one page.
+
+    A row split across a page break leaves half a model's scores on each page, and a long table
+    continued without its header row cannot be read on its own.
+    """
+    for index, row in enumerate(table.rows):
+        properties = row._tr.get_or_add_trPr()
+        properties.append(OxmlElement("w:cantSplit"))
+        if index < header_rows:
+            properties.append(OxmlElement("w:tblHeader"))
+
+
+def fit_table_to_window(table) -> None:
+    """Word's AutoFit to Window: the table spans the text width and columns follow their content."""
+    table.autofit = True
+    properties = table._tbl.tblPr
+    width = properties.find(qn("w:tblW"))
+    if width is None:
+        width = OxmlElement("w:tblW")
+        properties.insert_element_before(width, *TBLPR_AFTER_TBLW)
+    width.set(qn("w:type"), "pct")
+    width.set(qn("w:w"), "5000")  # fiftieths of a percent, i.e. 100% of the text width
+
+
+def table_font_size(columns: int) -> float:
+    """Smaller text for wide tables, so that numbers and headers do not wrap one word per line."""
+    if columns >= SMALLER_TABLE_COLUMNS:
+        return 8.5
+    if columns >= SMALL_TABLE_COLUMNS:
+        return 9
+    return TABLE_PT
 
 
 # ----------------------------------------------------------------------------- styles and layout
@@ -155,6 +256,30 @@ def configure_styles(document) -> None:
         style = styles[name]
         style.font.name = FONT
         style.font.size = Pt(BODY_PT)
+    # Word's built-in styles for contents entries and list-of-figures entries. The cached entries
+    # use them and Word applies them when it refreshes the fields, so the front matter looks the
+    # same before and after an update. The template only has them as latent styles, so they are
+    # defined here (as built-in, by their Word names).
+    for name, indent_cm, space_before in (("toc 1", 0.0, 4), ("toc 2", 0.6, 0), ("toc 3", 1.2, 0)):
+        style = _builtin_paragraph_style(styles, name)
+        style.paragraph_format.left_indent = Cm(indent_cm)
+        style.paragraph_format.space_before = Pt(space_before)
+        style.paragraph_format.space_after = Pt(2)
+        style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    figures = _builtin_paragraph_style(styles, "table of figures")
+    figures.paragraph_format.left_indent = Cm(0.8)
+    figures.paragraph_format.first_line_indent = Cm(-0.8)
+    figures.paragraph_format.space_after = Pt(2)
+
+
+def _builtin_paragraph_style(styles, name: str):
+    if name in styles:
+        return styles[name]
+    style = styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH, builtin=True)
+    style.base_style = styles["Normal"]
+    style.next_paragraph_style = styles["Normal"]
+    style.unhide_when_used = True
+    return style
 
 
 def set_page_geometry(section, landscape: bool = False) -> None:
@@ -241,6 +366,27 @@ def plain_text(text: str, counters: Counters) -> str:
     return re.sub(r"(\*\*|\*|`)", "", resolved)
 
 
+def split_caption(caption: str) -> tuple[str, str]:
+    """Split 'Short title || explanation' into its two parts.
+
+    A caption without the marker is all title, so captions written before the convention keep
+    rendering exactly as they did.
+    """
+    title, marker, explanation = caption.partition(CAPTION_MARKER)
+    if not marker:
+        return caption, ""
+    return title.strip(), explanation.strip()
+
+
+def full_caption(caption: str) -> str:
+    """Title and explanation run together as sentences, for the alternative text of a figure."""
+    title, explanation = split_caption(caption)
+    if not explanation:
+        return title
+    joiner = " " if title.endswith((".", "!", "?", ":", ";")) else ". "
+    return f"{title}{joiner}{explanation}"
+
+
 def set_alt_text(picture, description: str) -> None:
     """Write the alternative text of an inline picture (Word: Format Picture, Alt Text)."""
     doc_pr = picture._inline.docPr
@@ -273,6 +419,21 @@ def collect_numbers(files: list[Path], counters: Counters) -> None:
                     counters.problems.append(f"duplicate table key tab:{key} ({path.name}:{line_no})")
                 counters.tables[key] = len(counters.table_captions) + 1
                 counters.table_captions.append(tab.group("caption"))
+
+
+def collect_headings(files: list[Path]) -> list[tuple[int, str]]:
+    """Level and text of every level-1 to level-3 heading, in rendering order.
+
+    The contents page is written before the sections are rendered, so its cached entries come
+    from this pass; the pattern is the renderer's own, so both see the same headings.
+    """
+    headings: list[tuple[int, str]] = []
+    for path in files:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            match = HEADING_RE.match(line.strip())
+            if match:
+                headings.append((len(match.group(1)), match.group(2)))
+    return headings
 
 
 def audit_sources(files: list[Path], meta: dict) -> list[str]:
@@ -316,7 +477,14 @@ def audit_sources(files: list[Path], meta: dict) -> list[str]:
 # ----------------------------------------------------------------------------- block rendering
 
 
-def add_caption(document, label: str, number: int, text: str, counters: Counters) -> None:
+def add_caption(document, label: str, number: int, text: str, counters: Counters):
+    """Write 'Label n. Short title' (Caption style, SEQ field) and, if any, the explanation.
+
+    Word builds its lists of figures and tables from Caption paragraphs, so the explanation after
+    the ' || ' marker goes into a separate, smaller Normal paragraph and the lists show only the
+    short titles. Returns the last paragraph written, which a table caption keeps with its table.
+    """
+    title, explanation = split_caption(text)
     paragraph = document.add_paragraph(style="Caption")
     lead = paragraph.add_run(f"{label} ")
     lead.font.name = FONT
@@ -325,17 +493,27 @@ def add_caption(document, label: str, number: int, text: str, counters: Counters
     tail = paragraph.add_run(". ")
     tail.font.name = FONT
     tail.font.size = Pt(CAPTION_PT)
-    add_inline(paragraph, text, counters, size=CAPTION_PT)
+    add_inline(paragraph, title, counters, size=CAPTION_PT)
+    if not explanation:
+        return paragraph
+    paragraph.paragraph_format.space_after = Pt(2)
+    keep_with_next(paragraph)
+    note = document.add_paragraph()
+    note.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    note.paragraph_format.space_after = Pt(10)  # the gap the Caption style leaves after a caption
+    add_inline(note, explanation, counters, size=EXPLANATION_PT)
+    return note
 
 
 def render_table(document, header: list[str], rows: list[list[str]], counters: Counters) -> None:
+    size = table_font_size(len(header))
     table = document.add_table(rows=1, cols=len(header))
     table.style = "Table Grid"
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     for index, title in enumerate(header):
         cell = table.rows[0].cells[index]
         cell.text = ""
-        add_inline(cell.paragraphs[0], title.strip(), counters, size=TABLE_PT)
+        add_inline(cell.paragraphs[0], title.strip(), counters, size=size)
         for run in cell.paragraphs[0].runs:
             run.bold = True
         cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -345,19 +523,45 @@ def render_table(document, header: list[str], rows: list[list[str]], counters: C
         for index in range(len(header)):
             value = row[index].strip() if index < len(row) else ""
             cells[index].text = ""
-            add_inline(cells[index].paragraphs[0], value, counters, size=TABLE_PT)
+            add_inline(cells[index].paragraphs[0], value, counters, size=size)
             cells[index].paragraphs[0].paragraph_format.space_after = Pt(0)
             cells[index].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
+    set_row_flags(table, header_rows=1)
+    fit_table_to_window(table)
     document.add_paragraph().paragraph_format.space_after = Pt(4)
 
 
-def parse_table_block(lines: list[str]) -> tuple[list[str], list[list[str]]]:
-    def split(line: str) -> list[str]:
-        return [c for c in line.strip().strip("|").split("|")]
+def split_table_row(line: str) -> list[str]:
+    return [c for c in line.strip().strip("|").split("|")]
 
-    header = split(lines[0])
-    body = [split(line) for line in lines[2:] if line.strip()]
+
+def parse_table_block(lines: list[str]) -> tuple[list[str], list[list[str]]]:
+    header = split_table_row(lines[0])
+    body = [split_table_row(line) for line in lines[2:] if line.strip()]
     return header, body
+
+
+def is_wide_table_line(line: str) -> bool:
+    """A table row with enough columns to need landscape pages."""
+    return line.startswith("|") and len(split_table_row(line)) >= LANDSCAPE_TABLE_COLUMNS
+
+
+def in_portrait_section(document) -> bool:
+    """Orientation of the section being written (the last one), read from the document itself."""
+    return document.sections[-1].orientation == WD_ORIENT.PORTRAIT
+
+
+def end_auto_landscape(document, line: str, counters: Counters) -> bool:
+    """Leave the landscape section opened for wide tables before rendering ``line``.
+
+    Returns True when ``line`` (a page break) is used up by the section break, which already
+    starts a new page; a \\landscape or \\portrait directive starts its own section instead.
+    """
+    counters.auto_landscape = False
+    if line in ("\\landscape", "\\portrait"):
+        return False
+    start_section(document, False, counters)
+    return line == "\\pagebreak"
 
 
 def render_markdown(document, text: str, counters: Counters, figure_root: Path) -> int:
@@ -372,6 +576,12 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
         if not stripped:
             index += 1
             continue
+        # A table caption only sets the pending caption, and another wide table stays on the
+        # landscape pages; anything else ends the landscape section opened for wide tables.
+        if counters.auto_landscape and not (TAB_CAPTION_RE.match(stripped) or is_wide_table_line(stripped)):
+            if end_auto_landscape(document, stripped, counters):
+                index += 1
+                continue
         if stripped == "\\pagebreak":
             page_break(document, counters)
             index += 1
@@ -380,7 +590,7 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
             start_section(document, stripped == "\\landscape", counters)
             index += 1
             continue
-        heading = re.match(r"^(#{1,3})\s+(.*)$", stripped)
+        heading = HEADING_RE.match(stripped)
         if heading:
             level = len(heading.group(1))
             if level == 1 and not counters.fresh_page:
@@ -411,7 +621,7 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
             counters.fresh_page = False
             if image_path.exists():
                 picture = paragraph.add_run().add_picture(str(image_path), width=Cm(width * 2.54))
-                set_alt_text(picture, f"Figure {number}. {plain_text(fig.group('caption'), counters)}")
+                set_alt_text(picture, f"Figure {number}. {plain_text(full_caption(fig.group('caption')), counters)}")
             else:
                 counters.problems.append(f"missing figure file {image_path}")
                 paragraph.add_run(f"[missing figure: {fig.group('path')}]")
@@ -430,12 +640,17 @@ def render_markdown(document, text: str, counters: Counters, figure_root: Path) 
                 block.append(lines[index])
                 index += 1
             header, rows = parse_table_block(block)
+            if len(header) >= LANDSCAPE_TABLE_COLUMNS and in_portrait_section(document):
+                # Landscape pages of its own, unless a \landscape directive is already in force
+                # (then the section is not portrait) or an earlier wide table opened them.
+                start_section(document, True, counters)
+                counters.auto_landscape = True
+                counters.fresh_page = False
             if pending_table_caption:
                 caption, key = pending_table_caption
                 number = counters.tables.get(key) if key else counters.table_captions.index(caption) + 1
                 caption_paragraph_added = True
-                add_caption(document, "Table", number, caption, counters)
-                keep_with_next(document.paragraphs[-1])
+                keep_with_next(add_caption(document, "Table", number, caption, counters))
                 pending_table_caption = None
             else:
                 caption_paragraph_added = False
@@ -514,27 +729,40 @@ def add_cover(document, meta: dict, word_count: int) -> None:
 
 
 def add_toc(document, counters: Counters) -> None:
+    """Contents, list of figures and list of tables, each a TOC field with a real cached list.
+
+    The cached entries (headings with their numbers as written, and 'Figure n. Short title') are
+    what any viewer shows; Word replaces them with the same entries plus page numbers when it
+    updates the fields, which the document settings ask it to do on opening.
+    """
     heading = document.add_paragraph()
     run = heading.add_run("Table of contents")
     run.bold = True
     run.font.size = Pt(16)
     run.font.name = FONT
-    paragraph = document.add_paragraph()
-    add_field(paragraph, 'TOC \\o "1-3" \\h \\z \\u',
-              "Right-click and choose Update Field (or press F9) to fill the table of contents.")
+    entries = []
+    for level, text in counters.headings:
+        entry = document.add_paragraph(style=f"toc {level}")
+        add_inline(entry, text, counters)
+        entries.append(entry)
+    wrap_in_field(entries or [document.add_paragraph()], 'TOC \\o "1-3" \\h \\z \\u')
     document.add_paragraph()
-    for label, captions in (("List of figures", counters.figure_captions), ("List of tables", counters.table_captions)):
+    for label, kind, captions in (
+        ("List of figures", "Figure", counters.figure_captions),
+        ("List of tables", "Table", counters.table_captions),
+    ):
         head = document.add_paragraph()
         run = head.add_run(label)
         run.bold = True
         run.font.size = Pt(14)
         run.font.name = FONT
+        items = []
         for number, caption in enumerate(captions, start=1):
-            item = document.add_paragraph()
-            item.paragraph_format.space_after = Pt(2)
-            item.paragraph_format.left_indent = Cm(0.8)
-            item.paragraph_format.first_line_indent = Cm(-0.8)
-            add_inline(item, f"{'Figure' if label.startswith('List of f') else 'Table'} {number}. {caption}", counters, size=CAPTION_PT)
+            item = document.add_paragraph(style="table of figures")
+            add_inline(item, f"{kind} {number}. {split_caption(caption)[0]}", counters, size=CAPTION_PT)
+            items.append(item)
+        if items:
+            wrap_in_field(items, f'TOC \\h \\z \\c "{kind}"')
         document.add_paragraph()
     page_break(document, counters)
 
@@ -556,6 +784,8 @@ def add_abbreviations(document, meta: dict, counters: Counters) -> None:
             cell.text = ""
             add_inline(cell.paragraphs[0], text, counters, size=TABLE_PT)
             cell.paragraphs[0].paragraph_format.space_after = Pt(0)
+    set_row_flags(table, header_rows=0)  # no header row: every row is an abbreviation
+    fit_table_to_window(table)
     page_break(document, counters)
 
 
@@ -577,6 +807,7 @@ def build(output: Path | None = None, check_only: bool = False) -> Path:
         raise SystemExit(f"no section files found in {SECTIONS_DIR}")
     counters = Counters()
     collect_numbers(body + appendices, counters)
+    counters.headings = collect_headings(body + references + appendices)
     source_problems = counters.problems + audit_sources(body + references + appendices, meta)
     counters.problems = []
 
@@ -585,6 +816,7 @@ def build(output: Path | None = None, check_only: bool = False) -> Path:
     configure_styles(scratch)
     body_words = sum(render_markdown(scratch, f.read_text(encoding="utf-8"), counters, ROOT) for f in body)
     counters.problems.clear()
+    counters.auto_landscape = False  # the scratch pass may end on a wide table; the report starts portrait
 
     if check_only:
         print(f"body words: {body_words:,}")

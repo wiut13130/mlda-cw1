@@ -180,6 +180,7 @@ def test_sensitivity_report_lists_the_documented_pure_level_and_every_variant(ru
     assert excluded["n_test_excluded"] > 0 and "logreg" in excluded["models"]
     assert set(sensitivity["primary_split_variants"]["variants"]) == {
         "without_immed_reportable", "without_status_103i", "resolved_lag_counts", "exposure_blank_if_q4_incomplete",
+        "history_without_test_outcomes",
     }
     grouped = sensitivity["mine_grouped_split"]
     assert grouped["group"] == "MINE_ID" and grouped["shared_mines"] == 0

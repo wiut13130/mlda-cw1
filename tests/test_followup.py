@@ -17,15 +17,21 @@ from mlda.cleaning import apply_error_rules
 from mlda.config import RANDOM_STATE
 from mlda.features import FEATURE_COLUMNS, feature_frame
 from mlda.followup import (
+    CAPACITY_POLICY,
     CELL_COLUMN,
+    POLICY_COLUMNS,
+    POLICY_GROUPS,
     capacity_curve,
+    capacity_policy_table,
     equal_workload,
+    flag_policies,
     interaction_preprocessor,
     joint_cell,
     logreg_interaction,
     recall_at_share,
     return_to_work_groups,
     s5_top_half,
+    top_share_flags,
     with_joint_cell,
 )
 from mlda.operating import FLAG_KEY, OPERATING_KEY
@@ -91,6 +97,73 @@ def test_return_to_work_groups_split_on_the_filing_date() -> None:
     assert summary["lost_time_rate_open_at_filing"] == pytest.approx(1.0)
     assert out["test_rows"]["open_at_filing"]["n"] == 2
     assert out["test_rows"]["open_at_filing"]["m"]["recall_at_capacity_threshold"] == pytest.approx(1.0)
+
+
+# Ten reports: four score 0.7, so the top half (five rows) has to split a tie, which no threshold can.
+TEN_SCORES = np.array([0.9, 0.2, 0.7, 0.7, 0.1, 0.7, 0.4, 0.95, 0.3, 0.7])
+TEN_LABELS = np.array([1, 0, 1, 0, 0, 1, 1, 1, 0, 1])
+
+
+def test_top_share_flags_takes_exactly_k_rows_and_breaks_ties_by_row_order() -> None:
+    top_half = top_share_flags(TEN_SCORES, 0.5)
+    assert top_half.sum() == 5
+    assert set(np.flatnonzero(top_half)) == {7, 0, 2, 3, 5}  # row 9 also scores 0.7 but comes last
+    top_three_quarters = top_share_flags(TEN_SCORES, 0.75)
+    assert top_three_quarters.sum() == 8  # 7.5 rows round half up
+    assert set(np.flatnonzero(~top_three_quarters)) == {1, 4}
+    assert top_share_flags(TEN_SCORES, 0.0).sum() == 0 and top_share_flags(TEN_SCORES, 1.0).all()
+    with pytest.raises(ValueError):
+        top_share_flags(TEN_SCORES, 1.5)
+
+
+def test_flag_policies_count_the_hits_of_each_policy_on_ten_rows() -> None:
+    out = flag_policies(TEN_LABELS, TEN_SCORES, threshold=0.5)
+    assert set(out) == {CAPACITY_POLICY, "top_50pct", "top_75pct"}
+    # rows 0 2 3 5 7 9 reach 0.5: TP 5, FP 1, FN 1 (row 6), TN 3
+    assert out[CAPACITY_POLICY] == pytest.approx({
+        "n": 10, "prevalence": 0.6, "flag_rate": 0.6, "recall": 5 / 6, "specificity": 3 / 4,
+        "precision": 5 / 6, "cutoff": 0.5, "missed_per_1000": 100.0,
+    })
+    # rows 7 0 2 3 5: TP 4, FP 1 (row 3), FN 2 (rows 6 and 9), TN 3
+    assert out["top_50pct"] == pytest.approx({
+        "n": 10, "prevalence": 0.6, "flag_rate": 0.5, "recall": 4 / 6, "specificity": 3 / 4,
+        "precision": 4 / 5, "cutoff": 0.7, "missed_per_1000": 200.0,
+    })
+    # every row but 1 and 4: TP 6, FP 2 (rows 3 and 8), FN 0, TN 2
+    assert out["top_75pct"] == pytest.approx({
+        "n": 10, "prevalence": 0.6, "flag_rate": 0.8, "recall": 1.0, "specificity": 2 / 4,
+        "precision": 6 / 8, "cutoff": 0.3, "missed_per_1000": 0.0,
+    })
+
+
+def test_return_to_work_policies_cover_the_two_groups_and_flatten_to_the_table() -> None:
+    filing = pd.to_datetime(["2020-01-10"] * 10)
+    back = ["2020-01-05", None, "2020-02-01", "2020-01-10", "2020-03-01", None, "2020-01-01", "2020-01-20", "2020-01-02", None]
+    base = pd.DataFrame({"lost_time": TEN_LABELS, "filing_date": filing, "RETURN_TO_WORK_DT": pd.to_datetime(back)})
+    scores = pd.DataFrame({"y_true": TEN_LABELS, "proba_m": TEN_SCORES, "proba_r": (TEN_SCORES > 0.5).astype(float)})
+    thresholds = {"m": {OPERATING_KEY: 0.5}, "r": {OPERATING_KEY: 1.0}}
+    out = return_to_work_groups(base, np.arange(10), scores, thresholds, models=("m", "r"))
+    rows = out["test_rows"]
+    assert "policies" not in rows["back_at_work"]["m"]
+    assert rows["all_test_rows"]["m"]["policies"] == flag_policies(TEN_LABELS, TEN_SCORES, 0.5)
+    open_rows = ~(base["RETURN_TO_WORK_DT"] <= base["filing_date"]).to_numpy()
+    assert rows["open_at_filing"]["n"] == int(open_rows.sum()) == 6
+    assert rows["open_at_filing"]["m"]["policies"]["top_50pct"]["flag_rate"] == pytest.approx(0.5)
+    for group in POLICY_GROUPS:
+        for name in ("m", "r"):
+            entry = rows[group][name]
+            assert entry["policies"][CAPACITY_POLICY]["flag_rate"] == pytest.approx(entry["flag_rate_at_capacity_threshold"])
+            assert entry["policies"][CAPACITY_POLICY]["recall"] == pytest.approx(entry["recall_at_capacity_threshold"])
+
+    table = capacity_policy_table(rows)
+    assert list(table.columns) == ["group", "model", "policy", *POLICY_COLUMNS]
+    assert len(table) == len(POLICY_GROUPS) * 2 * 3 and set(table["group"]) == set(POLICY_GROUPS)
+    cell = table.set_index(["group", "model", "policy"]).loc[("all_test_rows", "m", "top_75pct")]
+    assert cell["recall"] == pytest.approx(1.0) and cell["cutoff"] == pytest.approx(0.3)
+    # the two-valued rule: at 50 % five of its six tied top scores are flagged, the first five by row
+    rule = table.set_index(["group", "model", "policy"]).loc[("all_test_rows", "r", "top_50pct")]
+    assert rule["flag_rate"] == pytest.approx(0.5) and rule["cutoff"] == pytest.approx(1.0)
+    np.testing.assert_array_equal(np.flatnonzero(top_share_flags(scores["proba_r"], 0.5)), [0, 2, 3, 5, 7])
 
 
 def test_joint_cell_combines_nature_body_part_and_sector(parts) -> None:

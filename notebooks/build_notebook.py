@@ -80,7 +80,7 @@ def title_cells() -> None:
 | **Data snapshot** | MSHA Open Government Data, pulled {readable} (`{stamp}` in `data/raw/SNAPSHOT.json`); the three data archives were published by MSHA on 9 October 2026 |
 | **Task** | Binary classification: for each injured person on an MSHA Form 7000-1 (accident years 2010-2025, N = 101,609) predict whether the case is a *lost-time injury* (`lost_time` = 1, 48.6 % of cases) or not |
 | **Models** | Logistic regression, k-nearest neighbours, Gaussian naive Bayes, decision tree, random forest, histogram gradient boosting, RBF support vector machine, multi-layer perceptron, compared against four reference rules |
-| **Features** | 55 model inputs: 23 categorical, 20 numeric, 12 binary |
+| **Features** | 52 model inputs: 20 categorical, 20 numeric, 12 binary |
 
 **Contents.** [A. Load dataset](#A.-Load-dataset) | [B. Exploratory data analysis](#B.-Exploratory-data-analysis) |
 [C. Data preparation](#C.-Data-preparation) | [D. Model training](#D.-Model-training) |
@@ -442,8 +442,8 @@ interface contract:
    Attributes that describe the mine *today* (current status, employee counts, controller dates)
    are not carried over, because they would describe the future of the accident. Three undated
    flags (safety committee, Part 48 training programme, portable operation) are the exception:
-   they describe the mine at the snapshot and are kept as inputs; section F.4 measures how little
-   they contribute.
+   they stay in the base table and in the data explorer, but they are not model inputs, because
+   the snapshot gives no historical value and so they were not known when the form was filed.
 2. **Production of the previous year** (left join on `MINE_ID` and `CAL_YR - 1`, indicator
    `_m_prev`): hours and employees summed over subunits. The previous year is used on purpose.
    At the time a form is filed the current year's quarterly hours are still incomplete, and a
@@ -608,7 +608,7 @@ The split is therefore made first, by `mlda.split.make_split`, and persisted in
 `data/processed/split_indices.json`; every table and figure in this section uses the training
 rows of that split.
 
-**Which columns.** The model inputs are built by `engineer_features` (55 columns; section C
+**Which columns.** The model inputs are built by `engineer_features` (52 columns; section C
 explains each formula and the error rules behind it). The exploration uses these columns because
 they are what the models see. Section B.1 first looks at four raw columns to show why the error
 rules exist.
@@ -623,7 +623,7 @@ from mlda.split import load_split_indices
 split = load_split_indices()                      # the persisted grouped, stratified split
 train_idx, test_idx = split.train_idx, split.test_idx
 
-X = engineer_features(base)                       # 55 model inputs, one row per accident
+X = engineer_features(base)                       # 52 model inputs, one row per accident
 y = base[TARGET].to_numpy(dtype=int)
 groups = base[GROUP_KEY].to_numpy(dtype=str)      # mine-year: rows of one mine-year never straddle the split
 sector = base[SECTOR_COL].to_numpy(dtype=str)     # C = coal, M = metal/non-metal, used for stratified reporting
@@ -1234,11 +1234,13 @@ show_table(indicators, "Binary columns on the training rows (indicators and flag
         """
 ## C.4 Feature engineering
 
-`engineer_features` builds the 55 inputs row by row, with no fitted state: 23 categorical, 20
+`engineer_features` builds the 52 inputs row by row, with no fitted state: 20 categorical, 20
 numeric and 12 binary columns, listed in `FEATURE_SPEC`. The design rule is **only what is known
 when the form is filed**. The accident circumstances, the worker's experience and the mine's
 stable attributes qualify; the mine's history qualifies only as the previous year, and only cases
-filed before the accident. The error rules are part of these formulas, which is why computing the
+filed before the accident. The safety-committee, Part 48 training and portable-operation flags
+of the Mines table were dropped because the snapshot gives no historical value for them. The
+error rules are part of these formulas, which is why computing the
 features from the raw base table and from the corrected table gives the identical frame (the
 cell asserts this).
 """
@@ -3129,8 +3131,9 @@ uv run streamlit run app/streamlit_app.py
 - **History needs the mine's previous year.** For 1.2 % of cases there is no previous-year
   production, and the history features are imputed and flagged. A mine that is new has no history.
 - **Several mine attributes are undated.** The safety-committee flag, the Part 48 training flag and
-  the portable-operation flag describe the mine at the snapshot, not at the accident. They are
-  model inputs; the cell after this list measures how much they contribute.
+  the portable-operation flag describe the mine at the snapshot, not at the accident, and the file
+  gives no historical value for them. They were dropped from the model inputs and remain only in
+  the base table and the data explorer.
 - **The cost ratio is an assumption** (USD 4,000 for a missed case against USD 200 for a review);
   that is why the cost analysis covers 2:1 to 30:1 and why the capacity operating point, not the cost
   optimum, is the headline.
@@ -3141,13 +3144,16 @@ uv run streamlit run app/streamlit_app.py
     code(
         r"""
 snapshot_flags = ["SAFETY_COMMITTEE_IND", "PART48_TRAINING", "PORTABLE_OPERATION"]
-flag_importance = permutation.set_index("feature").loc[snapshot_flags, ["importance_mean", "importance_std"]]
-show_table(flag_importance.map("{:.5f}".format), f"Permutation importance of the three undated snapshot flags ({best}; drop in average precision when the input is shuffled)")
-largest = float(flag_importance["importance_mean"].abs().max())
-note(
-    f"The largest importance among the three flags is {largest:.5f} in average precision, against {permutation['importance_mean'].iloc[0]:.3f} for the most "
-    f"important input (`{permutation['feature'].iloc[0]}`), so the undated flags "
-    + ("do not drive the predictions." if largest < 0.001 else "carry weight in the predictions and are a limitation.")
+# These Mines-table flags are recorded as at the snapshot date, so their value at the time of an
+# accident years earlier is unknown. They are kept in the base table for the data explorer but are
+# not model inputs; this cell proves the exclusion on the fitted artefacts.
+in_inputs = [c for c in snapshot_flags if c in X.columns]
+in_importance = [c for c in snapshot_flags if c in set(permutation["feature"])]
+assert not in_inputs and not in_importance, (in_inputs, in_importance)
+print(
+    "snapshot-only Mines flags excluded from the inputs:", ", ".join(snapshot_flags),
+    f"| present in the base table: {all(c in base.columns for c in snapshot_flags)}",
+    f"| present among the {len(X.columns)} model inputs: False",
 )
 """
     )

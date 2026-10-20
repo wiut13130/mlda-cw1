@@ -24,7 +24,14 @@ import streamlit as st
 from sklearn.model_selection import ParameterGrid
 from streamlit.testing.v1 import AppTest
 
-from mlda.config import METRICS_DIR, MODELS_DIR, PREDICTIONS_DIR, PROCESSED_DIR, RANDOM_STATE
+from mlda.config import (
+    METRICS_DIR,
+    MODELS_DIR,
+    PREDICTIONS_DIR,
+    PROCESSED_DIR,
+    RANDOM_STATE,
+    YEAR_MAX,
+)
 from mlda.features import BINARY_FEATURES, FEATURE_COLUMNS, NUMERIC_FEATURES, FeatureEngineer
 from mlda.models import MODEL_ZOO
 
@@ -146,13 +153,69 @@ def test_inference_scores_with_other_model_families(model: str) -> None:
 
 
 def test_inference_unknown_mine_warns_and_still_scores() -> None:
+    """A well-formed id the reference data does not know is a warning, not an error: it is the new-mine fallback."""
     app = new_app().run()
     app.switch_page("pages/5_Inference.py").run()
     app.text_input(key="mine_id").set_value("9999999").run()
-    assert any("No previous-year production record" in warning.value for warning in app.warning)
+    assert not app.error
+    assert any(
+        "unknown to the reference data" in warning.value and "Mine context" in warning.value
+        for warning in app.warning
+    )
     next(button for button in app.button if button.label == "Score this case").click().run()
     assert not app.exception
     assert "Probability of a lost-time injury" in metrics_of(app)
+
+
+@pytest.mark.parametrize("entered", ["abc", "", "02-0024", "0200O24"])
+def test_inference_malformed_mine_id_shows_an_error_and_no_result(entered: str) -> None:
+    """Text is refused, not padded to "0000abc" and scored; an earlier result is hidden and the batch tab stays."""
+    import _common as common
+
+    app = new_app().run()
+    app.switch_page("pages/5_Inference.py").run()
+    # a result left over from an earlier submission, as after scoring a valid mine and then mistyping the id
+    app.session_state["inf_case"] = common.raw_case_frame(
+        {"MINE_ID": "0200024", "ACCIDENT_DT": "2025-06-02"}
+    )
+    app.text_input(key="mine_id").set_value(entered).run()
+    assert not app.exception
+    assert any("MINE_ID is a 7-digit number, for example 0200024" in error.value for error in app.error)
+    assert not any(header.value.startswith("Result for mine") for header in app.subheader)
+    assert not any(button.label == "Score this case" for button in app.button)
+    assert not app.warning  # the unknown-mine warning is for well-formed ids only
+    assert app.get("file_uploader")  # the Batch tab still renders: the page returns instead of calling st.stop()
+
+
+def test_inference_known_mine_without_previous_year_record_gets_a_notice_not_a_warning() -> None:
+    import _common as common
+
+    profiles = common.mine_profiles()
+    years = pd.read_parquet(common.MINE_YEAR_PATH, columns=["MINE_ID", "CALENDAR_YR"])
+    # the default accident date is in YEAR_MAX, so the previous year is YEAR_MAX - 1
+    produced = set(years.loc[years["CALENDAR_YR"] == YEAR_MAX - 1, "MINE_ID"])
+    mine = next(mine_id for mine_id in profiles.index if mine_id not in produced)
+    app = new_app().run()
+    app.switch_page("pages/5_Inference.py").run()
+    app.text_input(key="mine_id").set_value(mine).run()
+    assert not app.error
+    assert not app.warning
+    assert any(f"No previous-year production record for mine {mine}" in info.value for info in app.info)
+
+
+def test_inference_mine_with_production_but_no_accidents_gets_a_profile_notice() -> None:
+    """Most mines in the production table never had an accident row: exposure is found, the profile is not."""
+    import _common as common
+
+    years = pd.read_parquet(common.MINE_YEAR_PATH, columns=["MINE_ID", "CALENDAR_YR"])
+    produced = sorted(set(years.loc[years["CALENDAR_YR"] == YEAR_MAX - 1, "MINE_ID"]))
+    mine = next(mine_id for mine_id in produced if mine_id not in common.mine_profiles().index)
+    app = new_app().run()
+    app.switch_page("pages/5_Inference.py").run()
+    app.text_input(key="mine_id").set_value(mine).run()
+    assert not app.error
+    assert not app.warning
+    assert any("its profile is not on file" in info.value for info in app.info)
 
 
 def test_preprocessing_option_changes_the_transformed_shape() -> None:
@@ -375,6 +438,44 @@ def test_one_row_frame_works_with_feature_engineer_and_a_saved_model() -> None:
     probability = common.score_frame(common.load_pipeline(common.best_model()), raw)
     assert probability.shape == (1,)
     assert 0.0 <= probability[0] <= 1.0
+
+
+@pytest.mark.parametrize(
+    ("entered", "expected"),
+    [("0200024", "0200024"), ("200024", "0200024"), (" 200024 ", "0200024"), ("1", "0000001")]
+    + [(text, None) for text in ("abc", "", "  ", "nan", "02-0024", "0200O24", "12345678", "20.0", "\u00b2")],
+)
+def test_mine_id_is_padded_only_when_it_is_all_digits(entered: str, expected: str | None) -> None:
+    import _common as common
+
+    assert common.normalise_mine_id(entered) == expected
+
+
+@pytest.mark.parametrize("bad", ["abc", "", "12345678", "02-0024", pd.NA])
+def test_batch_upload_refuses_a_malformed_mine_id_and_names_the_first_bad_row(
+    sample_rows: tuple[pd.DataFrame, pd.DataFrame], bad: object
+) -> None:
+    import _common as common
+
+    base, _ = sample_rows
+    upload = base[[*common.BATCH_REQUIRED, *common.BATCH_OPTIONAL]].head(5).astype("string")
+    upload["ACCIDENT_DT"] = base["ACCIDENT_DT"].head(5).dt.strftime("%Y-%m-%d")
+    upload.loc[2, "MINE_ID"] = bad
+    upload.loc[4, "MINE_ID"] = "also bad"
+    with pytest.raises(ValueError, match=r"MINE_ID is a 7-digit number.*data row 3"):
+        common.prepare_batch(upload)
+
+
+def test_batch_upload_pads_mine_ids_that_lost_their_leading_zeros(
+    sample_rows: tuple[pd.DataFrame, pd.DataFrame],
+) -> None:
+    import _common as common
+
+    base, _ = sample_rows
+    upload = base[[*common.BATCH_REQUIRED, *common.BATCH_OPTIONAL]].head(5).astype("string")
+    upload["ACCIDENT_DT"] = base["ACCIDENT_DT"].head(5).dt.strftime("%Y-%m-%d")
+    upload["MINE_ID"] = upload["MINE_ID"].str.lstrip("0")
+    assert common.prepare_batch(upload)["MINE_ID"].tolist() == base["MINE_ID"].head(5).tolist()
 
 
 def test_batch_upload_rejects_a_file_without_required_columns() -> None:

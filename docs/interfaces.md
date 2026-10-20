@@ -60,7 +60,7 @@ CATEGORICAL (object/str, NaN -> "none" for PLACEHOLDER_AS_LEVEL, otherwise "miss
 SUBUNIT_CD, FIPS_STATE_CD, UG_LOCATION_CD, UG_MINING_METHOD_CD, MINING_EQUIP_CD, EQUIP_MFR_NAME,
 CLASSIFICATION_CD, ACCIDENT_TYPE_CD, OCCUPATION, ACTIVITY_CD, INJURY_SOURCE_CD, NATURE_INJURY_CD,
 INJ_BODY_PART_CD, COAL_METAL_IND, PRIMARY_CANVASS, type_at_time, status_103i_at_accident, mine_size_band,
-SAFETY_COMMITTEE_IND, PART48_TRAINING, PORTABLE_OPERATION, accident_weekday, accident_month
+accident_weekday, accident_month (SAFETY_COMMITTEE_IND, PART48_TRAINING and PORTABLE_OPERATION were removed from the inputs on 20 October 2026: snapshot-only flags with no value at the accident date)
 (weekday 0-6 and month 1-12 as strings).
 
 NUMERIC (float, NaN allowed, imputed inside the pipeline):

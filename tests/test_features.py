@@ -48,8 +48,22 @@ def _row(base: pd.DataFrame, **overrides: object) -> pd.DataFrame:
 def test_columns_match_feature_spec_in_order(features: pd.DataFrame) -> None:
     assert list(features.columns) == list(FEATURE_COLUMNS)
     assert FEATURE_COLUMNS == tuple(FEATURE_SPEC["categorical"] + FEATURE_SPEC["numeric"] + FEATURE_SPEC["binary"])
-    assert (len(CATEGORICAL_FEATURES), len(NUMERIC_FEATURES), len(BINARY_FEATURES)) == (23, 20, 12)
+    assert (len(CATEGORICAL_FEATURES), len(NUMERIC_FEATURES), len(BINARY_FEATURES)) == (20, 20, 12)
+    assert len(FEATURE_COLUMNS) == 52
     assert len(set(FEATURE_COLUMNS)) == len(FEATURE_COLUMNS)
+
+
+def test_snapshot_only_mines_flags_are_not_model_inputs(base: pd.DataFrame, features: pd.DataFrame) -> None:
+    """The Mines table holds these three flags as at the snapshot, so their value at filing is unknown.
+
+    They stay in the base table (the data explorer shows them) but must reach neither the model
+    inputs nor the columns the formulas read; the output must not change when they are removed.
+    """
+    flags = ("SAFETY_COMMITTEE_IND", "PART48_TRAINING", "PORTABLE_OPERATION")
+    assert all(flag in base.columns for flag in flags)
+    assert set(flags).isdisjoint(FEATURE_COLUMNS) and set(flags).isdisjoint(features.columns)
+    assert set(flags).isdisjoint(features_module.REQUIRED_INPUT_COLUMNS)
+    pd.testing.assert_frame_equal(engineer_features(base.drop(columns=list(flags))), features)
 
 
 def test_dtypes_and_missingness_by_block(features: pd.DataFrame) -> None:
@@ -162,11 +176,11 @@ def test_unmatched_previous_year_sets_flag_and_nan(base: pd.DataFrame) -> None:
 
 
 def test_placeholder_columns_fill_none_and_others_missing(base: pd.DataFrame) -> None:
-    row = _row(base, UG_LOCATION_CD=None, EQUIP_MFR_NAME=None, ACTIVITY_CD=None, SUBUNIT_CD=None, PRIMARY_CANVASS=None, SAFETY_COMMITTEE_IND=None)
+    row = _row(base, UG_LOCATION_CD=None, EQUIP_MFR_NAME=None, ACTIVITY_CD=None, SUBUNIT_CD=None, PRIMARY_CANVASS=None)
     out = engineer_features(row)
     for column in ("UG_LOCATION_CD", "EQUIP_MFR_NAME", "ACTIVITY_CD"):
         assert column in PLACEHOLDER_AS_LEVEL and out[column].iloc[0] == "none", column
-    for column in ("SUBUNIT_CD", "PRIMARY_CANVASS", "SAFETY_COMMITTEE_IND"):
+    for column in ("SUBUNIT_CD", "PRIMARY_CANVASS"):
         assert out[column].iloc[0] == "missing", column
 
 
@@ -334,7 +348,7 @@ def test_retired_scoop_car_title_maps_to_the_missing_level(base: pd.DataFrame) -
 
 def test_real_feature_counts_match_decisions(real_features: features_module.FeatureFrame) -> None:
     X = real_features.X
-    assert X.shape == (101_609, 55) and list(X.columns) == list(FEATURE_COLUMNS)
+    assert X.shape == (101_609, 52) and list(X.columns) == list(FEATURE_COLUMNS)
     assert int(X["immed_reportable"].sum()) == 3_665
     assert X["mine_size_band"].value_counts().to_dict() == {
         "200+": 36_801, "50-199": 30_483, "20-49": 16_654, "5-19": 14_180, "1-4": 2_285, "missing": 1_206,

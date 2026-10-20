@@ -9,8 +9,9 @@ returns numbers that sit next to the primary ones in ``reports/metrics/sensitivi
   in a feature) and ``excluding_levels`` re-scores the held-out rows without them;
 * ``feature_variants`` builds the altered inputs: without ``immed_reportable`` (a near copy of
   the death code), without the dated 103(i) status, with lagged case counts restricted to cases
-  already resolved at the accident, and with previous-year exposure blanked for forms filed
-  before the fourth-quarter employment report was due;
+  already resolved at the accident, with previous-year exposure blanked for forms filed
+  before the fourth-quarter employment report was due, and with the case history blanked on
+  the training rows whose previous mine-year is a test mine-year (``history_without_test_outcomes``);
 * ``refit_variants`` refits the selected pipeline on each variant;
 * ``mine_grouped_robustness`` groups the split and the cross-validation by ``MINE_ID`` instead of
   mine-year, so that later years of a test mine cannot reach the model through its training rows.
@@ -66,7 +67,24 @@ VARIANT_DESCRIPTIONS: dict[str, str] = {
     "closing document are earlier than the accident",
     "exposure_blank_if_q4_incomplete": "previous-year hours and employees set to missing (and the mine type "
     "taken from the accident subunit) for forms filed on or before 15 January",
+    "history_without_test_outcomes": "previous-year case counts, incidence rates and lost-time share set to "
+    "missing (the encoding of a mine-year without history; exposure kept) on the training rows whose "
+    "previous mine-year has a test row",
 }
+HISTORY_VARIANT = "history_without_test_outcomes"
+# The lagged counts of the base table that the case-history features are computed from. Blanking
+# them and re-running engineer_features gives exactly the encoding of a row without history:
+# prev_incidents and both rates NaN, prev_lost_time_share NaN and prev_share_missing 1. The
+# exposure columns (prev_hours, prev_employees and what is derived from them) and
+# prev_year_matched come from the production file, which holds no test outcome, so they stay.
+HISTORY_CASE_COUNTS: tuple[str, ...] = ("prev_incidents", "prev_valid_cases", "prev_lost_time_cases")
+HISTORY_FEATURES: tuple[str, ...] = (
+    "prev_incidents",
+    "prev_incident_rate_200k",
+    "prev_lost_time_rate_200k",
+    "prev_lost_time_share",
+    "prev_share_missing",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -166,11 +184,58 @@ def simple_variants(X: pd.DataFrame) -> dict[str, pd.DataFrame]:
     }
 
 
-def feature_variants(clean: pd.DataFrame, X: pd.DataFrame) -> dict[str, pd.DataFrame]:
+def rows_with_test_history(
+    mine_ids: np.ndarray | pd.Series,
+    years: np.ndarray | pd.Series,
+    train_idx: np.ndarray,
+    test_idx: np.ndarray,
+) -> np.ndarray:
+    """Training rows whose previous mine-year (``MINE_ID``, ``CAL_YR`` - 1) has a row in the test split.
+
+    The lagged case counts of a row in year Y are counted from the mine's year Y - 1 cases in the
+    full Accidents file. The split keeps each mine-year on one side but not the year before it,
+    so a training row can carry counts, and hence a lost-time share, that include the outcomes of
+    test rows. Returns a boolean mask over all rows; test rows are never marked.
+    """
+    mine = np.asarray(mine_ids).astype(str)
+    year = pd.Series(years).astype("int64").to_numpy()
+    test_mine_years = pd.MultiIndex.from_arrays([mine[test_idx], year[test_idx]])
+    previous = pd.MultiIndex.from_arrays([mine, year - 1])
+    is_train = np.zeros(len(mine), dtype=bool)
+    is_train[np.asarray(train_idx)] = True
+    return np.asarray(previous.isin(test_mine_years)) & is_train
+
+
+def history_without_test_outcomes(
+    clean: pd.DataFrame, train_idx: np.ndarray, test_idx: np.ndarray
+) -> pd.DataFrame:
+    """Model inputs with the case history blanked on the rows of ``rows_with_test_history``.
+
+    The three lagged counts are set to NaN in the base table and the features are rebuilt, so the
+    blanked rows get the pipeline's own encoding of a mine without a previous-year record (counts
+    and rates NaN, ``prev_share_missing`` 1). Exposure and every test row are left as they are.
+    """
+    blank = rows_with_test_history(clean["MINE_ID"], clean["CAL_YR"], train_idx, test_idx)
+    counts = {column: clean[column].mask(blank) for column in HISTORY_CASE_COUNTS}
+    log.info(
+        "history variant: %d of %d training rows follow a test mine-year",
+        int(blank.sum()), len(train_idx),
+    )
+    return engineer_features(clean.assign(**counts))
+
+
+def feature_variants(
+    clean: pd.DataFrame,
+    X: pd.DataFrame,
+    train_idx: np.ndarray | None = None,
+    test_idx: np.ndarray | None = None,
+) -> dict[str, pd.DataFrame]:
     """Alternative model-input frames with the same index and columns as ``X``.
 
     Variants that need columns the cleaned base table lacks (a base cached by an older version)
-    are skipped with a log message rather than raising.
+    are skipped with a log message rather than raising. ``train_idx`` and ``test_idx`` are the
+    positions of the held-out split; the history variant depends on the split and is built only
+    when both are given.
     """
     variants = simple_variants(X)
     resolved = [
@@ -195,6 +260,10 @@ def feature_variants(clean: pd.DataFrame, X: pd.DataFrame) -> dict[str, pd.DataF
         variants["exposure_blank_if_q4_incomplete"] = engineer_features(altered)
     else:
         log.info("base table has no prev_year_incomplete_at_filing; skipping the exposure variant")
+    if train_idx is not None and test_idx is not None:
+        variants[HISTORY_VARIANT] = history_without_test_outcomes(clean, train_idx, test_idx)
+    else:
+        log.info("no split given; skipping the history-without-test-outcomes variant")
     return variants
 
 
@@ -229,7 +298,9 @@ def refit_variants(
     ``fit_idx`` are positions within the training rows (the capped subset of the primary fit),
     ``reference`` is the ``headline`` of the primary result. The hyper-parameters stay those of
     the primary search; the thresholds are re-estimated from out-of-fold probabilities of the
-    variant, so each variant is judged at its own operating point.
+    variant, so each variant is judged at its own operating point. ``rows_changed`` counts every
+    row whose inputs differ from ``primary``; ``train_rows_changed`` and its share count the
+    training rows among them, the rows on which the refit itself learns from altered inputs.
     """
     y_train, g_train, y_test = y[train_idx], groups[train_idx], y[test_idx]
     out: dict[str, Any] = {
@@ -245,9 +316,12 @@ def refit_variants(
         proba = fitted.predict_proba(X_variant.iloc[test_idx])[:, 1]
         evaluation = evaluate_on_test(y_test, proba, sector[test_idx], thresholds)
         view = headline(evaluation)
+        train_changed = _changed_rows(X_variant.iloc[train_idx], primary.iloc[train_idx])
         out["variants"][name] = {
             "description": VARIANT_DESCRIPTIONS.get(name, name),
             "rows_changed": _changed_rows(X_variant, primary),
+            "train_rows_changed": train_changed,
+            "train_rows_changed_share": train_changed / len(train_idx),
             "thresholds": {
                 OPERATING_KEY: thresholds[OPERATING_KEY],
                 FLAG_KEY: thresholds[FLAG_KEY],
@@ -386,12 +460,17 @@ def mine_grouped_robustness(
 
 __all__ = [
     "DOCUMENTED_PURE_LEVELS",
+    "HISTORY_CASE_COUNTS",
+    "HISTORY_FEATURES",
+    "HISTORY_VARIANT",
     "PURE_LEVEL_MIN_ROWS",
     "VARIANT_DESCRIPTIONS",
     "excluding_levels",
     "feature_variants",
+    "history_without_test_outcomes",
     "mine_grouped_robustness",
     "pure_levels",
     "refit_variants",
+    "rows_with_test_history",
     "simple_variants",
 ]

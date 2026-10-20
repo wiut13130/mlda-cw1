@@ -6,8 +6,10 @@
 The test rows had already been scored when these checks were written, so nothing here changes
 the selected model, its hyper-parameters, its thresholds or any other file in reports/metrics.
 Every check reads ``data/processed`` (features, split indices, base table) and
-``reports/predictions`` and writes one file, ``reports/metrics/followup_checks.json``; the
-wider-grid searches also write ``reports/cv/followup_<model>_cv_results.csv``.
+``reports/predictions`` and writes ``reports/metrics/followup_checks.json``, with the flat
+table ``reports/metrics/followup_capacity_policy.csv`` beside it (one row per test group x
+model x flagging policy, the numbers of the ``return_to_work`` block); the wider-grid searches
+also write ``reports/cv/followup_<model>_cv_results.csv``.
 
 * ``capacity``: recall of the selected model when a given share of the test reports with the
   highest scores is flagged, so the recommendation can be read at review capacities other than
@@ -17,7 +19,10 @@ wider-grid searches also write ``reports/cv/followup_<model>_cv_results.csv``.
 * ``equal_workload``: recall of every model at one common flag rate, the median of the flag
   rates that the out-of-fold capacity thresholds produce on the test rows;
 * ``return_to_work``: how many reports were filed after the worker was back at work, and the
-  selected model's scores on the test reports whose outcome was still open at filing;
+  scores on the test reports whose outcome was still open at filing; for the selected model,
+  the multilayer perceptron, the lookup and the hand rule, on all test rows and on the open
+  ones, each model's capacity threshold is set beside two equal workloads (exactly the top 50 %
+  and the top 75 % of the group by score), so that no model gains recall by flagging more;
 * ``logreg_interaction``: logistic regression with the selected settings, refitted with one
   extra one-hot block for the joint nature x body part x sector cell, under the same grouped
   folds, to test whether those cells explain the lead of gradient boosting;
@@ -57,7 +62,13 @@ from mlda.config import (
     PROCESSED_DIR,
     TARGET,
 )
-from mlda.evaluation import classification_metrics, cost_from_counts, threshold_for_flag_rate
+from mlda.evaluation import (
+    classification_metrics,
+    confusion_counts,
+    cost_from_counts,
+    metrics_from_counts,
+    threshold_for_flag_rate,
+)
 from mlda.features import FEATURE_COLUMNS
 from mlda.models import ESTIMATOR_STEP, MODEL_ZOO, build_pipeline, default_preprocessor
 from mlda.operating import FLAG_KEY, LOOKUP_BASELINE, OPERATING_KEY
@@ -72,6 +83,18 @@ LF = chr(10)  # files are written with LF line ends on every platform, as .gitat
 CELL_COLUMN = "nature_bodypart_sector_cell"
 SELECTED_MODEL = "hist_gb"
 CAPACITY_SHARES = (0.50, 7 / 12, 2 / 3, 0.75, 5 / 6)
+# Equal-workload comparison on the return-to-work groups: the selected model, the runner-up
+# network, the lookup and the hand rule. The capacity threshold lets each model flag a different
+# share of a group (the hand rule flags every report that is not a cut or dust), so recall is
+# also read at the same exact share of top-scored reports for all four.
+POLICY_MODELS: tuple[str, ...] = (SELECTED_MODEL, "mlp", LOOKUP_BASELINE, "rule_not_cut_or_dust")
+POLICY_GROUPS: tuple[str, ...] = ("all_test_rows", "open_at_filing")
+CAPACITY_POLICY = "capacity_threshold"
+TOP_SHARE_POLICIES: dict[str, float] = {"top_50pct": 0.50, "top_75pct": 0.75}
+POLICY_COLUMNS: tuple[str, ...] = (
+    "n", "prevalence", "flag_rate", "recall", "specificity", "precision", "cutoff", "missed_per_1000",
+)
+POLICY_TABLE_NAME = "followup_capacity_policy.csv"
 INTERACTION_SCORING = {"average_precision": "average_precision", "roc_auc": "roc_auc"}
 
 # Wider grids run after the test rows were scored. Each contains one candidate of the original
@@ -221,15 +244,85 @@ def equal_workload(test_scores: pd.DataFrame, thresholds: dict[str, Any], models
     }
 
 
+def top_share_flags(proba: np.ndarray, share: float) -> np.ndarray:
+    """Flag exactly ``share`` of the rows, those with the highest scores (round(share x n), halves up).
+
+    A threshold cannot do this when scores tie (the hand rule has two values and the lookup a few
+    hundred), so the rows are ordered by a stable sort on descending score and the first k are
+    flagged: among tied rows the earlier row is taken. Every model then reviews the same number
+    of reports, and differences in recall are differences in ranking alone.
+    """
+    if not 0 <= share <= 1:
+        raise ValueError("share must lie in [0, 1]")
+    scores = np.asarray(proba, dtype=float)
+    k = int(np.floor(share * scores.size + 0.5))
+    order = np.argsort(-scores, kind="stable")
+    flagged = np.zeros(scores.size, dtype=bool)
+    flagged[order[:k]] = True
+    return flagged
+
+
+def policy_metrics(y: np.ndarray, flagged: np.ndarray, cutoff: float) -> dict[str, float]:
+    """What one set of flagged reports catches: the columns of the capacity-policy table.
+
+    ``missed_per_1000`` is the lost-time cases left unflagged per 1,000 reports of the group, the
+    cost that a reviewer with a fixed workload weighs against the reports read.
+    """
+    labels = np.asarray(y, dtype=int)
+    counts = confusion_counts(labels, flagged)
+    rates = metrics_from_counts(**counts)
+    return {
+        "n": int(labels.size),
+        "prevalence": float(labels.mean()),
+        "flag_rate": float(rates["flag_rate"]),
+        "recall": float(rates["recall"]),
+        "specificity": float(rates["specificity"]),
+        "precision": float(rates["precision"]),
+        "cutoff": float(cutoff),
+        "missed_per_1000": 1000 * counts["fn"] / labels.size,
+    }
+
+
+def flag_policies(
+    y: np.ndarray, proba: np.ndarray, threshold: float, shares: dict[str, float] = TOP_SHARE_POLICIES,
+) -> dict[str, dict[str, float]]:
+    """The stored capacity threshold beside each equal-workload policy, for one model on one group.
+
+    The cut-off of a top-share policy is the lowest flagged score; rows at that score can remain
+    unflagged when they tie, which is why the flags and not the cut-off define the policy.
+    """
+    scores = np.asarray(proba, dtype=float)
+    out = {CAPACITY_POLICY: policy_metrics(y, scores >= threshold, threshold)}
+    for name, share in shares.items():
+        flagged = top_share_flags(scores, share)
+        cutoff = float(scores[flagged].min()) if flagged.any() else float("nan")
+        out[name] = policy_metrics(y, flagged, cutoff)
+    return out
+
+
+def capacity_policy_table(test_rows: dict[str, Any]) -> pd.DataFrame:
+    """One row per group x model x policy from the ``policies`` blocks of ``return_to_work_groups``."""
+    records = [
+        {"group": group, "model": model, "policy": policy, **{c: metrics[c] for c in POLICY_COLUMNS}}
+        for group, entry in test_rows.items()
+        for model, values in entry.items()
+        if isinstance(values, dict) and "policies" in values
+        for policy, metrics in values["policies"].items()
+    ]
+    return pd.DataFrame(records, columns=["group", "model", "policy", *POLICY_COLUMNS])
+
+
 def return_to_work_groups(
     base: pd.DataFrame, test_idx: np.ndarray, test_scores: pd.DataFrame, thresholds: dict[str, Any],
-    models: tuple[str, ...] = (SELECTED_MODEL, LOOKUP_BASELINE),
+    models: tuple[str, ...] = POLICY_MODELS,
 ) -> dict[str, Any]:
     """Reports filed after the worker was back at work, and scores on the reports still open at filing.
 
     ``back_at_work`` is a return-to-work date on or before the filing date (the date in
     DOCUMENT_NO). Every other report, including a blank return-to-work date, is ``open_at_filing``:
     the filer could not yet know whether days would be lost, which is the case the score is for.
+    On the groups in ``POLICY_GROUPS`` each model entry also holds ``policies``: its capacity
+    threshold and the equal workloads of ``TOP_SHARE_POLICIES`` (see ``flag_policies``).
     """
     back = (base["RETURN_TO_WORK_DT"] <= base["filing_date"]).to_numpy()
     labels = base[TARGET].to_numpy(dtype=int)
@@ -258,6 +351,8 @@ def return_to_work_groups(
                 "precision_at_capacity_threshold": float(at_capacity["precision"]),
                 "flag_rate_at_capacity_threshold": float(at_capacity["flag_rate"]),
             }
+            if label in POLICY_GROUPS:
+                entry[name]["policies"] = flag_policies(y_test[mask], proba, float(thresholds[name][OPERATING_KEY]))
         groups_out[label] = entry
     return {"all_in_scope_rows": summary, "test_rows": groups_out}
 
@@ -411,7 +506,11 @@ def _read_json(path: Path) -> Any:
 
 
 def run(skip_grids: bool = False, grids: tuple[str, ...] = tuple(WIDER_GRIDS), output: Path | None = None) -> dict[str, Any]:
-    """Run the checks and write ``reports/metrics/followup_checks.json``; returns the payload."""
+    """Run the checks, write ``followup_checks.json`` and the capacity-policy CSV; returns the payload.
+
+    The CSV is written beside the JSON (``reports/metrics`` unless ``output`` says otherwise), so a
+    run into another directory never overwrites the committed table.
+    """
     started = time.perf_counter()
     n_jobs = default_n_jobs()
     inputs = load_inputs()
@@ -452,7 +551,9 @@ def run(skip_grids: bool = False, grids: tuple[str, ...] = tuple(WIDER_GRIDS), o
         payload["wider_grids"] = wider
     payload["seconds"] = round(time.perf_counter() - started, 1)
     output.write_text(json.dumps(payload, indent=2, default=str) + LF, encoding="utf-8", newline=LF)
-    log.info("wrote %s in %.0f s", output, payload["seconds"])
+    policy_path = output.parent / POLICY_TABLE_NAME
+    capacity_policy_table(payload["return_to_work"]["test_rows"]).to_csv(policy_path, index=False, lineterminator=LF)
+    log.info("wrote %s and %s in %.0f s", output, policy_path.name, payload["seconds"])
     return payload
 
 
