@@ -47,11 +47,13 @@ purpose_tab, data_tab, reproduce_tab, manifest_tab, limits_tab = st.tabs(
 
 with purpose_tab:
     st.markdown(
-        "**Business question.** When an injury report (Form 7000-1) is filed at a US mine, can we predict "
-        "whether the case will become a *lost-time injury*, meaning a fatality, a permanent disability or "
-        "days away from work? The score is computed from the circumstances of the accident, the worker's "
-        "experience and the mine's recent exposure and case history, and nothing that is recorded after "
-        "the outcome is known."
+        "**Business question and prediction moment.** When MSHA receives an injury report (Form 7000-1), "
+        "can we predict whether the case will become a *lost-time injury*, meaning a fatality, a permanent "
+        "disability or days away from work? The score is computed on the filing date of the form, from the "
+        "circumstances of the accident, the worker's experience and the mine's recent exposure and case "
+        "history, and nothing that is recorded after the outcome is known. Reports that already carry a "
+        "return-to-work date at filing are not scored. The operational cohort is the 55 % of reports that "
+        "are still open at filing."
     )
     st.markdown(
         "**Stakeholders.** The mine operator's safety officer completes the report. The workers' compensation "
@@ -61,8 +63,11 @@ with purpose_tab:
     st.markdown(
         f"**Decision rule.** Flagging an unnecessary case costs about USD {COST_FP_USD} of reviewer time and "
         f"missing a lost-time case about USD {COST_FN_USD:,} (an assumption, varied from 2:1 to 30:1 on the "
-        f"Evaluation page). The operating point leaves {OPERATING_SPECIFICITY:.0%} of non-lost-time cases unflagged, "
-        "which matches a review team that can read about three cases in four."
+        "Evaluation page). The recommendation is the workload rule: review the top three in four of the "
+        "open reports, ranked by score, with a cut-off fixed on out-of-fold scores. The capacity threshold "
+        f"leaves {OPERATING_SPECIFICITY:.0%} of non-lost-time cases unflagged on all filings but would flag "
+        "about nine in ten open reports, so it is reported beside the rule and not recommended for them. "
+        "The study is retrospective, so the rule needs a prospective trial on reports scored at receipt first."
     )
     st.info(
         "The tool supports case review. It does not replace the judgement of a safety officer, adjuster or inspector."
@@ -174,6 +179,14 @@ with limits_tab:
         "from cases filed before the accident; mines without a previous-year record are scored with missing "
         "exposure. Cost figures are assumptions, and the model was trained on United States reports from 2010 to "
         "2025, so it is a template for other countries rather than a calibrated tool."
+    )
+    st.markdown(
+        "**Calibration and history audit.** The probabilities are calibrated to all filings. On reports "
+        "still open at filing, where lost-time cases are more common, they run about 0.12 below the "
+        "observed rate, so for open reports the probability is a ranking score and the workload rule "
+        "uses only the ranking. Mine history is built from the full Accidents file, so for 14.1 % of "
+        "the training rows the previous mine-year sits in the test split; blanking that history and "
+        "refitting moved test PR-AUC by less than 0.001."
     )
     st.markdown(
         "**Ethics.** The data are public and describe injured workers without names. Accident reports are filled "

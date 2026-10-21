@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 import streamlit as st
 from _common import (
     TEST_PREDICTIONS_PATH,
     bar_chart,
     best_model,
+    capacity_policy,
     criteria_rows,
     curve_frame,
     ensure_entrypoint,
@@ -19,12 +22,15 @@ from _common import (
     metrics_json,
     model_label,
     model_thresholds,
+    open_calibration,
     require,
     score_models,
     sensitivity_table,
     significance_tables,
     stamp,
     temporal_table,
+    workload_checks,
+    workload_rule,
 )
 
 from mlda.config import COST_RATIOS, OPERATING_SPECIFICITY, SUCCESS_CRITERIA
@@ -62,10 +68,158 @@ IMPORTANCE = {  # label -> (file, value column, signed, axis title)
     ),
 }
 TOP_N = 15
+FOLLOWUP_COMMAND = "uv run python -m mlda.followup"
+CAPACITY_MODEL = "hist_gb"  # the selected model; the policy files hold it beside the comparators
+CAPACITY_SHORT = "HGB"  # its short name, as used in the report text
+POLICY_GROUPS = {"Reports still open at filing": "open_at_filing", "All test reports": "all_test_rows"}
+POLICY_NAMES = {
+    "capacity_threshold": "Capacity threshold",
+    "top_50pct": "Top 50 % by score",
+    "top_75pct": "Top 75 % by score",
+}
+RULE_NAMES = {"top_75pct": "Workload rule (top 75 %)", "top_50pct": "Top 50 % (comparison only)"}
+CALIBRATION_GROUPS = {
+    "open_at_filing": "Open at filing",
+    "back_at_work": "Return-to-work date at filing",
+    "all_test_rows": "All test reports",
+}
+DIFFERENCE_NAMES = {
+    "hist_gb_minus_lookup_nature_bodypart_coal": "HGB minus lookup baseline",
+    "hist_gb_minus_mlp": "HGB minus MLP",
+}
 OPERATING_HELP = (
     f"The threshold at which {OPERATING_SPECIFICITY:.0%} of non-lost-time cases stay unflagged, "
     "chosen on out-of-fold scores."
 )
+
+def followup_missing(what: str) -> None:
+    """Point to the command that writes the follow-up artefacts instead of failing the page."""
+    st.info(f"{what} is not available. Create it with `{FOLLOWUP_COMMAND}`.")
+
+
+def policy_row(
+    policy: pd.DataFrame | None, group: str, name: str, model: str = CAPACITY_MODEL
+) -> pd.Series | None:
+    """One row of the capacity-policy table, or None when the table or the row is missing."""
+    if policy is None:
+        return None
+    rows = policy[(policy["group"] == group) & (policy["model"] == model) & (policy["policy"] == name)]
+    return rows.iloc[0] if len(rows) else None
+
+
+def capacity_intro(policy: pd.DataFrame | None) -> str:
+    """The two operating points and the reason the capacity threshold over-flags open reports."""
+    everything = policy_row(policy, "all_test_rows", "capacity_threshold")
+    still_open = policy_row(policy, "open_at_filing", "capacity_threshold")
+    threshold = (
+        "The capacity threshold is the probability at which out-of-fold specificity on all training "
+        f"rows is {OPERATING_SPECIFICITY:.2f}"
+    )
+    if everything is None or still_open is None:
+        return (
+            f"{threshold}. The workload rule instead reviews the top three in four of the reports "
+            "still open at filing, ranked by score. A specificity target flags more of the open "
+            "reports, because their lost-time prevalence is higher than on all filings."
+        )
+    return (
+        f"{threshold} ({CAPACITY_SHORT} cut-off {everything['cutoff']:.3f}); on all "
+        f"test reports it flags {everything['flag_rate']:.1%} and finds {everything['recall']:.1%} of "
+        "the lost-time cases. The workload rule instead reviews the top three in four of the reports "
+        "still open at filing, ranked by score. The threshold over-flags open reports because the "
+        "flag rate equals prevalence x recall + (1 - prevalence) x (1 - specificity): the open "
+        f"reports have a lost-time prevalence of {still_open['prevalence']:.3f} against "
+        f"{everything['prevalence']:.3f} on all reports, so the same threshold flags "
+        f"{still_open['flag_rate']:.1%} of them."
+    )
+
+
+def policy_table(policy: pd.DataFrame, group: str) -> pd.DataFrame:
+    """Models and policies of one report group with readable labels, in file order."""
+    rows = policy[policy["group"] == group]
+    return pd.DataFrame(
+        {
+            "Model": rows["model"].map(model_label),
+            "Policy": rows["policy"].map(lambda name: POLICY_NAMES.get(name, name)),
+            "Flag rate": rows["flag_rate"],
+            "Recall": rows["recall"],
+            "Precision": rows["precision"],
+            "Specificity": rows["specificity"],
+            "Cut-off": rows["cutoff"],
+            "Missed per 1,000": rows["missed_per_1000"],
+        }
+    ).reset_index(drop=True)
+
+
+def rule_table(rule: pd.DataFrame) -> pd.DataFrame:
+    """Out-of-fold cut-offs with the flag rate and recall they realise on open and on all test reports."""
+    keys = ["model", "policy"]
+    on_open = rule[rule["test_group"] == "open_at_filing"].set_index(keys)
+    on_all = rule[rule["test_group"] == "all_test_rows"].set_index(keys)
+    table = pd.DataFrame(
+        {
+            "Cut-off (out-of-fold)": on_open["cutoff_oof"],
+            "Flag rate, open reports": on_open["flag_rate"],
+            "Recall, open reports": on_open["recall"],
+            "Flag rate, all reports": on_all["flag_rate"],
+            "Recall, all reports": on_all["recall"],
+        }
+    ).reset_index()
+    table = table.sort_values("policy", ascending=False, kind="stable")  # the workload rule first
+    table["model"] = table["model"].map(model_label)
+    table["policy"] = table["policy"].map(lambda name: RULE_NAMES.get(name, name))
+    return table.rename(columns={"model": "Model", "policy": "Policy"}).reset_index(drop=True)
+
+
+def calibration_summary(block: dict[str, Any]) -> pd.DataFrame:
+    """Mean predicted against observed rate and Brier score for each group and model."""
+    summary = block.get("open_calibration", {})
+    return pd.DataFrame(
+        [
+            {
+                "Reports": label,
+                "Model": model_label(model),
+                "n": values["n"],
+                "Mean predicted": values["mean_predicted"],
+                "Observed rate": values["observed_rate"],
+                "Predicted minus observed": values["predicted_minus_observed"],
+                "Brier": values["brier"],
+            }
+            for group, label in CALIBRATION_GROUPS.items()
+            for model, values in summary.get(group, {}).items()
+        ]
+    )
+
+
+def checks_caption(block: dict[str, Any]) -> str:
+    """Paired-bootstrap differences in recall under the rule and the open-only refit, as one sentence."""
+    boot = block.get("paired_bootstrap_open_at_filing", {})
+    metric = f"recall_top_{round(boot.get('share', 0) * 100)}pct"
+    parts = []
+    for key, entry in boot.get("differences", {}).items():
+        if metric in entry:
+            d = entry[metric]
+            parts.append(
+                f"{DIFFERENCE_NAMES.get(key, key)} {d['estimate']:+.3f} "
+                f"({d['lower']:+.3f} to {d['upper']:+.3f})"
+            )
+    text = ""
+    if parts:
+        text = (
+            f"Paired mine-year bootstrap on the {boot['n']:,} reports still open at filing "
+            f"({boot['n_boot']:,} draws, {1 - boot['alpha']:.0%} intervals), difference in recall when "
+            f"the top {boot['share']:.0%} are reviewed: {'; '.join(parts)}. "
+        )
+    refit = block.get("open_only_refit")
+    if refit:
+        text += (
+            f"A refit of {CAPACITY_SHORT} on the {refit['training_rows_open']:,} open "
+            f"training reports alone gives recall {refit['open_only_refit']['top_75pct']['recall']:.3f} "
+            f"under the rule, against {refit['all_rows_model']['top_75pct']['recall']:.3f} for the model "
+            "fitted on all filings. These checks were run after the test rows were scored and change "
+            "no stored model or threshold."
+        )
+    return text.strip()
+
 
 scores = require(held_out_scores(), "The held-out predictions")
 best = best_model()
@@ -109,11 +263,20 @@ st.caption(
     f"threshold {detail['thresholds'][OPERATING_KEY]:.3f}."
 )
 
-comparison_tab, curves_tab, threshold_tab, criteria_tab, sensitivity_tab, importance_tab = st.tabs(
+(
+    comparison_tab,
+    curves_tab,
+    threshold_tab,
+    capacity_tab,
+    criteria_tab,
+    sensitivity_tab,
+    importance_tab,
+) = st.tabs(
     [
         "Comparison",
         "Curves",
         "Threshold explorer",
+        "Capacity policy",
         "Criteria and tests",
         "Sensitivity",
         "Importance",
@@ -201,6 +364,13 @@ with threshold_tab:
             f"Stored thresholds: operating point {stored[OPERATING_KEY]:.3f}, 50 % flag rate {stored[FLAG_KEY]:.3f}, "
             f"cost-optimal at {ratio}:1 {stored['cost_optimal'][str(ratio)]:.3f}."
         )
+    still_open = policy_row(capacity_policy(), "open_at_filing", "capacity_threshold")
+    if still_open is not None:
+        st.caption(
+            f"The stored capacity threshold of {CAPACITY_SHORT} flags "
+            f"{still_open['flag_rate']:.1%} of the reports still open at filing; see the Capacity "
+            "policy tab."
+        )
     y_true, proba = scores["y_true"].to_numpy(), scores[f"proba_{model}"].to_numpy()
     m = classification_metrics(y_true, proba, threshold)
     cost = cost_from_counts(m["fn"], m["fp"], m["n"], ratio)
@@ -234,6 +404,97 @@ with threshold_tab:
         "brier",
     ]
     st.dataframe(sectors[columns].rename(index=SECTOR_NAMES).round(3))
+
+with capacity_tab:
+    policy = capacity_policy()
+    st.write(capacity_intro(policy))
+    if policy is None:
+        followup_missing("The capacity-policy table")
+    else:
+        chosen_group = st.radio(
+            "Reports scored", list(POLICY_GROUPS), horizontal=True, key="ev_policy_group"
+        )
+        group = POLICY_GROUPS[chosen_group]
+        rates = ["Flag rate", "Recall", "Precision", "Specificity", "Cut-off"]
+        st.dataframe(
+            policy_table(policy, group).style.format(
+                {**dict.fromkeys(rates, "{:.3f}"), "Missed per 1,000": "{:.1f}"}
+            ),
+            hide_index=True,
+        )
+        in_group = policy[policy["group"] == group]
+        st.caption(
+            f"{int(in_group['n'].iloc[0]):,} test reports, lost-time prevalence "
+            f"{in_group['prevalence'].iloc[0]:.3f}. The capacity threshold is fixed on out-of-fold "
+            "scores. For the top-share rows the cut-off is the score that flags exactly that share of "
+            "these reports, so they compare models at an equal workload. The hand rule has two score "
+            "values only, so its top-share rows break ties by row order and do not rank reports."
+        )
+    st.markdown("**Deployed cut-off of the workload rule**")
+    rule = workload_rule()
+    if rule is None:
+        followup_missing("The workload-rule table")
+    else:
+        rule_columns = [
+            "Cut-off (out-of-fold)",
+            "Flag rate, open reports",
+            "Recall, open reports",
+            "Flag rate, all reports",
+            "Recall, all reports",
+        ]
+        st.dataframe(
+            rule_table(rule).style.format(dict.fromkeys(rule_columns, "{:.3f}")), hide_index=True
+        )
+        st.caption(
+            "The cut-off is the score that the top three in four of the "
+            f"{int(rule['train_open_rows'].iloc[0]):,} open-at-filing training reports reach on their "
+            "out-of-fold scores. It was fixed before the test rows were scored, so the flag rates "
+            "and recalls are realised, not tuned."
+        )
+    checks = workload_checks()
+    with st.expander("Calibration on open reports"):
+        if checks is None or not checks.get("open_calibration"):
+            followup_missing("The calibration summary")
+        else:
+            st.dataframe(
+                calibration_summary(checks).style.format(
+                    {
+                        "n": "{:,}",
+                        "Mean predicted": "{:.3f}",
+                        "Observed rate": "{:.3f}",
+                        "Predicted minus observed": "{:+.3f}",
+                        "Brier": "{:.3f}",
+                    }
+                ),
+                hide_index=True,
+            )
+        calibration = open_calibration()
+        if calibration is None:
+            followup_missing("The calibration bins")
+        else:
+            st.markdown("**Reliability of the reports still open at filing**")
+            bins = calibration[calibration["group"] == "open_at_filing"].assign(
+                model=lambda t: t["model"].map(model_label)
+            )
+            st.altair_chart(
+                line_chart(
+                    bins,
+                    "mean_predicted",
+                    "observed_rate",
+                    "model",
+                    x_title="Mean predicted probability",
+                    y_title="Observed share of lost-time cases",
+                    diagonal=True,
+                ),
+                width="stretch",
+            )
+            st.caption(
+                "Ten equal-frequency bins of the predicted probability. Points above the dashed "
+                "line mean the observed rate exceeds the prediction, so for these reports the "
+                "probability is a ranking score, not a rate."
+            )
+    if checks is not None:
+        st.caption(checks_caption(checks))
 
 with criteria_tab:
     success = require(metrics_json("success_criteria.json"), "The success criteria")

@@ -6,10 +6,12 @@
 The test rows had already been scored when these checks were written, so nothing here changes
 the selected model, its hyper-parameters, its thresholds or any other file in reports/metrics.
 Every check reads ``data/processed`` (features, split indices, base table) and
-``reports/predictions`` and writes ``reports/metrics/followup_checks.json``, with the flat
-table ``reports/metrics/followup_capacity_policy.csv`` beside it (one row per test group x
-model x flagging policy, the numbers of the ``return_to_work`` block); the wider-grid searches
-also write ``reports/cv/followup_<model>_cv_results.csv``.
+``reports/predictions`` and writes ``reports/metrics/followup_checks.json``, with three flat
+tables beside it: ``followup_capacity_policy.csv`` (one row per test group x model x flagging
+policy, the numbers of the ``return_to_work`` block), ``followup_workload_rule.csv`` (the
+out-of-fold cut-offs of the ``workload_rule`` block applied to the test rows) and
+``followup_open_calibration.csv`` (its reliability bins); the wider-grid searches also write
+``reports/cv/followup_<model>_cv_results.csv``.
 
 * ``capacity``: recall of the selected model when a given share of the test reports with the
   highest scores is flagged, so the recommendation can be read at review capacities other than
@@ -23,6 +25,11 @@ also write ``reports/cv/followup_<model>_cv_results.csv``.
   the multilayer perceptron, the lookup and the hand rule, on all test rows and on the open
   ones, each model's capacity threshold is set beside two equal workloads (exactly the top 50 %
   and the top 75 % of the group by score), so that no model gains recall by flagging more;
+* ``workload_rule``: the top-share workload fixed in advance, as a cut-off on the out-of-fold
+  scores of the open-at-filing training reports, then applied to the test rows; calibration of
+  the stored test probabilities on the open reports; a paired mine-year bootstrap of the
+  equal-workload comparison on the open test reports; and the selected model refitted on the
+  open training reports only, to see whether training on the reports the score is for helps;
 * ``logreg_interaction``: logistic regression with the selected settings, refitted with one
   extra one-hot block for the joint nature x body part x sector cell, under the same grouped
   folds, to test whether those cells explain the lead of gradient boosting;
@@ -44,7 +51,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.base import clone
+from sklearn.base import BaseEstimator, clone
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import cross_validate
@@ -60,6 +67,7 @@ from mlda.config import (
     ONE_HOT_MIN_FREQUENCY,
     PREDICTIONS_DIR,
     PROCESSED_DIR,
+    RANDOM_STATE,
     TARGET,
 )
 from mlda.evaluation import (
@@ -67,11 +75,13 @@ from mlda.evaluation import (
     confusion_counts,
     cost_from_counts,
     metrics_from_counts,
+    ranking_metrics,
     threshold_for_flag_rate,
 )
 from mlda.features import FEATURE_COLUMNS
 from mlda.models import ESTIMATOR_STEP, MODEL_ZOO, build_pipeline, default_preprocessor
 from mlda.operating import FLAG_KEY, LOOKUP_BASELINE, OPERATING_KEY
+from mlda.persistence import load_model
 from mlda.sensitivity import pure_levels
 from mlda.split import cv_splitter, load_split_indices
 from mlda.tuning import REFIT_METRIC, default_n_jobs, tune
@@ -95,6 +105,21 @@ POLICY_COLUMNS: tuple[str, ...] = (
     "n", "prevalence", "flag_rate", "recall", "specificity", "precision", "cutoff", "missed_per_1000",
 )
 POLICY_TABLE_NAME = "followup_capacity_policy.csv"
+# Workload rule on the open-at-filing reports: the selected model, the runner-up network and the
+# lookup. The cut-off of each top-share policy is fixed on out-of-fold scores of the open training
+# reports, as a reviewer would have to fix it before the reports of a new period arrive.
+WORKLOAD_MODELS: tuple[str, ...] = (SELECTED_MODEL, "mlp", LOOKUP_BASELINE)
+WORKLOAD_SHARE = 0.75  # the share flagged in the paired bootstrap and the open-only refit
+WORKLOAD_COLUMNS: tuple[str, ...] = (
+    "model", "policy", "cutoff_oof", "train_open_rows", "test_group",
+    "n", "flag_rate", "recall", "specificity", "precision", "missed_per_1000",
+)
+WORKLOAD_TABLE_NAME = "followup_workload_rule.csv"
+CALIBRATION_MODELS: tuple[str, ...] = (SELECTED_MODEL, "mlp")
+CALIBRATION_COLUMNS: tuple[str, ...] = ("group", "model", "bin", "n", "mean_predicted", "observed_rate")
+CALIBRATION_TABLE_NAME = "followup_open_calibration.csv"
+N_CALIBRATION_BINS = 10
+N_BOOT = 1_000
 INTERACTION_SCORING = {"average_precision": "average_precision", "roc_auc": "roc_auc"}
 
 # Wider grids run after the test rows were scored. Each contains one candidate of the original
@@ -136,7 +161,7 @@ WIDER_GRIDS: dict[str, dict[str, Any]] = {
 
 
 def load_inputs(processed_dir: Path = PROCESSED_DIR, predictions_dir: Path = PREDICTIONS_DIR) -> dict[str, Any]:
-    """Features, labels, groups, the persisted split, the base table fields and the test scores."""
+    """Features, labels, groups, the persisted split, the base table fields, test and out-of-fold scores."""
     table = pd.read_parquet(processed_dir / "features.parquet")
     split = load_split_indices(processed_dir / "split_indices.json")
     base = pd.read_parquet(
@@ -153,6 +178,9 @@ def load_inputs(processed_dir: Path = PROCESSED_DIR, predictions_dir: Path = PRE
     test_scores = pd.read_parquet(predictions_dir / "test_predictions.parquet")
     if not np.array_equal(test_scores["row"].to_numpy(), split.test_idx):
         raise ValueError("test_predictions.parquet does not follow the persisted test indices")
+    oof_scores = pd.read_parquet(predictions_dir / "oof_predictions.parquet")
+    if not np.array_equal(oof_scores["row"].to_numpy(), split.train_idx):
+        raise ValueError("oof_predictions.parquet does not follow the persisted training indices")
     return {
         "X": table[list(FEATURE_COLUMNS)],
         "y": table[TARGET].to_numpy(dtype=int),
@@ -160,6 +188,7 @@ def load_inputs(processed_dir: Path = PROCESSED_DIR, predictions_dir: Path = PRE
         "split": split,
         "base": base,
         "test_scores": test_scores,
+        "oof_scores": oof_scores,
     }
 
 
@@ -312,6 +341,14 @@ def capacity_policy_table(test_rows: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(records, columns=["group", "model", "policy", *POLICY_COLUMNS])
 
 
+def open_at_filing(base: pd.DataFrame) -> np.ndarray:
+    """True where the outcome was still open when the report was filed (see ``return_to_work_groups``).
+
+    A blank return-to-work date compares as False, so it counts as open.
+    """
+    return ~(base["RETURN_TO_WORK_DT"] <= base["filing_date"]).to_numpy()
+
+
 def return_to_work_groups(
     base: pd.DataFrame, test_idx: np.ndarray, test_scores: pd.DataFrame, thresholds: dict[str, Any],
     models: tuple[str, ...] = POLICY_MODELS,
@@ -324,7 +361,7 @@ def return_to_work_groups(
     On the groups in ``POLICY_GROUPS`` each model entry also holds ``policies``: its capacity
     threshold and the equal workloads of ``TOP_SHARE_POLICIES`` (see ``flag_policies``).
     """
-    back = (base["RETURN_TO_WORK_DT"] <= base["filing_date"]).to_numpy()
+    back = ~open_at_filing(base)
     labels = base[TARGET].to_numpy(dtype=int)
     summary = {
         "n_rows": int(len(base)),
@@ -355,6 +392,298 @@ def return_to_work_groups(
                 entry[name]["policies"] = flag_policies(y_test[mask], proba, float(thresholds[name][OPERATING_KEY]))
         groups_out[label] = entry
     return {"all_in_scope_rows": summary, "test_rows": groups_out}
+
+
+# ---------------------------------------------------------------------------
+# Workload rule on the open-at-filing reports
+# ---------------------------------------------------------------------------
+
+
+def oof_cutoff(oof_proba: np.ndarray, share: float) -> dict[str, Any]:
+    """The k-th highest out-of-fold score, k = round(share x scored rows) as in ``top_share_flags``.
+
+    Rows without a probability are dropped first and counted. On untied scores ``score >= cutoff``
+    flags exactly k rows; tied scores at the cut-off are all flagged, so the rows at or above it
+    are reported too (the lookup has a few hundred distinct scores).
+    """
+    scores = np.asarray(oof_proba, dtype=float)
+    blank = np.isnan(scores)
+    scored = scores[~blank]
+    flagged = top_share_flags(scored, share)
+    k = int(flagged.sum())
+    cutoff = float(scored[flagged].min()) if k else float("nan")
+    return {
+        "share": float(share),
+        "rows_scored": int(scored.size),
+        "rows_blank": int(blank.sum()),
+        "k": k,
+        "cutoff_oof": cutoff,
+        "rows_at_or_above_cutoff": int((scored >= cutoff).sum()),
+    }
+
+
+def workload_rule(
+    oof_scores: pd.DataFrame, train_open: np.ndarray, test_scores: pd.DataFrame, test_open: np.ndarray,
+    models: tuple[str, ...] = WORKLOAD_MODELS, shares: dict[str, float] = TOP_SHARE_POLICIES,
+) -> dict[str, Any]:
+    """Fix each top-share cut-off on the open training reports, then apply it to the test rows.
+
+    ``oof_scores`` holds the out-of-fold probabilities of the training rows and ``train_open``
+    marks the open-at-filing ones; ``test_scores`` and ``test_open`` are the same for the test
+    rows. The top-share policies of ``flag_policies`` choose k on the test rows themselves, which
+    a reviewer cannot do in advance; here the cut-off comes from training scores alone, so the
+    realised test flag rate shows how far the workload drifts from its target. A test row with
+    no score is never flagged.
+    """
+    train_mask = np.asarray(train_open, dtype=bool)
+    test_mask = np.asarray(test_open, dtype=bool)
+    y_test = test_scores["y_true"].to_numpy(dtype=int)
+    groups = {"open_at_filing": test_mask, "all_test_rows": np.ones(len(test_scores), dtype=bool)}
+    out: dict[str, Any] = {}
+    for name in models:
+        train = oof_scores[f"proba_{name}"].to_numpy(dtype=float)[train_mask]
+        test = test_scores[f"proba_{name}"].to_numpy(dtype=float)
+        blank = int(np.isnan(train).sum())
+        entry: dict[str, Any] = {
+            "train_open_rows": int(train.size),
+            "train_open_rows_blank_oof": blank,
+            "train_open_share_blank_oof": float(blank / train.size) if train.size else float("nan"),
+            "test_rows_blank": int(np.isnan(test).sum()),
+            "policies": {},
+        }
+        for policy, share in shares.items():
+            cut = oof_cutoff(train, share)
+            flagged = test >= cut["cutoff_oof"]
+            cut["test"] = {
+                group: policy_metrics(y_test[mask], flagged[mask], cut["cutoff_oof"]) for group, mask in groups.items()
+            }
+            entry["policies"][policy] = cut
+        out[name] = entry
+    return {
+        "rule": "cut-off = k-th highest out-of-fold score of the open-at-filing training reports, "
+                "k = round(share x scored rows); a test report is flagged when its score >= cut-off",
+        "models": out,
+    }
+
+
+def workload_rule_table(block: dict[str, Any]) -> pd.DataFrame:
+    """One row per model x policy x test group from ``workload_rule``.
+
+    ``train_open_rows`` is the number of open training reports with a score, the rows the cut-off
+    was taken from.
+    """
+    records = [
+        {
+            "model": model, "policy": policy, "cutoff_oof": cut["cutoff_oof"], "train_open_rows": cut["rows_scored"],
+            "test_group": group, **{c: metrics[c] for c in WORKLOAD_COLUMNS[5:]},
+        }
+        for model, entry in block["models"].items()
+        for policy, cut in entry["policies"].items()
+        for group, metrics in cut["test"].items()
+    ]
+    return pd.DataFrame(records, columns=list(WORKLOAD_COLUMNS))
+
+
+def equal_frequency_bins(proba: np.ndarray, n_bins: int = N_CALIBRATION_BINS) -> np.ndarray:
+    """Bin number (1 = lowest scores) of every row, the rows ranked by score and cut into equal counts.
+
+    Bins are cut on rank (stable sort, sizes differ by at most one row), so each bin holds the same
+    number of reports even where scores tie; quantile edges would merge tied bins instead.
+    """
+    order = np.argsort(np.asarray(proba, dtype=float), kind="stable")
+    bins = np.empty(order.size, dtype=int)
+    for number, rows in enumerate(np.array_split(order, n_bins), start=1):
+        bins[rows] = number
+    return bins
+
+
+def reliability_bins(y: np.ndarray, proba: np.ndarray, n_bins: int = N_CALIBRATION_BINS) -> pd.DataFrame:
+    """Mean predicted probability against the observed lost-time rate in equal-frequency bins.
+
+    ``calibration_table`` in mlda.evaluation uses equal-width bins; equal counts keep every bin
+    mean on the same number of reports. Empty bins (fewer rows than bins) are left out.
+    """
+    labels = np.asarray(y, dtype=int)
+    scores = np.asarray(proba, dtype=float)
+    bins = equal_frequency_bins(scores, n_bins)
+    records = [
+        {
+            "bin": number, "n": int(mask.sum()),
+            "mean_predicted": float(scores[mask].mean()), "observed_rate": float(labels[mask].mean()),
+        }
+        for number in range(1, n_bins + 1)
+        if (mask := bins == number).any()
+    ]
+    return pd.DataFrame(records, columns=["bin", "n", "mean_predicted", "observed_rate"])
+
+
+def calibration_summary(y: np.ndarray, proba: np.ndarray) -> dict[str, float]:
+    """Mean predicted probability, observed lost-time rate and Brier score (mean squared error) of a group."""
+    labels = np.asarray(y, dtype=float)
+    scores = np.asarray(proba, dtype=float)
+    if labels.size == 0:
+        nan = float("nan")
+        return {"n": 0, "mean_predicted": nan, "observed_rate": nan, "predicted_minus_observed": nan, "brier": nan}
+    return {
+        "n": int(labels.size),
+        "mean_predicted": float(scores.mean()),
+        "observed_rate": float(labels.mean()),
+        "predicted_minus_observed": float(scores.mean() - labels.mean()),
+        "brier": float(np.mean((scores - labels) ** 2)),
+    }
+
+
+def open_calibration(
+    test_scores: pd.DataFrame, test_open: np.ndarray, models: tuple[str, ...] = CALIBRATION_MODELS,
+    n_bins: int = N_CALIBRATION_BINS,
+) -> tuple[dict[str, Any], pd.DataFrame]:
+    """Calibration of the stored test probabilities on the open, the back-at-work and all test reports.
+
+    The models were fitted on all training rows, and the open reports have a higher lost-time rate
+    than the rest, so their probabilities may run low on the open cohort; the summary per group
+    shows the size of that offset. Returns the summaries (for the JSON) and the long reliability
+    table (for the CSV).
+    """
+    y = test_scores["y_true"].to_numpy(dtype=int)
+    is_open = np.asarray(test_open, dtype=bool)
+    groups = {"open_at_filing": is_open, "back_at_work": ~is_open, "all_test_rows": np.ones_like(is_open)}
+    summaries: dict[str, Any] = {"n_bins": int(n_bins), "binning": "equal frequency by predicted probability"}
+    frames = []
+    for group, mask in groups.items():
+        summaries[group] = {}
+        for name in models:
+            proba = test_scores[f"proba_{name}"].to_numpy(dtype=float)[mask]
+            summaries[group][name] = calibration_summary(y[mask], proba)
+            if mask.any():
+                frames.append(reliability_bins(y[mask], proba, n_bins).assign(group=group, model=name))
+    table = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    return summaries, table.reindex(columns=list(CALIBRATION_COLUMNS))
+
+
+def ranked_recall_and_average_precision(y: np.ndarray, proba: np.ndarray, k: int) -> tuple[float, float]:
+    """Recall of the k top-scored rows and average precision, from one stable sort on descending score.
+
+    The top k are the rows of ``top_share_flags`` (among ties the earlier row) and the average
+    precision is that of ``sklearn.metrics.average_precision_score`` (one step per distinct
+    score). Sharing the sort keeps 1,000 resamples of three models to a few seconds; the library
+    call alone took about 9 ms on the 11,290 open test reports. Needs at least one positive.
+    """
+    labels = np.asarray(y, dtype=float)
+    scores = np.asarray(proba, dtype=float)
+    order = np.argsort(-scores, kind="stable")
+    hits = np.cumsum(labels[order])
+    positives = hits[-1]
+    recall_top = float(hits[k - 1] / positives) if k else 0.0
+    # last row of each run of equal scores: the points of the precision-recall curve
+    last = np.r_[np.flatnonzero(np.diff(scores[order])), scores.size - 1]
+    tp = hits[last]
+    average_precision = float(np.sum(np.diff(np.r_[0.0, tp]) / positives * (tp / (last + 1))))
+    return recall_top, average_precision
+
+
+def paired_workload_bootstrap(
+    y: np.ndarray, scores: dict[str, np.ndarray], groups: np.ndarray, reference: str = SELECTED_MODEL,
+    comparators: tuple[str, ...] = (LOOKUP_BASELINE, "mlp"), share: float = WORKLOAD_SHARE,
+    n_boot: int = N_BOOT, alpha: float = 0.05, random_state: int = RANDOM_STATE,
+) -> dict[str, Any]:
+    """Paired mine-year bootstrap of recall at an equal workload and of PR-AUC, reference minus comparator.
+
+    Mine-years (``groups``) are drawn with replacement as in ``bootstrap_ci``, each draw bringing all
+    of its rows, and every model is scored on the same resample, so the percentile interval is for
+    the difference itself and keeps the correlation between the models. The top-share rule is
+    applied within each resample, so the workload stays at ``share`` of the resampled reports.
+    Resamples with a single class are skipped, as in ``bootstrap_ci``.
+    """
+    labels = np.asarray(y, dtype=int)
+    names = [reference, *comparators]
+    proba = {name: np.asarray(scores[name], dtype=float) for name in names}
+    _, cluster = np.unique(np.asarray(groups).astype(str), return_inverse=True)
+    n_clusters = int(cluster.max()) + 1
+    rows = np.arange(labels.size)
+
+    def score(idx: np.ndarray) -> np.ndarray:
+        k = int(np.floor(share * idx.size + 0.5))
+        return np.array([ranked_recall_and_average_precision(labels[idx], proba[name][idx], k) for name in names])
+
+    point = score(rows)
+    rng = np.random.default_rng(random_state)
+    replicates = []
+    for _ in range(n_boot):
+        draws = np.bincount(rng.integers(0, n_clusters, n_clusters), minlength=n_clusters)
+        idx = np.repeat(rows, draws[cluster])
+        if not 0 < labels[idx].sum() < idx.size:
+            continue
+        replicates.append(score(idx))
+    values = np.stack(replicates)  # resample x model x (recall, pr_auc)
+    metrics = (f"recall_top_{round(share * 100)}pct", "pr_auc")
+    differences: dict[str, Any] = {}
+    for j, other in enumerate(names[1:], start=1):
+        entry: dict[str, Any] = {}
+        for m, metric in enumerate(metrics):
+            diff = values[:, 0, m] - values[:, j, m]
+            lower, upper = np.quantile(diff, [alpha / 2, 1 - alpha / 2])
+            entry[metric] = {
+                "estimate": float(point[0, m] - point[j, m]),
+                "lower": float(lower),
+                "upper": float(upper),
+                "share_of_resamples_above_zero": float(np.mean(diff > 0)),
+            }
+        differences[f"{reference}_minus_{other}"] = entry
+    return {
+        "share": float(share),
+        "n": int(labels.size),
+        "mine_years": n_clusters,
+        "n_boot": int(n_boot),
+        "n_boot_used": len(replicates),
+        "alpha": float(alpha),
+        "random_state": int(random_state),
+        "point": {name: dict(zip(metrics, map(float, point[i]), strict=True)) for i, name in enumerate(names)},
+        "differences": differences,
+    }
+
+
+def open_only_refit(
+    template: BaseEstimator, X: pd.DataFrame, y: np.ndarray, train_idx: np.ndarray, test_idx: np.ndarray,
+    open_rows: np.ndarray, all_rows_proba: np.ndarray, share: float = WORKLOAD_SHARE,
+) -> dict[str, Any]:
+    """Refit ``template`` (same hyper-parameters) on the open-at-filing training rows; score the open test rows.
+
+    ``open_rows`` marks the open reports among all rows of ``X``; ``all_rows_proba`` is the stored
+    test score of the model fitted on every training row, in ``test_idx`` order. Both are read on
+    the open test reports at PR-AUC, ROC-AUC and the top-share workload taken within that cohort.
+    The fit sees training rows only.
+    """
+    started = time.perf_counter()
+    is_open = np.asarray(open_rows, dtype=bool)
+    fit_rows = train_idx[is_open[train_idx]]
+    test_mask = is_open[test_idx]
+    fitted = clone(template).fit(X.iloc[fit_rows], y[fit_rows])
+    y_open = y[test_idx[test_mask]]
+    policy = f"top_{round(share * 100)}pct"
+
+    def summary(proba: np.ndarray) -> dict[str, Any]:
+        ranking = ranking_metrics(y_open, proba)
+        flagged = top_share_flags(proba, share)
+        cutoff = float(proba[flagged].min()) if flagged.any() else float("nan")
+        return {"pr_auc": ranking["pr_auc"], "roc_auc": ranking["roc_auc"], policy: policy_metrics(y_open, flagged, cutoff)}
+
+    refit = summary(fitted.predict_proba(X.iloc[test_idx[test_mask]])[:, 1])
+    stored = summary(np.asarray(all_rows_proba, dtype=float)[test_mask])
+    return {
+        "training_rows_open": int(fit_rows.size),
+        "training_rows_all": int(len(train_idx)),
+        "test_rows_open": int(test_mask.sum()),
+        "share": float(share),
+        "open_only_refit": refit,
+        "all_rows_model": stored,
+        "refit_minus_all_rows": {
+            "pr_auc": refit["pr_auc"] - stored["pr_auc"],
+            "roc_auc": refit["roc_auc"] - stored["roc_auc"],
+            f"recall_{policy}": refit[policy]["recall"] - stored[policy]["recall"],
+            f"precision_{policy}": refit[policy]["precision"] - stored[policy]["precision"],
+        },
+        "seconds": round(time.perf_counter() - started, 1),
+    }
 
 
 def pure_levels_on_training_rows(X: pd.DataFrame, y: np.ndarray, train_idx: np.ndarray, stored: list[dict[str, Any]]) -> dict[str, Any]:
@@ -506,10 +835,11 @@ def _read_json(path: Path) -> Any:
 
 
 def run(skip_grids: bool = False, grids: tuple[str, ...] = tuple(WIDER_GRIDS), output: Path | None = None) -> dict[str, Any]:
-    """Run the checks, write ``followup_checks.json`` and the capacity-policy CSV; returns the payload.
+    """Run the checks, write ``followup_checks.json`` and its three CSVs; returns the payload.
 
-    The CSV is written beside the JSON (``reports/metrics`` unless ``output`` says otherwise), so a
-    run into another directory never overwrites the committed table.
+    The CSVs (capacity policy, workload rule, open-cohort calibration) are written beside the JSON
+    (``reports/metrics`` unless ``output`` says otherwise), so a run into another directory never
+    overwrites the committed tables.
     """
     started = time.perf_counter()
     n_jobs = default_n_jobs()
@@ -522,6 +852,8 @@ def run(skip_grids: bool = False, grids: tuple[str, ...] = tuple(WIDER_GRIDS), o
     models = [name for name in MODEL_ZOO if name in thresholds]
     y_test = test_scores["y_true"].to_numpy(dtype=int)
     selected = test_scores[f"proba_{SELECTED_MODEL}"].to_numpy(dtype=float)
+    open_rows = open_at_filing(inputs["base"])
+    train_open, test_open = open_rows[split.train_idx], open_rows[split.test_idx]
 
     output = output or METRICS_DIR / OUTPUT_NAME
     previous = _read_json(output) if output.exists() else {}
@@ -534,6 +866,21 @@ def run(skip_grids: bool = False, grids: tuple[str, ...] = tuple(WIDER_GRIDS), o
         "return_to_work": return_to_work_groups(inputs["base"], split.test_idx, test_scores, thresholds),
         "pure_levels_training_rows": pure_levels_on_training_rows(
             X, y, split.train_idx, sensitivity["pure_levels"]["found"]
+        ),
+    }
+    calibration, calibration_bins = open_calibration(test_scores, test_open)
+    log.info("open-only refit of %s on %d training rows", SELECTED_MODEL, int(train_open.sum()))
+    payload["workload_rule"] = {
+        "open_at_filing_rows": {"training": int(train_open.sum()), "test": int(test_open.sum())},
+        "oof_cutoffs": workload_rule(inputs["oof_scores"], train_open, test_scores, test_open),
+        "open_calibration": calibration,
+        "paired_bootstrap_open_at_filing": paired_workload_bootstrap(
+            y_test[test_open],
+            {name: test_scores[f"proba_{name}"].to_numpy(dtype=float)[test_open] for name in WORKLOAD_MODELS},
+            test_scores[GROUP_KEY].to_numpy()[test_open],
+        ),
+        "open_only_refit": open_only_refit(
+            load_model(SELECTED_MODEL), X, y, split.train_idx, split.test_idx, open_rows, selected,
         ),
     }
     payload["logreg_interaction"] = logreg_interaction(
@@ -553,7 +900,12 @@ def run(skip_grids: bool = False, grids: tuple[str, ...] = tuple(WIDER_GRIDS), o
     output.write_text(json.dumps(payload, indent=2, default=str) + LF, encoding="utf-8", newline=LF)
     policy_path = output.parent / POLICY_TABLE_NAME
     capacity_policy_table(payload["return_to_work"]["test_rows"]).to_csv(policy_path, index=False, lineterminator=LF)
-    log.info("wrote %s and %s in %.0f s", output, policy_path.name, payload["seconds"])
+    workload_path = output.parent / WORKLOAD_TABLE_NAME
+    workload_rule_table(payload["workload_rule"]["oof_cutoffs"]).to_csv(workload_path, index=False, lineterminator=LF)
+    calibration_path = output.parent / CALIBRATION_TABLE_NAME
+    calibration_bins.to_csv(calibration_path, index=False, lineterminator=LF)
+    log.info("wrote %s, %s, %s and %s in %.0f s", output, policy_path.name, workload_path.name,
+             calibration_path.name, payload["seconds"])
     return payload
 
 

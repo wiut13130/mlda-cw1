@@ -14,6 +14,7 @@ from _common import (
     BATCH_REQUIRED,
     CASE_HISTORY_PATH,
     CODE_FIELDS,
+    FOLLOWUP_COMMAND,
     MAX_BATCH_ROWS,
     MAX_TABLE_ROWS,
     MINE_ID_RULE,
@@ -46,6 +47,7 @@ from _common import (
     score_frame,
     shap_supported,
     template_csv,
+    workload_cutoff,
 )
 
 from mlda.config import COST_RATIOS, OPERATING_SPECIFICITY, YEAR_MAX, YEAR_MIN
@@ -75,6 +77,12 @@ HISTORY_FIELDS = (
     ("prev_lost_time_cases", "Lost-time cases", 1.0),
 )
 TOP_N = 12
+RULE_HELP = "top three in four of reports still open at filing; cut-off from out-of-fold training scores"
+RULE_CAPTION = (
+    "For a report with no return-to-work date yet, use the workload rule; the probability is calibrated to all "
+    "filings and runs about 0.12 below the observed rate on open reports, so read it as a ranking score there. "
+    "The cost note below applies to all filings."
+)
 
 
 def mine_block() -> tuple[str, date, dict[str, Any] | None, dict[str, Any]] | None:
@@ -221,22 +229,51 @@ def show_result(raw: pd.DataFrame, model_name: str) -> None:
     probability = float(pipeline.predict_proba(features)[0, 1])
     thresholds = model_thresholds(model_name)
     operating = thresholds.get(OPERATING_KEY, 0.5)
+    cutoff = workload_cutoff(model_name)
     st.subheader(
         f"Result for mine {raw['MINE_ID'].iloc[0]} on {raw['ACCIDENT_DT'].iloc[0]:%Y-%m-%d}"
     )
-    first, second, third = st.columns(3)
+    dated = st.selectbox(
+        "Return-to-work date already on the form?",
+        ("No", "Yes"),
+        key="inf_dated",
+        help="The workload rule is meant for reports that are still open at filing.",
+    ) == "Yes"
+    if dated:
+        st.info("The outcome is recorded on the form, so the score is for information only.")
+    first, second, third, fourth = st.columns(4)
     first.metric("Probability of a lost-time injury", f"{probability:.1%}", border=True)
+    if cutoff is None:
+        second.metric(
+            "Workload rule (open reports)",
+            "not available",
+            border=True,
+            help=f"No cut-off for this model in followup_workload_rule.csv. Create it with `{FOLLOWUP_COMMAND}`.",
+        )
+    else:
+        second.metric(
+            "Workload rule (open reports)",
+            "Review" if probability >= cutoff else "Routine handling",
+            None if dated else "Applies to this report",
+            delta_color="green",
+            delta_arrow="off",
+            border=True,
+            help=f"{RULE_HELP} ({cutoff:.3f}).",
+        )
     decision = "Flag for early review" if probability >= operating else "Routine handling"
     help_text = (
-        f"Chosen on out-of-fold scores so that {OPERATING_SPECIFICITY:.0%} "
+        f"Threshold {operating:.3f}, chosen on out-of-fold scores so that {OPERATING_SPECIFICITY:.0%} "
         "of non-lost-time cases stay unflagged."
     )
-    second.metric(
-        f"At the operating threshold ({operating:.3f})", decision, border=True, help=help_text
-    )
-    third.metric(
+    third.metric("Capacity threshold (all filings)", decision, border=True, help=help_text)
+    fourth.metric(
         "At threshold 0.50", "Lost time" if probability >= 0.5 else "No lost time", border=True
     )
+    st.caption(RULE_CAPTION)
+    if cutoff is None:
+        st.caption(
+            f"The workload-rule cut-off of this model is not available. Create it with `{FOLLOWUP_COMMAND}`."
+        )
 
     ratio = st.select_slider(
         "Cost of a missed case relative to an unnecessary review",
@@ -244,6 +281,7 @@ def show_result(raw: pd.DataFrame, model_name: str) -> None:
         3,
         lambda r: f"{r}:1",
         key="inf_ratio",
+        help="Computed at the model's probability on all filings, not on reports still open at filing.",
     )
     st.info(cost_note(probability, ratio, thresholds.get("cost_optimal", {}).get(str(ratio))))
 
@@ -314,20 +352,41 @@ def batch_section(model_name: str) -> None:
         return
     probability = score_frame(load_pipeline(model_name), raw)
     operating = model_thresholds(model_name).get(OPERATING_KEY, 0.5)
-    result = uploaded.assign(
-        probability=probability,
-        flag_operating_point=probability >= operating,
-        flag_at_0_5=probability >= 0.5,
-    )
-    first, second, third = st.columns(3)
+    cutoff = workload_cutoff(model_name)
+    flags: dict[str, Any] = {"flag_operating_point": probability >= operating}
+    if cutoff is not None:  # without a cut-off the column is left out, so that no blank can read as "routine"
+        flags["flag_workload_rule"] = (probability >= cutoff).astype(int)
+    result = uploaded.assign(probability=probability, **flags, flag_at_0_5=probability >= 0.5)
+    first, second, third, fourth = st.columns(4)
     first.metric("Rows scored", f"{len(result):,}", border=True)
     second.metric(
-        "Flagged at the operating point",
+        "Flagged at the capacity threshold",
         f"{result['flag_operating_point'].mean():.1%}",
         border=True,
     )
-    third.metric(
+    if cutoff is None:
+        third.metric(
+            "Flagged under the workload rule",
+            "not available",
+            border=True,
+            help=f"No cut-off for this model in followup_workload_rule.csv. Create it with `{FOLLOWUP_COMMAND}`.",
+        )
+    else:
+        flagged = int(result["flag_workload_rule"].sum())
+        third.metric(
+            "Flagged under the workload rule",
+            f"{flagged:,}",
+            border=True,
+            help=f"{flagged / len(result):.1%} of the rows at the cut-off {cutoff:.3f}.",
+        )
+    fourth.metric(
         "Mines without previous-year data", f"{(~raw['prev_year_matched']).sum():,}", border=True
+    )
+    st.caption(
+        "flag_workload_rule is for reports with no return-to-work date yet; flag_operating_point and "
+        "flag_at_0_5 are for all filings."
+        if cutoff is not None
+        else f"The workload-rule cut-off of this model is not available. Create it with `{FOLLOWUP_COMMAND}`."
     )
     st.dataframe(result.head(MAX_TABLE_ROWS), hide_index=True)
     csv = result.to_csv(index=False).encode("utf-8")

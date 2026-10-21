@@ -4,7 +4,7 @@ Why one module: every page reads the same precomputed artefacts (data/processed,
 reports) and draws the same few chart shapes, so the loaders and the Altair helpers live here
 and the pages stay short enough to read from top to bottom. Sections, in order: artefact readers,
 run and model facts, data descriptions, training samples and live jobs, evaluation data, chart
-helpers, inference (options, lookups, scoring, explanations), evaluation tables, sidebar.
+helpers, inference (options, lookups, scoring, explanations), evaluation tables, follow-up artefacts, sidebar.
 
 Every cached loader takes the file's modification time as part of its key. An app that is
 running while ``mlda-train`` rewrites the artefacts therefore reads the new files on the next
@@ -89,6 +89,9 @@ MINE_YEAR_PATH = PROCESSED_DIR / "mine_year_features.parquet"
 CASE_HISTORY_PATH = PROCESSED_DIR / "mine_case_history.parquet"
 TEST_PREDICTIONS_PATH = PREDICTIONS_DIR / "test_predictions.parquet"
 MSHA_LANDING_PAGE = "https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp"
+
+WORKLOAD_POLICY = "top_75pct"  # the deployed rule: review the top three in four of the open reports
+FOLLOWUP_COMMAND = "uv run python -m mlda.followup"  # writes the follow-up files that the workload rule reads
 
 MAX_TABLE_ROWS = 10_000  # st.dataframe never receives more rows than this
 MAX_CHART_ROWS = 20_000  # Altair never receives more rows than this
@@ -1147,6 +1150,7 @@ def cost_note(probability: float, ratio: int, optimal: float | None) -> str:
         f"{ratio * COST_FP_USD}. For this "
         f"case reviewing costs USD {review:.0f} in expectation and not reviewing USD {skip:.0f}, so "
         f"{cheaper} is cheaper. "
+        "The costs are computed at the model's probability on all filings. "
         f"The break-even probability is {1 / (1 + ratio):.3f} if the score is calibrated; the model's out-of-fold "
         f"cost-optimal threshold is {threshold}."
     )
@@ -1413,6 +1417,47 @@ def sensitivity_table(sensitivity: dict[str, Any]) -> pd.DataFrame:
             for name, d in deltas.items()
         ]
     )
+
+
+# --------------------------------------------------------------------------- follow-up artefacts
+
+
+def capacity_policy() -> pd.DataFrame | None:
+    """followup_capacity_policy.csv: capacity threshold and equal-workload policies per group and model."""
+    return metrics_csv("followup_capacity_policy.csv")
+
+
+def workload_rule() -> pd.DataFrame | None:
+    """followup_workload_rule.csv: the deployed out-of-fold cut-offs and their realised test results."""
+    return metrics_csv("followup_workload_rule.csv")
+
+
+def workload_cutoff(model_name: str, policy: str = WORKLOAD_POLICY) -> float | None:
+    """Deployed cut-off of one model under one policy, or None when the CSV or that row is missing.
+
+    The file holds one row per test group with the same cut-off, so the first match is read. The cut-off
+    comes from out-of-fold training scores, which is why the page can use it without touching test rows.
+    """
+    rule = workload_rule()
+    if rule is None or not {"model", "policy", "cutoff_oof"} <= set(rule.columns):
+        return None
+    values = pd.to_numeric(
+        rule.loc[(rule["model"] == model_name) & (rule["policy"] == policy), "cutoff_oof"],
+        errors="coerce",
+    ).dropna()
+    return float(values.iloc[0]) if len(values) else None
+
+
+def open_calibration() -> pd.DataFrame | None:
+    """followup_open_calibration.csv: ten equal-frequency calibration bins per group and model."""
+    return metrics_csv("followup_open_calibration.csv")
+
+
+def workload_checks() -> dict[str, Any] | None:
+    """The ``workload_rule`` block of followup_checks.json, or None when the file or the block is absent."""
+    checks = metrics_json("followup_checks.json")
+    block = checks.get("workload_rule") if isinstance(checks, dict) else None
+    return block if isinstance(block, dict) else None
 
 
 # --------------------------------------------------------------------------- sidebar and entrypoint

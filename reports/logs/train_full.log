@@ -1,105 +1,102 @@
-2026-10-14 21:32:18,916 INFO mlda.pipeline: train_all: quick=False, models=['logreg', 'knn', 'gaussian_nb', 'decision_tree', 'random_forest', 'hist_gb', 'svc_rbf', 'mlp'], cv folds=5, n_jobs=8
-2026-10-14 21:32:18,916 INFO mlda.pipeline: stage load_and_clean: start
-2026-10-14 21:32:19,273 INFO mlda.data.join: loaded cached base.parquet in 0.4 s (101609 rows)
-2026-10-14 21:32:19,473 INFO mlda.cleaning: E24: 22368 rows not demonstrably in 103I status at the accident (15226 dated after it) -> Unknown
-2026-10-14 21:32:19,480 INFO mlda.cleaning: E25: 764 rows with prev_hours < 2000; incident rate capped on 364 rows
-2026-10-14 21:32:19,494 INFO mlda.pipeline: error rules applied to 101609 rows; 17 rules logged
-2026-10-14 21:32:19,511 INFO mlda.pipeline: stage load_and_clean: done in 0.6 s
-2026-10-14 21:32:19,511 INFO mlda.pipeline: stage features_and_split: start
-2026-10-14 21:32:20,908 INFO mlda.pipeline: wrote features.parquet: 101609 rows x 61 columns
-2026-10-14 21:32:25,713 INFO mlda.pipeline: split: 81289 train / 20320 test rows, prevalence 0.4858 / 0.4859
-2026-10-14 21:32:28,449 INFO mlda.pipeline: default preprocessor on the training rows: 552 transformed columns
-2026-10-14 21:32:28,449 INFO mlda.pipeline: stage features_and_split: done in 8.9 s
-2026-10-14 21:32:28,449 INFO mlda.pipeline: stage eda: start
-2026-10-14 21:32:48,087 INFO mlda.pipeline: stage eda: done in 19.7 s
-2026-10-14 21:32:48,120 INFO mlda.pipeline: stage baselines: start
-2026-10-14 21:32:52,201 INFO mlda.pipeline: baseline majority                     test AUC 0.5000 PR-AUC 0.4859 recall@0.5 0.0000
-2026-10-14 21:32:55,451 INFO mlda.pipeline: baseline all_positive                 test AUC 0.5000 PR-AUC 0.4859 recall@0.5 1.0000
-2026-10-14 21:32:59,107 INFO mlda.pipeline: baseline rule_not_cut_or_dust         test AUC 0.6605 PR-AUC 0.5841 recall@0.5 0.8982
-2026-10-14 21:33:03,351 INFO mlda.pipeline: baseline lookup_nature_bodypart_coal  test AUC 0.8039 PR-AUC 0.7899 recall@0.5 0.6548
-2026-10-14 21:33:03,367 INFO mlda.pipeline: stage baselines: done in 15.2 s
-2026-10-14 21:33:03,367 INFO mlda.pipeline: stage model_logreg: start
-2026-10-14 21:34:14,275 INFO mlda.tuning: logreg: 8 candidates, best average_precision=0.8202, 71 s
-2026-10-14 21:34:14,718 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\logreg.joblib (0.0 MB)
-2026-10-14 21:34:14,733 INFO mlda.pipeline: logreg         CV AP 0.8202 | test AUC 0.8291 PR-AUC 0.8248 | recall@spec0.40 0.9336 | 71 s
-2026-10-14 21:34:14,733 INFO mlda.pipeline: stage model_logreg: done in 71.4 s
-2026-10-14 21:34:14,733 INFO mlda.pipeline: stage model_knn: start
-2026-10-14 21:34:14,798 INFO mlda.tuning: knn: fitting on 39999 of 81289 training rows (sample cap)
-2026-10-14 21:38:56,159 INFO mlda.tuning: knn: 6 candidates, best average_precision=0.7643, 281 s
-2026-10-14 21:38:59,896 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\knn.joblib (5.2 MB)
-2026-10-14 21:38:59,906 INFO mlda.pipeline: knn            CV AP 0.7643 | test AUC 0.7732 PR-AUC 0.7698 | recall@spec0.40 0.8863 | 281 s
-2026-10-14 21:38:59,916 INFO mlda.pipeline: stage model_knn: done in 285.2 s
-2026-10-14 21:38:59,916 INFO mlda.pipeline: stage model_gaussian_nb: start
-2026-10-14 21:39:28,990 INFO mlda.tuning: gaussian_nb: 5 candidates, best average_precision=0.7345, 29 s
-2026-10-14 21:39:29,440 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\gaussian_nb.joblib (0.0 MB)
-2026-10-14 21:39:29,454 INFO mlda.pipeline: gaussian_nb    CV AP 0.7345 | test AUC 0.7410 PR-AUC 0.7406 | recall@spec0.40 0.8679 | 29 s
-2026-10-14 21:39:29,456 INFO mlda.pipeline: stage model_gaussian_nb: done in 29.5 s
-2026-10-14 21:39:29,456 INFO mlda.pipeline: stage model_decision_tree: start
-2026-10-14 21:42:10,648 INFO mlda.tuning: decision_tree: 24 candidates, best average_precision=0.8034, 161 s
-2026-10-14 21:42:11,061 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\decision_tree.joblib (0.0 MB)
-2026-10-14 21:42:11,073 INFO mlda.pipeline: decision_tree  CV AP 0.8034 | test AUC 0.8171 PR-AUC 0.8046 | recall@spec0.40 0.9319 | 161 s
-2026-10-14 21:42:11,086 INFO mlda.pipeline: stage model_decision_tree: done in 161.6 s
-2026-10-14 21:42:11,086 INFO mlda.pipeline: stage model_random_forest: start
-2026-10-14 21:44:31,259 INFO mlda.tuning: random_forest: 4 candidates, best average_precision=0.8214, 140 s
-2026-10-14 21:44:33,211 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\random_forest.joblib (20.4 MB)
-2026-10-14 21:44:33,227 INFO mlda.pipeline: random_forest  CV AP 0.8214 | test AUC 0.8328 PR-AUC 0.8266 | recall@spec0.40 0.9352 | 140 s
-2026-10-14 21:44:33,242 INFO mlda.pipeline: stage model_random_forest: done in 142.2 s
-2026-10-14 21:44:33,242 INFO mlda.pipeline: stage model_hist_gb: start
-2026-10-14 21:54:13,358 INFO mlda.tuning: hist_gb: 16 candidates, best average_precision=0.8381, 580 s
-2026-10-14 21:54:14,006 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\hist_gb.joblib (0.4 MB)
-2026-10-14 21:54:14,017 INFO mlda.pipeline: hist_gb        CV AP 0.8381 | test AUC 0.8430 PR-AUC 0.8414 | recall@spec0.40 0.9432 | 580 s
-2026-10-14 21:54:14,027 INFO mlda.pipeline: stage model_hist_gb: done in 580.8 s
-2026-10-14 21:54:14,027 INFO mlda.pipeline: stage model_svc_rbf: start
-2026-10-14 21:54:14,076 INFO mlda.tuning: svc_rbf: fitting on 9913 of 81289 training rows (sample cap)
-2026-10-14 22:14:07,113 INFO mlda.tuning: svc_rbf: 4 candidates, best average_precision=0.7945, 1193 s
-2026-10-14 22:14:52,888 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\svc_rbf.joblib (1.2 MB)
-2026-10-14 22:14:52,895 INFO mlda.pipeline: svc_rbf        CV AP 0.7945 | test AUC 0.8196 PR-AUC 0.8113 | recall@spec0.40 0.9266 | 1193 s
-2026-10-14 22:14:52,905 INFO mlda.pipeline: stage model_svc_rbf: done in 1238.9 s
-2026-10-14 22:14:52,905 INFO mlda.pipeline: stage model_mlp: start
-2026-10-14 22:18:00,741 INFO mlda.tuning: mlp: 9 candidates, best average_precision=0.8327, 188 s
-2026-10-14 22:18:01,220 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\mlp.joblib (0.8 MB)
-2026-10-14 22:18:01,236 INFO mlda.pipeline: mlp            CV AP 0.8327 | test AUC 0.8395 PR-AUC 0.8369 | recall@spec0.40 0.9479 | 188 s
-2026-10-14 22:18:01,253 INFO mlda.pipeline: stage model_mlp: done in 188.3 s
-2026-10-14 22:18:01,255 INFO mlda.pipeline: stage predictions_and_comparison: start
-2026-10-14 22:18:01,301 INFO mlda.pipeline: wrote test_predictions.parquet (20320 rows, 19 columns)
-2026-10-14 22:18:01,432 INFO mlda.pipeline: wrote oof_predictions.parquet (81289 rows, 19 columns)
-2026-10-14 22:18:17,471 INFO mlda.pipeline: stage predictions_and_comparison: done in 16.2 s
-2026-10-14 22:18:17,471 INFO mlda.pipeline: stage evaluation_figures: start
-2026-10-14 22:18:20,561 INFO mlda.pipeline: stage evaluation_figures: done in 3.1 s
-2026-10-14 22:18:20,561 INFO mlda.pipeline: stage learning_curve: start
-2026-10-14 22:18:49,525 INFO mlda.pipeline: stage learning_curve: done in 29.0 s
-2026-10-14 22:18:49,525 INFO mlda.pipeline: stage temporal_split: start
-2026-10-14 22:20:00,763 INFO mlda.tuning: logreg: 8 candidates, best average_precision=0.8186, 70 s
-2026-10-14 22:20:00,801 INFO mlda.tuning: knn: fitting on 40000 of 71877 training rows (sample cap)
-2026-10-14 22:24:40,903 INFO mlda.tuning: knn: 6 candidates, best average_precision=0.7615, 280 s
-2026-10-14 22:25:07,055 INFO mlda.tuning: gaussian_nb: 5 candidates, best average_precision=0.7320, 26 s
-2026-10-14 22:27:27,900 INFO mlda.tuning: decision_tree: 24 candidates, best average_precision=0.8002, 141 s
-2026-10-14 22:29:28,113 INFO mlda.tuning: random_forest: 4 candidates, best average_precision=0.8173, 120 s
-2026-10-14 22:38:22,089 INFO mlda.tuning: hist_gb: 16 candidates, best average_precision=0.8352, 534 s
-2026-10-14 22:38:22,116 INFO mlda.tuning: svc_rbf: fitting on 9820 of 71877 training rows (sample cap)
-2026-10-14 22:56:06,971 INFO mlda.tuning: svc_rbf: 4 candidates, best average_precision=0.7839, 1065 s
-2026-10-14 22:58:15,638 INFO mlda.tuning: mlp: 9 candidates, best average_precision=0.8314, 129 s
-2026-10-14 22:58:16,366 INFO mlda.pipeline: temporal hist_gb        with_status_103i           AUC 0.8337 PR-AUC 0.8427 Brier 0.1659 spec@op 0.3768
-2026-10-14 22:59:22,465 INFO mlda.pipeline: temporal hist_gb        without_status_103i        AUC 0.8334 PR-AUC 0.8425 Brier 0.1661 spec@op 0.3762
-2026-10-14 23:00:23,630 INFO mlda.pipeline: temporal hist_gb        without_immed_reportable   AUC 0.8323 PR-AUC 0.8410 Brier 0.1667 spec@op 0.3778
-2026-10-14 23:00:24,034 INFO mlda.pipeline: temporal mlp            with_status_103i           AUC 0.8252 PR-AUC 0.8335 Brier 0.1726 spec@op 0.4254
-2026-10-14 23:00:44,134 INFO mlda.pipeline: temporal mlp            without_status_103i        AUC 0.8221 PR-AUC 0.8281 Brier 0.1730 spec@op 0.3208
-2026-10-14 23:01:04,757 INFO mlda.pipeline: temporal mlp            without_immed_reportable   AUC 0.8232 PR-AUC 0.8292 Brier 0.1714 spec@op 0.3128
-2026-10-14 23:01:04,805 INFO mlda.pipeline: stage temporal_split: done in 2535.3 s
-2026-10-14 23:01:04,805 INFO mlda.pipeline: stage sensitivity: start
-2026-10-14 23:02:07,679 INFO mlda.sensitivity: sensitivity without_immed_reportable           AUC 0.8431 PR-AUC 0.8404 recall@spec0.40 0.9426
-2026-10-14 23:03:16,037 INFO mlda.sensitivity: sensitivity without_status_103i                AUC 0.8433 PR-AUC 0.8413 recall@spec0.40 0.9417
-2026-10-14 23:04:21,606 INFO mlda.sensitivity: sensitivity resolved_lag_counts                AUC 0.8426 PR-AUC 0.8409 recall@spec0.40 0.9431
-2026-10-14 23:05:25,310 INFO mlda.sensitivity: sensitivity exposure_blank_if_q4_incomplete    AUC 0.8429 PR-AUC 0.8411 recall@spec0.40 0.9418
-2026-10-14 23:06:29,893 INFO mlda.pipeline: stage sensitivity: done in 325.1 s
-2026-10-14 23:06:29,893 INFO mlda.pipeline: stage explanations: start
-2026-10-14 23:06:53,833 INFO mlda.pipeline: stage explanations: done in 23.9 s
-2026-10-14 23:06:53,833 INFO mlda.pipeline: stage success_criteria: start
-2026-10-14 23:06:53,841 INFO mlda.pipeline: stage success_criteria: done in 0.0 s
-2026-10-14 23:06:53,912 INFO mlda.pipeline: train_all finished in 5674.9 s; best model hist_gb
-finished in 5674.9 s; best model hist_gb
-
-real	94m42.767s
-user	0m0.015s
-sys	0m0.000s
-EXIT 0
+2026-10-20 17:11:22,904 INFO mlda.pipeline: train_all: quick=False, models=['logreg', 'knn', 'gaussian_nb', 'decision_tree', 'random_forest', 'hist_gb', 'svc_rbf', 'mlp'], cv folds=5, n_jobs=8
+2026-10-20 17:11:22,904 INFO mlda.pipeline: stage load_and_clean: start
+2026-10-20 17:11:23,168 INFO mlda.data.join: loaded cached base.parquet in 0.3 s (101609 rows)
+2026-10-20 17:11:23,348 INFO mlda.cleaning: E24: 22368 rows not demonstrably in 103I status at the accident (15226 dated after it) -> Unknown
+2026-10-20 17:11:23,352 INFO mlda.cleaning: E25: 764 rows with prev_hours < 2000; incident rate capped on 364 rows
+2026-10-20 17:11:23,356 INFO mlda.pipeline: error rules applied to 101609 rows; 17 rules logged
+2026-10-20 17:11:23,368 INFO mlda.pipeline: stage load_and_clean: done in 0.5 s
+2026-10-20 17:11:23,368 INFO mlda.pipeline: stage features_and_split: start
+2026-10-20 17:11:24,458 INFO mlda.pipeline: wrote features.parquet: 101609 rows x 58 columns
+2026-10-20 17:11:28,727 INFO mlda.pipeline: split: 81289 train / 20320 test rows, prevalence 0.4858 / 0.4859
+2026-10-20 17:11:30,012 INFO mlda.sensitivity: history variant: 11426 of 81289 training rows follow a test mine-year
+2026-10-20 17:11:31,788 INFO mlda.pipeline: default preprocessor on the training rows: 546 transformed columns
+2026-10-20 17:11:31,788 INFO mlda.pipeline: stage features_and_split: done in 8.4 s
+2026-10-20 17:11:31,788 INFO mlda.pipeline: stage eda: start
+2026-10-20 17:11:50,307 INFO mlda.pipeline: stage eda: done in 18.5 s
+2026-10-20 17:11:50,784 INFO mlda.pipeline: stage baselines: start
+2026-10-20 17:11:54,369 INFO mlda.pipeline: baseline majority                     test AUC 0.5000 PR-AUC 0.4859 recall@0.5 0.0000
+2026-10-20 17:11:58,963 INFO mlda.pipeline: baseline all_positive                 test AUC 0.5000 PR-AUC 0.4859 recall@0.5 1.0000
+2026-10-20 17:12:02,470 INFO mlda.pipeline: baseline rule_not_cut_or_dust         test AUC 0.6605 PR-AUC 0.5841 recall@0.5 0.8982
+2026-10-20 17:12:06,181 INFO mlda.pipeline: baseline lookup_nature_bodypart_coal  test AUC 0.8039 PR-AUC 0.7899 recall@0.5 0.6548
+2026-10-20 17:12:06,191 INFO mlda.pipeline: stage baselines: done in 15.4 s
+2026-10-20 17:12:06,191 INFO mlda.pipeline: stage model_logreg: start
+2026-10-20 17:13:11,873 INFO mlda.tuning: logreg: 8 candidates, best average_precision=0.8202, 66 s
+2026-10-20 17:13:12,499 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\logreg.joblib (0.0 MB)
+2026-10-20 17:13:12,502 INFO mlda.pipeline: logreg         CV AP 0.8202 | test AUC 0.8291 PR-AUC 0.8247 | recall@spec0.40 0.9336 | 66 s
+2026-10-20 17:13:12,509 INFO mlda.pipeline: stage model_logreg: done in 66.3 s
+2026-10-20 17:13:12,509 INFO mlda.pipeline: stage model_knn: start
+2026-10-20 17:13:12,558 INFO mlda.tuning: knn: fitting on 39999 of 81289 training rows (sample cap)
+2026-10-20 17:17:35,282 INFO mlda.tuning: knn: 6 candidates, best average_precision=0.7635, 263 s
+2026-10-20 17:17:39,001 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\knn.joblib (5.1 MB)
+2026-10-20 17:17:39,003 INFO mlda.pipeline: knn            CV AP 0.7635 | test AUC 0.7732 PR-AUC 0.7687 | recall@spec0.40 0.8866 | 263 s
+2026-10-20 17:17:39,012 INFO mlda.pipeline: stage model_knn: done in 266.5 s
+2026-10-20 17:17:39,012 INFO mlda.pipeline: stage model_gaussian_nb: start
+2026-10-20 17:18:04,013 INFO mlda.tuning: gaussian_nb: 5 candidates, best average_precision=0.7352, 25 s
+2026-10-20 17:18:04,456 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\gaussian_nb.joblib (0.0 MB)
+2026-10-20 17:18:04,462 INFO mlda.pipeline: gaussian_nb    CV AP 0.7352 | test AUC 0.7453 PR-AUC 0.7417 | recall@spec0.40 0.8749 | 25 s
+2026-10-20 17:18:04,467 INFO mlda.pipeline: stage model_gaussian_nb: done in 25.5 s
+2026-10-20 17:18:04,467 INFO mlda.pipeline: stage model_decision_tree: start
+2026-10-20 17:20:35,183 INFO mlda.tuning: decision_tree: 24 candidates, best average_precision=0.8033, 151 s
+2026-10-20 17:20:35,521 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\decision_tree.joblib (0.0 MB)
+2026-10-20 17:20:35,525 INFO mlda.pipeline: decision_tree  CV AP 0.8033 | test AUC 0.8171 PR-AUC 0.8052 | recall@spec0.40 0.9320 | 151 s
+2026-10-20 17:20:35,533 INFO mlda.pipeline: stage model_decision_tree: done in 151.1 s
+2026-10-20 17:20:35,533 INFO mlda.pipeline: stage model_random_forest: start
+2026-10-20 17:22:54,371 INFO mlda.tuning: random_forest: 4 candidates, best average_precision=0.8213, 139 s
+2026-10-20 17:22:56,262 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\random_forest.joblib (20.3 MB)
+2026-10-20 17:22:56,266 INFO mlda.pipeline: random_forest  CV AP 0.8213 | test AUC 0.8331 PR-AUC 0.8269 | recall@spec0.40 0.9361 | 139 s
+2026-10-20 17:22:56,274 INFO mlda.pipeline: stage model_random_forest: done in 140.7 s
+2026-10-20 17:22:56,274 INFO mlda.pipeline: stage model_hist_gb: start
+2026-10-20 17:31:21,280 INFO mlda.tuning: hist_gb: 16 candidates, best average_precision=0.8376, 505 s
+2026-10-20 17:31:21,969 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\hist_gb.joblib (0.5 MB)
+2026-10-20 17:31:21,973 INFO mlda.pipeline: hist_gb        CV AP 0.8376 | test AUC 0.8434 PR-AUC 0.8419 | recall@spec0.40 0.9414 | 505 s
+2026-10-20 17:31:21,982 INFO mlda.pipeline: stage model_hist_gb: done in 505.7 s
+2026-10-20 17:31:21,982 INFO mlda.pipeline: stage model_svc_rbf: start
+2026-10-20 17:31:22,034 INFO mlda.tuning: svc_rbf: fitting on 9913 of 81289 training rows (sample cap)
+2026-10-20 17:45:52,693 INFO mlda.tuning: svc_rbf: 4 candidates, best average_precision=0.7951, 871 s
+2026-10-20 17:46:23,998 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\svc_rbf.joblib (1.2 MB)
+2026-10-20 17:46:24,000 INFO mlda.pipeline: svc_rbf        CV AP 0.7951 | test AUC 0.8199 PR-AUC 0.8113 | recall@spec0.40 0.9268 | 871 s
+2026-10-20 17:46:24,008 INFO mlda.pipeline: stage model_svc_rbf: done in 902.0 s
+2026-10-20 17:46:24,008 INFO mlda.pipeline: stage model_mlp: start
+2026-10-20 17:49:04,620 INFO mlda.tuning: mlp: 9 candidates, best average_precision=0.8315, 161 s
+2026-10-20 17:49:05,072 INFO mlda.persistence: saved C:\ML\mlda-cw1\models\mlp.joblib (0.8 MB)
+2026-10-20 17:49:05,074 INFO mlda.pipeline: mlp            CV AP 0.8315 | test AUC 0.8389 PR-AUC 0.8362 | recall@spec0.40 0.9420 | 161 s
+2026-10-20 17:49:05,081 INFO mlda.pipeline: stage model_mlp: done in 161.1 s
+2026-10-20 17:49:05,081 INFO mlda.pipeline: stage predictions_and_comparison: start
+2026-10-20 17:49:05,113 INFO mlda.pipeline: wrote test_predictions.parquet (20320 rows, 19 columns)
+2026-10-20 17:49:05,232 INFO mlda.pipeline: wrote oof_predictions.parquet (81289 rows, 19 columns)
+2026-10-20 17:49:19,961 INFO mlda.pipeline: stage predictions_and_comparison: done in 14.9 s
+2026-10-20 17:49:19,961 INFO mlda.pipeline: stage evaluation_figures: start
+2026-10-20 17:49:22,800 INFO mlda.pipeline: stage evaluation_figures: done in 2.8 s
+2026-10-20 17:49:22,800 INFO mlda.pipeline: stage learning_curve: start
+2026-10-20 17:49:47,534 INFO mlda.pipeline: stage learning_curve: done in 24.7 s
+2026-10-20 17:49:47,534 INFO mlda.pipeline: stage temporal_split: start
+2026-10-20 17:50:42,394 INFO mlda.tuning: logreg: 8 candidates, best average_precision=0.8187, 54 s
+2026-10-20 17:50:42,429 INFO mlda.tuning: knn: fitting on 40000 of 71877 training rows (sample cap)
+2026-10-20 17:55:19,680 INFO mlda.tuning: knn: 6 candidates, best average_precision=0.7615, 277 s
+2026-10-20 17:55:41,369 INFO mlda.tuning: gaussian_nb: 5 candidates, best average_precision=0.7330, 22 s
+2026-10-20 17:57:39,936 INFO mlda.tuning: decision_tree: 24 candidates, best average_precision=0.8004, 119 s
+2026-10-20 17:59:42,384 INFO mlda.tuning: random_forest: 4 candidates, best average_precision=0.8178, 122 s
+2026-10-20 18:07:14,941 INFO mlda.tuning: hist_gb: 16 candidates, best average_precision=0.8349, 453 s
+2026-10-20 18:07:14,968 INFO mlda.tuning: svc_rbf: fitting on 9820 of 71877 training rows (sample cap)
+2026-10-20 18:24:09,194 INFO mlda.tuning: svc_rbf: 4 candidates, best average_precision=0.7843, 1014 s
+2026-10-20 18:26:28,909 INFO mlda.tuning: mlp: 9 candidates, best average_precision=0.8300, 140 s
+2026-10-20 18:26:29,550 INFO mlda.pipeline: temporal hist_gb        with_status_103i           AUC 0.8337 PR-AUC 0.8429 Brier 0.1660 spec@op 0.3732
+2026-10-20 18:27:31,080 INFO mlda.pipeline: temporal hist_gb        without_status_103i        AUC 0.8332 PR-AUC 0.8422 Brier 0.1662 spec@op 0.3736
+2026-10-20 18:28:39,868 INFO mlda.pipeline: temporal hist_gb        without_immed_reportable   AUC 0.8327 PR-AUC 0.8415 Brier 0.1665 spec@op 0.3809
+2026-10-20 18:28:40,282 INFO mlda.pipeline: temporal mlp            with_status_103i           AUC 0.8298 PR-AUC 0.8375 Brier 0.1681 spec@op 0.3923
+2026-10-20 18:29:17,983 INFO mlda.pipeline: temporal mlp            without_status_103i        AUC 0.8289 PR-AUC 0.8375 Brier 0.1695 spec@op 0.3938
+2026-10-20 18:30:10,395 INFO mlda.pipeline: temporal mlp            without_immed_reportable   AUC 0.8293 PR-AUC 0.8364 Brier 0.1684 spec@op 0.3884
+2026-10-20 18:30:10,427 INFO mlda.pipeline: stage temporal_split: done in 2422.9 s
+2026-10-20 18:30:10,427 INFO mlda.pipeline: stage sensitivity: start
+2026-10-20 18:31:12,243 INFO mlda.sensitivity: sensitivity without_immed_reportable           AUC 0.8422 PR-AUC 0.8394 recall@spec0.40 0.9408
+2026-10-20 18:32:24,110 INFO mlda.sensitivity: sensitivity without_status_103i                AUC 0.8434 PR-AUC 0.8417 recall@spec0.40 0.9407
+2026-10-20 18:33:33,896 INFO mlda.sensitivity: sensitivity resolved_lag_counts                AUC 0.8426 PR-AUC 0.8410 recall@spec0.40 0.9421
+2026-10-20 18:34:41,181 INFO mlda.sensitivity: sensitivity exposure_blank_if_q4_incomplete    AUC 0.8427 PR-AUC 0.8412 recall@spec0.40 0.9419
+2026-10-20 18:35:46,043 INFO mlda.sensitivity: sensitivity history_without_test_outcomes      AUC 0.8444 PR-AUC 0.8424 recall@spec0.40 0.9411
+2026-10-20 18:37:01,118 INFO mlda.pipeline: stage sensitivity: done in 410.7 s
+2026-10-20 18:37:01,118 INFO mlda.pipeline: stage explanations: start
+2026-10-20 18:37:17,026 INFO mlda.pipeline: stage explanations: done in 15.9 s
+2026-10-20 18:37:17,026 INFO mlda.pipeline: stage success_criteria: start
+2026-10-20 18:37:17,028 INFO mlda.pipeline: stage success_criteria: done in 0.0 s
+2026-10-20 18:37:17,233 INFO mlda.pipeline: train_all finished in 5154.1 s; best model hist_gb
+finished in 5154.1 s; best model hist_gb

@@ -7,6 +7,7 @@ before ``uv run mlda-train``. Two further tests check that the inference path re
 training features: the lookup of mine history from MINE_ID and the accident date, and the
 FeatureEngineer applied to raw rows, must agree with ``data/processed/features.parquet``. A last
 group re-imports ``_common`` with MLDA_LOW_MEMORY set and unset to check the caps of the hosted app.
+The Capacity policy tab of the Evaluation page and the workload-rule text of the About page have tests of their own.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import pytest
 import streamlit as st
 from sklearn.model_selection import ParameterGrid
 from streamlit.testing.v1 import AppTest
+from streamlit.testing.v1.element_tree import Block
 
 from mlda.config import (
     METRICS_DIR,
@@ -483,3 +485,280 @@ def test_batch_upload_rejects_a_file_without_required_columns() -> None:
 
     with pytest.raises(ValueError, match="lacks required columns"):
         common.prepare_batch(pd.DataFrame({"MINE_ID": ["0200024"]}))
+
+
+FOLLOWUP_FILES = tuple(
+    METRICS_DIR / name
+    for name in (
+        "followup_capacity_policy.csv",
+        "followup_workload_rule.csv",
+        "followup_open_calibration.csv",
+        "followup_checks.json",
+    )
+)
+needs_followup = pytest.mark.skipif(
+    any(not path.exists() for path in FOLLOWUP_FILES),
+    reason="follow-up artefacts missing: run `uv run python -m mlda.followup` first",
+)
+FOLLOWUP_COMMAND = "uv run python -m mlda.followup"
+
+
+def tab_of(app: AppTest, label: str) -> Block:
+    """The tab with the given label on the page that is open."""
+    return next(tab for tab in app.tabs if tab.label == label)
+
+
+@needs_followup
+def test_evaluation_capacity_policy_tab_renders_the_stored_policy_tables() -> None:
+    policy = pd.read_csv(METRICS_DIR / "followup_capacity_policy.csv", encoding="utf-8")
+    app = new_app().run()
+    app.switch_page("pages/6_Evaluation.py").run()
+    assert not app.exception
+    assert not app.error
+    tab = tab_of(app, "Capacity policy")
+    assert len(tab.dataframe) >= 2  # policy table, workload-rule table (and the calibration summary)
+    for group, option in (("open_at_filing", None), ("all_test_rows", "All test reports")):
+        if option:
+            app.radio(key="ev_policy_group").set_value(option).run()
+            assert not app.exception
+            tab = tab_of(app, "Capacity policy")
+        shown = tab.dataframe[0].value
+        stored = policy[policy["group"] == group]
+        assert len(shown) == len(stored)
+        assert {"Model", "Policy", "Flag rate", "Recall", "Precision", "Specificity", "Cut-off"} <= set(
+            shown.columns
+        )
+        assert np.allclose(shown["Flag rate"].to_numpy(dtype=float), stored["flag_rate"].to_numpy())
+    assert [expander.label for expander in tab.expander] == ["Calibration on open reports"]
+
+
+@needs_followup
+def test_evaluation_threshold_explorer_points_to_the_capacity_policy_tab() -> None:
+    policy = pd.read_csv(METRICS_DIR / "followup_capacity_policy.csv", encoding="utf-8")
+    flagged = policy.loc[
+        (policy["group"] == "open_at_filing")
+        & (policy["model"] == "hist_gb")
+        & (policy["policy"] == "capacity_threshold"),
+        "flag_rate",
+    ].iloc[0]
+    app = new_app().run()
+    app.switch_page("pages/6_Evaluation.py").run()
+    notes = [caption.value for caption in tab_of(app, "Threshold explorer").caption]
+    assert any(f"{flagged:.1%}" in note and "Capacity policy tab" in note for note in notes)
+
+
+def test_evaluation_without_followup_files_points_to_the_command(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A missing follow-up file gives an info box with the command that creates it, not a crash."""
+    import _common as common
+
+    for loader in ("capacity_policy", "workload_rule", "open_calibration", "workload_checks"):
+        monkeypatch.setattr(common, loader, lambda: None)
+    app = new_app().run()
+    app.switch_page("pages/6_Evaluation.py").run()
+    assert not app.exception
+    assert not app.error
+    tab = tab_of(app, "Capacity policy")
+    assert not tab.dataframe
+    assert any(FOLLOWUP_COMMAND in info.value for info in tab.info)
+    assert not any("Capacity policy tab" in caption.value for caption in app.caption)
+
+
+def test_about_page_states_the_workload_rule_and_the_limits_of_the_probability() -> None:
+    app = new_app().run()
+    app.switch_page("pages/7_About.py").run()
+    assert not app.exception
+    text = " ".join(markdown.value for markdown in app.markdown)
+    assert "workload rule" in text
+    assert "retrospective" in text
+    assert "ranking score" in text
+
+
+WORKLOAD_RULE_CSV = METRICS_DIR / "followup_workload_rule.csv"
+RULE_LABEL = "Workload rule (open reports)"
+CAPACITY_LABEL = "Capacity threshold (all filings)"
+needs_workload_rule = pytest.mark.skipif(
+    not WORKLOAD_RULE_CSV.exists(),
+    reason="follow-up artefacts missing: run `uv run python -m mlda.followup` first",
+)
+
+
+def stored_cutoff(model: str, policy: str = "top_75pct") -> float | None:
+    """Cut-off of one model and policy read straight from the CSV, without the app's loader."""
+    rule = pd.read_csv(WORKLOAD_RULE_CSV, encoding="utf-8")
+    values = rule.loc[(rule["model"] == model) & (rule["policy"] == policy), "cutoff_oof"]
+    return float(values.iloc[0]) if len(values) else None
+
+
+def scored_inference_app() -> AppTest:
+    """The inference page with the default case submitted."""
+    app = new_app().run()
+    app.switch_page("pages/5_Inference.py").run()
+    next(button for button in app.button if button.label == "Score this case").click().run()
+    assert not app.exception
+    return app
+
+
+def batch_app() -> AppTest:
+    """The inference page after the five-row batch template has been uploaded."""
+    import _common as common
+
+    app = new_app().run()
+    app.switch_page("pages/5_Inference.py").run()
+    template = common.template_csv().encode("utf-8")
+    app.file_uploader(key="inf_upload").set_value(("batch_template.csv", template, "text/csv")).run()
+    assert not app.exception
+    assert not app.error
+    return app
+
+
+def shown_probability(app: AppTest) -> float:
+    return float(metrics_of(app)["Probability of a lost-time injury"].rstrip("%")) / 100
+
+
+@needs_workload_rule
+def test_workload_cutoff_is_read_by_model_and_policy() -> None:
+    import _common as common
+
+    rule = pd.read_csv(WORKLOAD_RULE_CSV, encoding="utf-8")
+    for model in rule["model"].unique():
+        for policy in rule["policy"].unique():
+            assert common.workload_cutoff(model, policy) == stored_cutoff(model, policy)
+    assert common.workload_cutoff("hist_gb") == pytest.approx(0.3756, abs=1e-4)
+    assert common.workload_cutoff("hist_gb", "top_50pct") > common.workload_cutoff("hist_gb")
+    assert common.workload_cutoff("no_such_model") is None
+    assert common.workload_cutoff("hist_gb", "no_such_policy") is None
+
+
+def test_workload_cutoff_is_none_when_the_table_is_missing_or_incomplete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _common as common
+
+    monkeypatch.setattr(common, "workload_rule", lambda: None)
+    assert common.workload_cutoff("hist_gb") is None
+    monkeypatch.setattr(
+        common, "workload_rule", lambda: pd.DataFrame({"model": ["hist_gb"], "policy": ["top_75pct"]})
+    )
+    assert common.workload_cutoff("hist_gb") is None  # no cutoff_oof column
+
+
+@needs_workload_rule
+def test_inference_shows_the_workload_rule_card_that_matches_the_probability() -> None:
+    import _common as common
+
+    model = common.best_model()
+    cutoff = stored_cutoff(model)
+    if cutoff is None:
+        pytest.skip(f"{model} has no top_75pct row in the workload-rule table")
+    app = scored_inference_app()
+    metrics = metrics_of(app)
+    assert {RULE_LABEL, CAPACITY_LABEL, "At threshold 0.50"} <= set(metrics)
+    assert not any(label.startswith("At the operating threshold") for label in metrics)
+    assert metrics[RULE_LABEL] in {"Review", "Routine handling"}
+    probability = shown_probability(app)
+    if abs(probability - cutoff) > 0.0005:  # the card compares the unrounded probability
+        assert metrics[RULE_LABEL] == ("Review" if probability >= cutoff else "Routine handling")
+    card = next(metric for metric in app.metric if metric.label == RULE_LABEL)
+    assert "top three in four of reports still open at filing" in card.help.lower()
+    assert "cut-off from out-of-fold training scores" in card.help
+    caption = next(c.value for c in app.caption if c.value.startswith("For a report with no return-to-work"))
+    assert "ranking score" in caption and "about 0.12 below the observed rate" in caption
+    assert caption.endswith("The cost note below applies to all filings.")
+
+
+@needs_workload_rule
+def test_inference_workload_card_is_highlighted_until_a_return_date_is_on_the_form() -> None:
+    import _common as common
+
+    if stored_cutoff(common.best_model()) is None:
+        pytest.skip("the best model has no top_75pct row in the workload-rule table")
+    app = scored_inference_app()
+    assert app.selectbox(key="inf_dated").value == "No"
+    card = next(metric for metric in app.metric if metric.label == RULE_LABEL)
+    assert card.delta == "Applies to this report"
+    assert not any("score is for information only" in info.value for info in app.info)
+    app.selectbox(key="inf_dated").select("Yes").run()
+    assert not app.exception
+    card = next(metric for metric in app.metric if metric.label == RULE_LABEL)
+    assert not card.delta
+    assert any(
+        "outcome is recorded on the form" in info.value and "for information only" in info.value
+        for info in app.info
+    )
+
+
+def test_inference_cost_note_says_it_is_computed_on_all_filings() -> None:
+    app = scored_inference_app()
+    assert any("computed at the model's probability on all filings" in info.value for info in app.info)
+    assert "all filings" in app.select_slider(key="inf_ratio").help
+
+
+def test_inference_renders_when_the_workload_loader_returns_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _common as common
+
+    monkeypatch.setattr(common, "workload_rule", lambda: None)
+    app = scored_inference_app()
+    assert not app.error
+    metrics = metrics_of(app)
+    assert metrics[RULE_LABEL] == "not available"
+    assert CAPACITY_LABEL in metrics and "At threshold 0.50" in metrics
+    assert any(FOLLOWUP_COMMAND in caption.value for caption in app.caption)
+    card = next(metric for metric in app.metric if metric.label == RULE_LABEL)
+    assert FOLLOWUP_COMMAND in card.help
+    assert not card.delta  # nothing is highlighted when there is no rule to apply
+    assert any("break-even" in info.value for info in app.info)  # the cost note still renders
+
+
+def test_inference_card_is_not_available_for_a_model_without_a_cutoff() -> None:
+    """A saved model that is absent from the CSV (here logistic regression) gets the same fallback."""
+    import _common as common
+
+    if "logreg" not in common.ranked_models() or common.workload_cutoff("logreg") is not None:
+        pytest.skip("logreg is not saved or already has a cut-off")
+    app = new_app().run()
+    app.switch_page("pages/5_Inference.py").run()
+    app.selectbox(key="inf_model").select("logreg").run()
+    next(button for button in app.button if button.label == "Score this case").click().run()
+    assert not app.exception
+    assert metrics_of(app)[RULE_LABEL] == "not available"
+
+
+@needs_workload_rule
+def test_batch_template_output_has_the_workload_rule_flag() -> None:
+    import _common as common
+
+    model = common.best_model()
+    cutoff = stored_cutoff(model)
+    if cutoff is None:
+        pytest.skip(f"{model} has no top_75pct row in the workload-rule table")
+    app = batch_app()
+    table = app.dataframe[0].value
+    assert list(table.columns[-4:]) == [
+        "probability",
+        "flag_operating_point",
+        "flag_workload_rule",
+        "flag_at_0_5",
+    ]
+    assert set(table["flag_workload_rule"]) <= {0, 1}
+    assert (table["flag_workload_rule"] == (table["probability"] >= cutoff).astype(int)).all()
+    metrics = metrics_of(app)
+    assert metrics["Flagged under the workload rule"] == f"{int(table['flag_workload_rule'].sum()):,}"
+    assert metrics["Rows scored"] == f"{len(table):,}"
+
+
+def test_batch_output_without_a_cutoff_has_no_workload_column_and_says_so(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _common as common
+
+    monkeypatch.setattr(common, "workload_rule", lambda: None)
+    app = batch_app()
+    table = app.dataframe[0].value
+    assert "flag_workload_rule" not in table.columns
+    assert {"flag_operating_point", "flag_at_0_5"} <= set(table.columns)
+    assert metrics_of(app)["Flagged under the workload rule"] == "not available"
+    assert any(FOLLOWUP_COMMAND in caption.value for caption in app.caption)

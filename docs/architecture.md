@@ -23,7 +23,8 @@ data/README.md             data card: sources, licence, snapshot date, SHA-256, 
 data/raw/                  downloaded zips + codebooks (committed if total <= 50 MB; else `uv run mlda-download` with checksum)
 data/processed/            base.parquet, features.parquet, mine_year_features.parquet, mine_case_history.parquet (all zstd), split_indices.json
 models/                    <name>.joblib (compress=3, <= 20 MB each) + manifest.json (versions, git SHA, data checksum)
-reports/metrics/           <name>.json test metrics, comparison.csv, thresholds.json, statistical_tests.json, temporal_split.json, sensitivity.json, success_criteria.json
+reports/metrics/           <name>.json test metrics, comparison.csv, thresholds.json, statistical_tests.json, temporal_split.json, sensitivity.json, success_criteria.json,
+                           followup_checks.json and followup_*.csv (capacity policies, workload rule, open-report calibration)
 reports/cv/                <name>_cv_results.csv
 reports/predictions/       test_predictions.parquet and oof_predictions.parquet (y_true + float64 y_proba per model)
 reports/figures/           PNGs used by report and app
@@ -47,7 +48,9 @@ src/mlda/
   persistence.py           save/load with manifest
   plots.py                 matplotlib/seaborn figure builders shared by notebook, report and app
   operating.py             out-of-fold thresholds, held-out scoring and the S1-S6 checks shared by pipeline and sensitivity
-  sensitivity.py           pure-level scan, altered inputs, refits and the MINE_ID-grouped split
+  sensitivity.py           pure-level scan, altered inputs, the history-audit refit (history_without_test_outcomes) and the MINE_ID-grouped split
+  followup.py              checks run after the test scoring (python -m mlda.followup): capacity policies and the workload rule on the open-at-filing cohort,
+                           open-report calibration, paired mine-year bootstrap, open-only refit, wider grids; none of them changes a choice
   pipeline.py              train_all(): the whole study, including the temporal study on 2010-2019 rows
   cli.py                   mlda-download, mlda-train, mlda-zip (mlda-zip waits for mlda.submission)
 app/
