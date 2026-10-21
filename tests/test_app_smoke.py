@@ -576,8 +576,8 @@ def test_about_page_states_the_workload_rule_and_the_limits_of_the_probability()
 
 
 WORKLOAD_RULE_CSV = METRICS_DIR / "followup_workload_rule.csv"
-RULE_LABEL = "Workload rule (open reports)"
-CAPACITY_LABEL = "Capacity threshold (all filings)"
+RULE_LABEL = "Workload rule"
+CAPACITY_LABEL = "Capacity threshold"
 needs_workload_rule = pytest.mark.skipif(
     not WORKLOAD_RULE_CSV.exists(),
     reason="follow-up artefacts missing: run `uv run python -m mlda.followup` first",
@@ -656,10 +656,10 @@ def test_inference_shows_the_workload_rule_card_that_matches_the_probability() -
     metrics = metrics_of(app)
     assert {RULE_LABEL, CAPACITY_LABEL, "At threshold 0.50"} <= set(metrics)
     assert not any(label.startswith("At the operating threshold") for label in metrics)
-    assert metrics[RULE_LABEL] in {"Review", "Routine handling"}
+    assert metrics[RULE_LABEL] in {"Review", "Routine"}
     probability = shown_probability(app)
     if abs(probability - cutoff) > 0.0005:  # the card compares the unrounded probability
-        assert metrics[RULE_LABEL] == ("Review" if probability >= cutoff else "Routine handling")
+        assert metrics[RULE_LABEL] == ("Review" if probability >= cutoff else "Routine")
     card = next(metric for metric in app.metric if metric.label == RULE_LABEL)
     assert "top three in four of reports still open at filing" in card.help.lower()
     assert "cut-off from out-of-fold training scores" in card.help

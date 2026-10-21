@@ -245,27 +245,27 @@ def show_result(raw: pd.DataFrame, model_name: str) -> None:
     first.metric("Probability of a lost-time injury", f"{probability:.1%}", border=True)
     if cutoff is None:
         second.metric(
-            "Workload rule (open reports)",
+            "Workload rule",
             "not available",
             border=True,
             help=f"No cut-off for this model in followup_workload_rule.csv. Create it with `{FOLLOWUP_COMMAND}`.",
         )
     else:
         second.metric(
-            "Workload rule (open reports)",
-            "Review" if probability >= cutoff else "Routine handling",
+            "Workload rule",
+            "Review" if probability >= cutoff else "Routine",
             None if dated else "Applies to this report",
             delta_color="green",
             delta_arrow="off",
             border=True,
-            help=f"{RULE_HELP} ({cutoff:.3f}).",
+            help=f"For reports still open at filing. {RULE_HELP} ({cutoff:.3f}). Review means the report is in the top three in four by score; Routine means routine handling.",
         )
-    decision = "Flag for early review" if probability >= operating else "Routine handling"
+    decision = "Review" if probability >= operating else "Routine"
     help_text = (
-        f"Threshold {operating:.3f}, chosen on out-of-fold scores so that {OPERATING_SPECIFICITY:.0%} "
-        "of non-lost-time cases stay unflagged."
+        f"For all filings. Threshold {operating:.3f}, chosen on out-of-fold scores so that {OPERATING_SPECIFICITY:.0%} "
+        "of non-lost-time cases stay unflagged. Review means flagged for early review; Routine means routine handling."
     )
-    third.metric("Capacity threshold (all filings)", decision, border=True, help=help_text)
+    third.metric("Capacity threshold", decision, border=True, help=help_text)
     fourth.metric(
         "At threshold 0.50", "Lost time" if probability >= 0.5 else "No lost time", border=True
     )
