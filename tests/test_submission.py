@@ -1,5 +1,6 @@
-"""The submission packer must refuse to ship forbidden strings and must zip tracked files."""
+"""The submission zip holds the deliverables only and refuses forbidden strings; --full snapshots the repository."""
 
+import hashlib
 import json
 import os
 import re
@@ -33,15 +34,127 @@ def test_scan_is_clean_without_matches(tmp_path: Path, monkeypatch) -> None:
     assert scan_forbidden([tmp_path / "a.md"], []) == []
 
 
-def test_build_zip_refuses_forbidden(tmp_path: Path, monkeypatch) -> None:
+def make_deliverables(root: Path, monkeypatch, *, executed: bool = True) -> dict[str, bytes]:
+    """The required deliverables in their repository places, with SOURCES pinned to the fake dataset files."""
+    from mlda import config, submission
+
+    (root / "report").mkdir(parents=True)
+    with zipfile.ZipFile(root / submission.REPORT_DOCX, "w") as archive:
+        archive.writestr("word/document.xml", "<w:t>Student ID 13130</w:t>")
+    (root / "notebooks").mkdir()
+    cell = {"cell_type": "code", "source": ["1 + 1"], "outputs": [], "execution_count": 1 if executed else None}
+    (root / submission.NOTEBOOK).write_text(json.dumps({"cells": [cell], "metadata": {}}), encoding="utf-8")
+    (root / "data" / "raw").mkdir(parents=True)
+    contents = {name: f"data of {name}".encode() for name in ("A.zip", "A_Definition_File.txt")}
+    for name, data in contents.items():
+        (root / "data" / "raw" / name).write_bytes(data)
+    sources = {name: config.Source(name, hashlib.sha256(data).hexdigest(), len(data)) for name, data in contents.items()}
+    monkeypatch.setattr(submission, "SOURCES", sources)
+    return contents
+
+
+def add_build_helpers(root: Path) -> None:
+    """Files that helped to build the deliverables and must stay out of the submission zip."""
+    helpers = (
+        "report/build_report.py", "report/sections/01_introduction.md", "src/mlda/features.py",
+        "tests/test_features.py", "notebooks/build_notebook.py", "reports/metrics/comparison.csv",
+        "data/raw/SNAPSHOT.json", "data/processed/base.parquet", "README.md",
+    )
+    for rel in helpers:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text("helper\n", encoding="utf-8")
+
+
+def test_submission_zip_holds_the_deliverables_only(tmp_path: Path, monkeypatch, capsys) -> None:
+    from mlda import submission
+
+    root = tmp_path / "repo"
+    make_deliverables(root, monkeypatch)
+    add_build_helpers(root)
+    out = submission.build_zip(tmp_path, [], root=root)
+    assert out.name == "MLDA.CW1.13130.zip"
+    with zipfile.ZipFile(out) as archive:
+        assert sorted(archive.namelist()) == [
+            "MLDA.CW1.13130/dataset/A.zip",
+            "MLDA.CW1.13130/dataset/A_Definition_File.txt",
+            "MLDA.CW1.13130/notebook/01_end_to_end.ipynb",
+            "MLDA.CW1.13130/report/MLDA_CW1_13130_report.docx",
+        ]
+    assert "no report/MLDA_CW1_13130_report.pdf yet" in capsys.readouterr().out
+
+
+def test_submission_zip_adds_the_pdf_and_the_notebook_export_when_present(tmp_path: Path, monkeypatch) -> None:
+    from mlda import submission
+
+    root = tmp_path / "repo"
+    make_deliverables(root, monkeypatch)
+    (root / submission.REPORT_PDF).write_bytes(b"%PDF-1.7")
+    (root / submission.NOTEBOOK_HTML).write_text("<html></html>", encoding="utf-8")
+    with zipfile.ZipFile(submission.build_zip(tmp_path, [], root=root)) as archive:
+        names = set(archive.namelist())
+    assert {"MLDA.CW1.13130/report/MLDA_CW1_13130_report.pdf", "MLDA.CW1.13130/notebook/01_end_to_end.html"} <= names
+    assert len(names) == 6
+
+
+def test_submission_zip_refuses_a_missing_deliverable(tmp_path: Path, monkeypatch) -> None:
+    from mlda import submission
+
+    root = tmp_path / "repo"
+    make_deliverables(root, monkeypatch)
+    (root / submission.NOTEBOOK).unlink()
+    with pytest.raises(SystemExit) as refused:
+        submission.build_zip(tmp_path, [], root=root)
+    assert "notebooks/01_end_to_end.ipynb" in str(refused.value)
+    assert not (tmp_path / "MLDA.CW1.13130.zip").exists()
+
+
+def test_submission_zip_refuses_an_unexecuted_notebook_a_changed_dataset_and_a_forbidden_name(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from mlda import submission
+
+    root = tmp_path / "repo"
+    make_deliverables(root, monkeypatch, executed=False)
+    with pytest.raises(SystemExit) as refused:
+        submission.build_zip(tmp_path, [], root=root)
+    assert "never ran" in str(refused.value)
+
+    root = tmp_path / "repo2"
+    make_deliverables(root, monkeypatch)
+    (root / "data" / "raw" / "A.zip").write_bytes(b"a newer weekly refresh")
+    with pytest.raises(SystemExit) as refused:
+        submission.build_zip(tmp_path, [], root=root)
+    assert "A.zip: SHA-256 differs" in str(refused.value)
+
+    root = tmp_path / "repo3"
+    make_deliverables(root, monkeypatch)
+    with zipfile.ZipFile(root / submission.REPORT_DOCX, "w") as archive:
+        archive.writestr("docProps/core.xml", "<cp:creator>Jane Example</cp:creator>")
+    with pytest.raises(SystemExit) as refused:
+        submission.build_zip(tmp_path, ["jane example"], root=root)
+    assert "MLDA_CW1_13130_report.docx" in str(refused.value)
+    assert not (tmp_path / "MLDA.CW1.13130.zip").exists()
+
+
+def test_bundle_without_full_is_refused(tmp_path: Path, monkeypatch) -> None:
+    from mlda import submission
+
+    root = tmp_path / "repo"
+    make_deliverables(root, monkeypatch)
+    with pytest.raises(ValueError):
+        submission.build_zip(tmp_path, [], root=root, bundle=True)
+
+
+def test_repository_snapshot_refuses_forbidden(tmp_path: Path, monkeypatch) -> None:
     from mlda import submission
 
     monkeypatch.setattr(submission, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(submission, "tracked_files", lambda root=tmp_path: ["a.md"])
     (tmp_path / "a.md").write_text("report by Jane Example", encoding="utf-8")
     with pytest.raises(SystemExit):
-        submission.build_zip(tmp_path, ["Jane Example"], root=tmp_path)
-    out = submission.build_zip(tmp_path, [], root=tmp_path)
+        submission.build_zip(tmp_path, ["Jane Example"], root=tmp_path, full=True)
+    out = submission.build_zip(tmp_path, [], root=tmp_path, full=True)
+    assert out.name == "mlda-cw1-repository.zip"
     with zipfile.ZipFile(out) as archive:
         assert archive.namelist() == ["mlda-cw1/a.md"]
 
@@ -79,7 +192,7 @@ def test_build_zip_adds_the_commit_history_and_a_bundle_that_clones(tmp_path: Pa
     from mlda import submission
 
     repo = make_repository(tmp_path / "repo")
-    out = submission.build_zip(tmp_path, [], root=repo, bundle=True)
+    out = submission.build_zip(tmp_path, [], root=repo, full=True, bundle=True)
     unzipped = tmp_path / "unzipped"
     with zipfile.ZipFile(out) as archive:
         names = archive.namelist()
@@ -113,12 +226,12 @@ def test_build_zip_scans_the_commit_history_for_forbidden_strings(tmp_path: Path
 
     repo = make_repository(tmp_path / "repo", subjects=("first commit", "reviewed by Jane Example"))
     with pytest.raises(SystemExit) as refused:
-        submission.build_zip(tmp_path, ["Jane Example"], root=repo)
+        submission.build_zip(tmp_path, ["Jane Example"], root=repo, full=True)
     assert "reports/commit_history.txt" in str(refused.value)
-    assert not (tmp_path / "MLDA.CW1.13130.zip").exists()
+    assert not (tmp_path / "mlda-cw1-repository.zip").exists()
     # the author name is part of the history text too
     with pytest.raises(SystemExit):
-        submission.build_zip(tmp_path, [AUTHOR.upper()], root=repo)
+        submission.build_zip(tmp_path, [AUTHOR.upper()], root=repo, full=True)
 
 
 @needs_git
@@ -133,7 +246,7 @@ def test_build_zip_replaces_a_committed_history_file_and_warns_about_uncommitted
     run_git(repo, "add", ".")
     run_git(repo, "commit", "-q", "-m", "third commit", date="2026-10-16T08:00:00")
     (repo / "a.md").write_text("edited after the last commit\n", encoding="utf-8")
-    out = submission.build_zip(tmp_path, [], root=repo)
+    out = submission.build_zip(tmp_path, [], root=repo, full=True)
     with zipfile.ZipFile(out) as archive:
         assert archive.namelist().count("mlda-cw1/reports/commit_history.txt") == 1
         history = archive.read("mlda-cw1/reports/commit_history.txt").decode("utf-8")

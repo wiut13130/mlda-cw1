@@ -77,7 +77,7 @@ The decision tree and the SVM swap places between cross-validation and the test 
 | Lookup baseline at 2:1 / 3:1 / 5:1 | USD 73,553 / 85,472 / 98,061 |
 | Lost-time cases missed per 1,000 filings | HGB 28.5 at the capacity threshold; lookup 40.8; one-field hand rule built for this study 49.5 (Table 21) |
 
-**Tests and run.** HGB against the MLP on the five folds: paired t-test p = 0.007, corrected resampled t-test p = 0.029, Wilcoxon p = 0.0625 (the smallest value possible with five folds). HGB against the lookup baseline: clustered McNemar p below 0.001. `mlda-train` took 5,154 s (85.9 minutes, about 86); `python -m mlda.followup` took about 31 minutes (1,879 s) and the notebook with `FULL_RUN=1` 41.4 minutes (2,484 s). The suite has 494 tests, 477 of them fast (17 are marked slow). The history has 40 commits: 17 on 14 October, 21 on 15 October and 2 on 20 October (read `git log` again before the viva).
+**Tests and run.** HGB against the MLP on the five folds: paired t-test p = 0.007, corrected resampled t-test p = 0.029, Wilcoxon p = 0.0625 (the smallest value possible with five folds). HGB against the lookup baseline: clustered McNemar p below 0.001. `mlda-train` took 5,154 s (85.9 minutes, about 86); `python -m mlda.followup` took about 31 minutes (1,879 s) and the notebook with `FULL_RUN=1` 41.4 minutes (2,484 s). The suite has 500 tests, 483 of them fast (17 are marked slow). The history has 40 commits: 17 on 14 October, 21 on 15 October and 2 on 20 October (read `git log` again before the viva).
 
 ---
 

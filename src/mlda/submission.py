@@ -1,19 +1,29 @@
 """Build the intranet submission archive MLDA.CW1.<ID>.zip.
 
-The brief asks for one zip with the report, the notebook and the dataset. This tool packs
-every git-tracked file (code, data archives, processed tables, models, metrics, figures,
-report sources) plus the rendered report and notebook exports. When the code is a git
-repository with commits it also adds the history: ``reports/commit_history.txt`` (one line
-per commit, then the commits per author) and ``repository.bundle``, a ``git bundle`` of every
-branch and tag, so that the marker can see the real commit dates without access to the hosting
-service. The result is scanned for strings that must not appear (the brief forbids the
-student's name anywhere). The forbidden strings are supplied at run time through the
-MLDA_FORBIDDEN environment variable or the --forbid option and are never written to disk.
+The brief asks for "a single zipped file containing your report, Jupyter Notebook and dataset".
+By default this tool packs exactly those deliverables and nothing that only helped to build
+them (no source code, tests, report sources, build scripts, models or metrics):
+
+    MLDA.CW1.<ID>/report/    the report as .docx, and the .pdf exported from Word when it exists
+    MLDA.CW1.<ID>/notebook/  the executed notebook, and its HTML export when it exists
+    MLDA.CW1.<ID>/dataset/   the three MSHA archives and their three definition files
+
+Before writing anything it checks that the required files exist, that every code cell of the
+notebook has run, that each dataset file still matches the SHA-256 pinned in ``mlda.config``,
+and that no forbidden string appears (the brief forbids the student's name anywhere). The
+forbidden strings are supplied at run time through the MLDA_FORBIDDEN environment variable or
+the --forbid option and are never written to disk.
+
+``--full`` builds a different file, ``mlda-cw1-repository.zip``: a snapshot of every
+git-tracked file plus ``reports/commit_history.txt`` and, with ``--bundle``, ``repository.bundle``
+(a ``git bundle`` of every branch and tag). It is an archive of the repository, not the
+submission, and its name keeps it from being uploaded by mistake.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -22,19 +32,24 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from mlda.config import PROJECT_ROOT, STUDENT_ID
+from mlda.config import PROJECT_ROOT, SOURCES, STUDENT_ID
 
 TEXT_SUFFIXES = {".py", ".md", ".txt", ".toml", ".yml", ".yaml", ".json", ".csv", ".cfg", ".ini", ".html", ".ipynb"}
-EXTRA_FILES = (
-    "report/MLDA_CW1_13130_report.docx",
-    "report/MLDA_CW1_13130_report.pdf",
-    "notebooks/01_end_to_end.html",
-)
+
+SUBMISSION_ROOT = f"MLDA.CW1.{STUDENT_ID}"
+SUBMISSION_NAME = f"{SUBMISSION_ROOT}.zip"
+REPORT_DOCX = f"report/MLDA_CW1_{STUDENT_ID}_report.docx"
+REPORT_PDF = f"report/MLDA_CW1_{STUDENT_ID}_report.pdf"
+NOTEBOOK = "notebooks/01_end_to_end.ipynb"
+NOTEBOOK_HTML = "notebooks/01_end_to_end.html"
+
+REPOSITORY_ROOT = "mlda-cw1"
+REPOSITORY_NAME = "mlda-cw1-repository.zip"
 ALWAYS_EXCLUDE = (".github/", ".gitattributes", ".gitignore", ".dockerignore")
-ARCHIVE_ROOT = "mlda-cw1"
 HISTORY_NAME = "reports/commit_history.txt"
 BUNDLE_NAME = "repository.bundle"
-RESTORE_COMMAND = f"git clone {BUNDLE_NAME} {ARCHIVE_ROOT}"
+RESTORE_COMMAND = f"git clone {BUNDLE_NAME} {REPOSITORY_ROOT}"
+EXTRA_FILES = (REPORT_DOCX, REPORT_PDF, NOTEBOOK_HTML)  # untracked outputs added to the --full snapshot
 
 
 def _git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -104,7 +119,8 @@ def _docx_text(path: Path) -> str:
 def _ipynb_text(path: Path) -> str:
     data = json.loads(path.read_text(encoding="utf-8"))
     cells = "\n".join("".join(c.get("source", [])) for c in data.get("cells", []))
-    return cells + "\n" + json.dumps(data.get("metadata", {}))
+    outputs = "\n".join(json.dumps(c.get("outputs", [])) for c in data.get("cells", []) if c.get("cell_type") == "code")
+    return cells + "\n" + outputs + "\n" + json.dumps(data.get("metadata", {}))
 
 
 def scan_text(text: str, label: str, forbidden: list[str]) -> list[tuple[str, str]]:
@@ -134,20 +150,88 @@ def scan_forbidden(paths: list[Path], forbidden: list[str], root: Path | None = 
     return hits
 
 
-def build_zip(
+def _forbidden_from_environment(forbidden: list[str] | None) -> list[str]:
+    if forbidden is not None:
+        return forbidden
+    return [t for t in os.environ.get("MLDA_FORBIDDEN", "").split(",") if t.strip()]
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def unexecuted_code_cells(notebook: Path) -> list[int]:
+    """Indices of code cells that have no execution count, that is cells the saved notebook never ran."""
+    data = json.loads(notebook.read_text(encoding="utf-8"))
+    return [i for i, c in enumerate(data.get("cells", [])) if c.get("cell_type") == "code" and c.get("execution_count") is None]
+
+
+def deliverables(root: Path = PROJECT_ROOT) -> list[tuple[str, str, bool]]:
+    """(source path relative to ``root``, path inside the archive, required) for every deliverable."""
+    items = [
+        (REPORT_DOCX, f"{SUBMISSION_ROOT}/report/{Path(REPORT_DOCX).name}", True),
+        (REPORT_PDF, f"{SUBMISSION_ROOT}/report/{Path(REPORT_PDF).name}", False),
+        (NOTEBOOK, f"{SUBMISSION_ROOT}/notebook/{Path(NOTEBOOK).name}", True),
+        (NOTEBOOK_HTML, f"{SUBMISSION_ROOT}/notebook/{Path(NOTEBOOK_HTML).name}", False),
+    ]
+    items += [(f"data/raw/{s.filename}", f"{SUBMISSION_ROOT}/dataset/{s.filename}", True) for s in SOURCES.values()]
+    return items
+
+
+def build_submission(output_dir: Path | None = None, forbidden: list[str] | None = None, root: Path = PROJECT_ROOT) -> Path:
+    """Create MLDA.CW1.<ID>.zip with the report, the notebook and the dataset only, and return its path."""
+    forbidden = _forbidden_from_environment(forbidden)
+    items = deliverables(root)
+    missing = [src for src, _, required in items if required and not (root / src).is_file()]
+    if missing:
+        raise SystemExit("required deliverable(s) missing; nothing was written:\n" + "\n".join(f"  {m}" for m in missing))
+    present = [(root / src, arc) for src, arc, _ in items if (root / src).is_file()]
+    problems: list[str] = []
+    unexecuted = unexecuted_code_cells(root / NOTEBOOK)
+    if unexecuted:
+        problems.append(f"{NOTEBOOK}: {len(unexecuted)} code cell(s) never ran (first index {unexecuted[0]}); execute it before packaging")
+    for source in SOURCES.values():
+        if _sha256(root / "data" / "raw" / source.filename) != source.sha256:
+            problems.append(f"data/raw/{source.filename}: SHA-256 differs from the pinned snapshot in mlda.config")
+    hits = scan_forbidden([path for path, _ in present], forbidden, root)
+    problems += [f"{file}: contains '{term}'" for file, term in hits]
+    if problems:
+        raise SystemExit("submission refused; nothing was written:\n" + "\n".join(f"  {p}" for p in problems[:20]))
+    output = (output_dir or root) / SUBMISSION_NAME
+    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+        for path, arc in present:
+            archive.write(path, arcname=arc)
+    print(f"{output} ({output.stat().st_size / 1e6:.1f} MB, {len(present)} files)")
+    for path, arc in present:
+        print(f"  {arc}  ({path.stat().st_size / 1e6:.2f} MB)")
+    if not (root / REPORT_PDF).is_file():
+        print(f"  note: no {REPORT_PDF} yet; export it from Word and run this command again to include it")
+    if is_repository_root(root):
+        tracked = [src for src, _, _ in items if (root / src).is_file()]
+        dirty = _git(root, "status", "--porcelain", "--untracked-files=no", "--", *tracked).stdout.splitlines()
+        if dirty:
+            print(f"  warning: {len(dirty)} deliverable(s) differ from the last commit; commit them so the zip matches the repository")
+    return output
+
+
+def build_repository_snapshot(
     output_dir: Path | None = None,
     forbidden: list[str] | None = None,
     root: Path = PROJECT_ROOT,
     bundle: bool = False,
 ) -> Path:
-    """Create MLDA.CW1.<ID>.zip in output_dir (default: repository root) and return its path.
+    """Create mlda-cw1-repository.zip: every tracked file, the rendered outputs and the commit history.
 
     The commit history and the bundle are generated into a temporary folder and added to the archive;
     nothing is written into the working tree, so no stale copy can be committed. A ``root`` that is not
     a git repository with commits (for example a test folder) gets neither file. The bundle is optional
     (``bundle=True``) because it roughly doubles the archive; the hosted repository is the primary evidence.
     """
-    forbidden = forbidden if forbidden is not None else [t for t in os.environ.get("MLDA_FORBIDDEN", "").split(",") if t.strip()]
+    forbidden = _forbidden_from_environment(forbidden)
     with_history = is_repository_root(root)
     generated = {HISTORY_NAME, BUNDLE_NAME} if with_history else set()
     members = [p for p in tracked_files(root) if not p.startswith(ALWAYS_EXCLUDE) and p not in generated]
@@ -161,34 +245,30 @@ def build_zip(
     if hits:
         listing = "\n".join(f"  {file}: '{term}'" for file, term in hits[:20])
         raise SystemExit(f"forbidden string found in {len(hits)} place(s); fix before packaging:\n{listing}")
-    output_dir = output_dir or root
-    output = output_dir / f"MLDA.CW1.{STUDENT_ID}.zip"
+    output = (output_dir or root) / REPOSITORY_NAME
     dirty = _git(root, "status", "--porcelain", "--untracked-files=no").stdout.splitlines() if with_history else []
     with tempfile.TemporaryDirectory(prefix="mlda-zip-") as scratch, zipfile.ZipFile(
         output, "w", zipfile.ZIP_DEFLATED, compresslevel=6
     ) as archive:
         for path in paths:
-            archive.write(path, arcname=f"{ARCHIVE_ROOT}/{path.relative_to(root).as_posix()}")
+            archive.write(path, arcname=f"{REPOSITORY_ROOT}/{path.relative_to(root).as_posix()}")
+        bundle_mb = 0.0
         if with_history:
             history_file = Path(scratch) / "commit_history.txt"
             history_file.write_text(history, encoding="utf-8", newline="\n")
-            archive.write(history_file, arcname=f"{ARCHIVE_ROOT}/{HISTORY_NAME}")
-            bundle_mb = 0.0
+            archive.write(history_file, arcname=f"{REPOSITORY_ROOT}/{HISTORY_NAME}")
             if bundle:
                 bundle_file = create_bundle(root, Path(scratch) / "repository.bundle")
                 # A bundle is a compressed pack already, so deflating it again only costs time.
-                archive.write(bundle_file, arcname=f"{ARCHIVE_ROOT}/{BUNDLE_NAME}", compress_type=zipfile.ZIP_STORED)
+                archive.write(bundle_file, arcname=f"{REPOSITORY_ROOT}/{BUNDLE_NAME}", compress_type=zipfile.ZIP_STORED)
                 bundle_mb = bundle_file.stat().st_size / 1e6
-    size_mb = output.stat().st_size / 1e6
-    print(f"{output} ({size_mb:.1f} MB, {len(paths)} files)")
+    print(f"{output} ({output.stat().st_size / 1e6:.1f} MB, {len(paths)} files); a repository archive, not the submission")
     if with_history:
-        print(f"  {ARCHIVE_ROOT}/{HISTORY_NAME}: {n_commits} commits with their dates")
+        print(f"  {REPOSITORY_ROOT}/{HISTORY_NAME}: {n_commits} commits with their dates")
         if bundle:
-            print(f"  {ARCHIVE_ROOT}/{BUNDLE_NAME}: every branch and tag ({bundle_mb:.1f} MB)")
+            print(f"  {REPOSITORY_ROOT}/{BUNDLE_NAME}: every branch and tag ({bundle_mb:.1f} MB)")
             print(f"  To restore the repository with its history, unzip and run in the folder that holds {BUNDLE_NAME}:")
             print(f"    {RESTORE_COMMAND}")
-        else:
-            print("  repository bundle not included (pass --bundle to add it); the hosted repository holds the full history")
         if dirty:
             print(f"  warning: {len(dirty)} tracked file(s) have uncommitted changes; the zip holds them, the bundle does not")
     else:
@@ -196,13 +276,31 @@ def build_zip(
     return output
 
 
+def build_zip(
+    output_dir: Path | None = None,
+    forbidden: list[str] | None = None,
+    root: Path = PROJECT_ROOT,
+    full: bool = False,
+    bundle: bool = False,
+) -> Path:
+    """The submission zip (default), or with ``full=True`` the repository snapshot."""
+    if full:
+        return build_repository_snapshot(output_dir, forbidden, root, bundle=bundle)
+    if bundle:
+        raise ValueError("bundle=True needs full=True: the submission zip holds the deliverables only")
+    return build_submission(output_dir, forbidden, root)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--forbid", action="append", default=None, help="string that must not appear (repeatable)")
-    parser.add_argument("--bundle", action="store_true", help="also include a git bundle of the whole repository")
+    parser.add_argument("--full", action="store_true", help="build mlda-cw1-repository.zip (every tracked file) instead")
+    parser.add_argument("--bundle", action="store_true", help="with --full: also include a git bundle of the repository")
     args = parser.parse_args()
-    build_zip(args.output_dir, args.forbid, bundle=args.bundle)
+    if args.bundle and not args.full:
+        parser.error("--bundle needs --full: the submission zip holds the report, the notebook and the dataset only")
+    build_zip(args.output_dir, args.forbid, full=args.full, bundle=args.bundle)
 
 
 if __name__ == "__main__":

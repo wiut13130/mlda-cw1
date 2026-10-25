@@ -52,7 +52,7 @@ src/mlda/
   followup.py              checks run after the test scoring (python -m mlda.followup): capacity policies and the workload rule on the open-at-filing cohort,
                            open-report calibration, paired mine-year bootstrap, open-only refit, wider grids; none of them changes a choice
   pipeline.py              train_all(): the whole study, including the temporal study on 2010-2019 rows
-  cli.py                   mlda-download, mlda-train, mlda-zip (mlda-zip waits for mlda.submission)
+  cli.py                   mlda-download, mlda-train, mlda-zip (deliverables-only submission zip; --full for a repository snapshot)
 app/
   streamlit_app.py         entrypoint: sys.path shim, set_page_config, st.navigation, shared sidebar
   requirements.txt         runtime-only export for Cloud
@@ -125,4 +125,4 @@ Always available: `uv run streamlit run app/streamlit_app.py` or `docker run -p 
 | Leakage | split first; all fitting inside Pipeline; FeatureEngineer in the Pipeline; tests for disjoint indices, duplicate rows across the split, |corr| ~ 1 features; test predictions built only from the held-out set |
 | Imbalance handled wrongly | SMOTE only inside imblearn Pipeline; compare with class_weight; report PR-AUC, TPR/TNR, threshold analysis |
 | Similarity to online solutions | non-Kaggle source, two-table join, own target and features, cost-based threshold, deployed app; related theses cited and differentiated |
-| Name leakage | `mlda-zip` asserts the name is absent from report, notebook metadata, paths; git identity uses the ID only |
+| Name leakage | `mlda-zip` asserts the name is absent from the report, the notebook (cells, outputs, metadata) and the paths; git identity uses the ID only |
