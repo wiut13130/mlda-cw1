@@ -5,10 +5,9 @@ Written on Wednesday 14 October 2026, teaching week 6. The commits made so far a
 Checks before every push:
 
 ```
-uv run ruff check src tests app report notebooks
+uv run ruff check src tests app notebooks
 uv run pytest -m "not slow"
 uv lock --check
-uv run python report/build_report.py --check
 ```
 
 `uv run mlda-train --quick` and `--models` write into the committed `data/processed`, `models` and `reports`. After a trial run, look at `git status` and `git diff --stat reports/metrics`, and restore with `git restore data/processed models reports` unless the change is intended. Commit regenerated artefacts only from a full `uv run mlda-train` (about 95 minutes).
@@ -16,7 +15,7 @@ uv run python report/build_report.py --check
 ## Before the first block (by Sunday 18 October)
 
 - [x] Dataset reserved in the module Discussions forum on 10 October 2026 (source URL https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp). Keep the topic title and URL to hand for the viva.
-- [x] Public repository: https://github.com/wiut13130/mlda-cw1 (account `wiut13130`; every commit carries that identity and the noreply address). The URL is in README and in `repo_url` of `report/report_meta.json`.
+- [x] Public repository: https://github.com/wiut13130/mlda-cw1 (account `wiut13130`; every commit carries that identity and the noreply address). The URL is in the README.
 - [x] CI runs on GitHub Actions on every push (seven jobs: lint and tests on Ubuntu and Windows, lock and export check, plain pip installs, notebook execution, Docker build). Run the checks above by hand before each push anyway.
 
 ## Week of 19 October (mid-term week): deploy
@@ -26,9 +25,6 @@ Commit: the deployment was made on 15 October (TW12 commits); this week's commit
 - [x] `app/`, `notebooks/` and `tests/` committed with their tests (14 October).
 - [x] Deployed on Streamlit Community Cloud on 15 October: https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app (entrypoint `app/streamlit_app.py`, Python 3.12). Render (Docker, free plan, `MLDA_LOW_MEMORY=1`, health check `/_stcore/health`) stays documented in README "Deployment" as the fallback.
 - [ ] Visit all seven pages on the live URL. Read the resident memory on the About page (it uses psutil) and time a cold start after the app has slept. Add both numbers to "Memory and speed budget" in `docs/architecture.md` and beside the local figures in README "Deployment" (458 MB without and 462 MB with `MLDA_LOW_MEMORY` after seven pages, measured on Windows). If a live search restarts the app, lower the caps in `app/_common.py` and keep the live search for the local app.
-- [x] README "Deployed at" line, `repo_url` and `app_url` in `report/report_meta.json` set (15 October).
-- [x] Forum reservation date (10 October 2026) recorded in `report/sections/01_introduction.md`; report rebuilt.
-- [x] `report/sections/90_references.md` exists and renders as the reference list.
 
 ## Week of 19 October: response to an external review (started 20 October)
 
@@ -39,10 +35,9 @@ A strict external marking of the 15 October submission (estimate 83/100) was che
 - [x] Three Mines-snapshot flags (SAFETY_COMMITTEE_IND, PART48_TRAINING, PORTABLE_OPERATION) removed from the model inputs (52 remain); full study rerun with `uv run mlda-train`, `python -m mlda.followup` and the notebook with `FULL_RUN=1`.
 - [x] History audit: 14.1% of training rows carry a previous-year history drawn from a test mine-year; sensitivity variant `history_without_test_outcomes` refits HGB without them; the temporal split is the leakage-free check.
 - [x] Statistical wording corrected (mean and standard deviation under skew, raw values and trees, association as a leakage screen, specificity and workload, Brier score and calibration); S5 random reference 0.50.
-- [x] Report build: static contents list cached in the TOC field with fields updated on opening, repeated table headers, rows kept together, landscape pages for wide tables, short caption titles in the lists of figures and tables.
 - [x] App: MINE_ID validated (malformed input refused, unknown mine warned, batch rows checked).
 - [ ] Follow-up checks extended: out-of-fold cut-off for the workload rule, calibration on the open cohort, open-only refit, paired mine-year bootstrap of the equal-workload comparison; numbers written into the report, notebook re-executed, README and viva pack refreshed, submission zip rebuilt.
-- [ ] You: export the report PDF from Word after the rebuild and keep making one dated commit per week with real changes until 4 December (the review awards the weekly-commit marks only for dated progress).
+- [ ] You: keep making one dated commit per week with real changes until 4 December (the review awards the weekly-commit marks only for dated progress).
 
 ## Week of 26 October (TW7): mine-profile view on the EDA page
 
@@ -71,7 +66,7 @@ Commit: `TW9: class_weight and SMOTE comparison for the selected model, recorded
 - [ ] Add an `imbalance` block to `mlda.sensitivity` for `hist_gb` (`class_weight="balanced"`) and for `logreg`, compared with the unweighted fit. SMOTE sits inside an `imblearn` Pipeline after the preprocessor, so it resamples training folds only; note that SMOTE on one-hot columns produces fractional dummy values.
 - [ ] Same protocol as the other variants: grouped five-fold cross-validation on the training rows, out-of-fold threshold for specificity 0.40, one scoring of the test rows. Report ROC-AUC, PR-AUC, recall at that threshold and Brier score; Brier shows the loss of calibration that resampling causes.
 - [ ] Test on the synthetic base in `tests/test_sensitivity.py`: SMOTE changes the training rows inside the pipeline and leaves the rows passed to `predict_proba` untouched.
-- [ ] Regenerate artefacts from one full `uv run mlda-train`, then add one sentence to README "Method in brief" and to the report if its numbers change.
+- [ ] Regenerate artefacts from one full `uv run mlda-train`, then add one sentence to README "Method in brief" if its numbers change.
 
 ## Week of 16 November (TW10): MLP calibration study
 
@@ -81,7 +76,7 @@ Commit: `TW10: calibration study for the multi-layer perceptron and its effect o
 - [ ] Fit `CalibratedClassifierCV` with `method="sigmoid"` and `method="isotonic"` around the tuned MLP pipeline on training rows, with explicit mine-year-grouped splits (`CalibratedClassifierCV` is already used for the SVM in `models.py`).
 - [ ] Compare reliability tables (`evaluation.calibration_table`), Brier score, log loss and the out-of-fold cost-optimal thresholds before and after. A monotone sigmoid leaves ROC-AUC unchanged; isotonic can introduce ties, so report both.
 - [ ] Selection stays as it was: `hist_gb` is the final model. The calibrated MLP is reported as an extra, post hoc candidate. Do not change the final model after seeing test scores.
-- [ ] Regenerate `F19_calibration.png`, rebuild and execute the notebook in default mode (`uv run python notebooks/build_notebook.py`, then `uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_end_to_end.ipynb`), and refresh the HTML export with `uv run jupyter nbconvert --to html notebooks/01_end_to_end.ipynb`.
+- [ ] Regenerate `F19_calibration.png`, execute the notebook in default mode (`uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_end_to_end.ipynb`), and refresh the HTML export with `uv run jupyter nbconvert --to html notebooks/01_end_to_end.ipynb`.
 
 ## Week of 23 November (TW11): Docker verified in CI, README
 
@@ -90,19 +85,13 @@ Commit: `TW11: Docker image verified in CI, README run instructions checked on c
 - [ ] The image has never been built (no Docker on the development machine). With the repository on GitLab the `docker` job does not run, so the first build is the Render deploy of the week of 19 October: read its build log and fix failures. One thing to check: `.dockerignore` excludes `data/raw/*.txt`, while the Dockerfile copies `data/raw/*_Definition_File.txt`; add `!data/raw/*_Definition_File.txt` to `.dockerignore` or drop the pattern from the `COPY` line.
 - [ ] Extend the job: after the health check run `docker run --rm mlda-cw1 python -c "import mlda; print(mlda.__version__)"` and print `docker image ls mlda-cw1`. Add the CI badge to the README title block once the repository URL is known.
 - [ ] Clone the repository into a new folder on Windows and follow README Route A and Route B line by line, then Route C where Docker is available. Fix any line that fails and update the test counts and run times if they changed.
-- [ ] Write `report/viva_prep.md` from the 25 questions in `docs/report_plan.md` section 7, one number and one table or figure per answer.
-- [ ] You: build the docx (`uv run python report/build_report.py`), open it in Word and read it once for layout, page count and figure placement.
 
-## Week of 30 November (TW12): final sync, v1.0.0, zip. Deadline Friday 4 December
+## Week of 30 November (TW12): final sync and v1.0.0. Deadline Friday 4 December
 
-Commit: `TW12: final metric and figure sync; README and report numbers checked against reports/metrics`
+Commit: `TW12: final metric and figure sync; README numbers checked against reports/metrics`
 
 - [ ] If code or data changed since the last full run, run `uv run mlda-train` once more so that `models/manifest.json` and every metric come from one run.
 - [ ] Rebuild and execute the notebook, refresh its HTML export, then check each number in `README.md` (introduction, success-criteria table, test counts, run times) against `reports/metrics` and `uv run pytest --collect-only -q`.
 - [ ] `uv lock --check`; `make export` leaves `requirements.txt` and `app/requirements.txt` unchanged; the last `ci` run on `main` is green.
 - [ ] Tag: `git tag -a v1.0.0 -m "CW1 submission, student ID 13130"` and `git push origin main v1.0.0`.
-- [ ] You: open `report/MLDA_CW1_13130_report.docx` in Word, update the table of contents and the lists of figures and tables (right-click, Update Field, Update entire table), and check File, Info for an author name in the document properties. Export the PDF to `report/MLDA_CW1_13130_report.pdf`.
-- [ ] You: run the anti-plagiarism check on the report and keep the similarity report.
-- [ ] Commit the docx and the PDF, then build the archive. Set `MLDA_FORBIDDEN` to the strings that must not appear (comma-separated, supplied at run time and never written to a file) and run `uv run mlda-zip --output-dir C:\ML\submission`. List the archive: it must hold nine or ten files under `MLDA.CW1.13130/` (report docx and PDF, notebook and its HTML export, three MSHA archives and three definition files) and nothing else. The packer refuses a missing deliverable, an unexecuted notebook, a dataset file that differs from its pinned SHA-256 and any forbidden string. Run `git log --all -i -G"<string>" --oneline` for each forbidden string as well, because the hosted history is public.
-- [ ] You: upload `MLDA.CW1.13130.zip` to the intranet by Wednesday 2 December, two days before the deadline.
 - [ ] You: open the live app the day before marking and again a few minutes before the viva, because a Render free instance spins down after 15 minutes without a request and needs about one minute to start (a Cloud app sleeps after about 12 hours idle). Fallback if it will not wake, and for the live search in the viva: `uv run streamlit run app/streamlit_app.py` or the Docker route on the presenting machine.

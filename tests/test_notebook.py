@@ -1,7 +1,7 @@
-"""Slow tests for the end-to-end notebook: regenerate it, execute it into a temporary copy, inspect it.
+"""Tests for the end-to-end notebook: inspect the committed file, execute a temporary copy, inspect the run.
 
-The notebook is a graded artefact, so the test does what a marker does: build it from
-``notebooks/build_notebook.py``, run it top to bottom with a fresh kernel of this environment
+The notebook is a graded artefact, so the test does what a marker does: open
+``notebooks/01_end_to_end.ipynb``, run a copy top to bottom with a fresh kernel of this environment
 (default mode, ``FULL_RUN`` unset), and check that no cell raised, that the run finished within
 fifteen minutes, that the structure of the brief is there and that the executed file carries no
 personal name. The committed ``notebooks/01_end_to_end.ipynb`` is never touched.
@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import ast
 import getpass
-import importlib.util
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -26,7 +26,7 @@ from mlda.config import MODELS_DIR, PROJECT_ROOT, RAW_DIR, SOURCES, STUDENT_ID
 
 pytestmark = [pytest.mark.slow, pytest.mark.timeout(1800)]
 
-BUILDER = PROJECT_ROOT / "notebooks" / "build_notebook.py"
+NOTEBOOK = PROJECT_ROOT / "notebooks" / "01_end_to_end.ipynb"
 RUNTIME_LIMIT_SECONDS = 15 * 60
 REQUIRED_HEADINGS = (
     "A. Load dataset",
@@ -52,13 +52,6 @@ BANNED_PHRASES = (
 )
 
 
-def _load_builder():
-    """Import notebooks/build_notebook.py as a module (the folder is not a package)."""
-    spec = importlib.util.spec_from_file_location("build_notebook", BUILDER)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
 
 def _needs_data() -> None:
     missing = [s.extracted_path for s in SOURCES.values() if not s.extracted_path.exists() and s.member]
@@ -68,20 +61,17 @@ def _needs_data() -> None:
 
 @pytest.fixture(scope="module")
 def generated() -> nbformat.NotebookNode:
-    """The notebook as the generator builds it, before execution."""
-    return _load_builder().build()
+    """The committed notebook as it is stored in the repository."""
+    return nbformat.read(NOTEBOOK, as_version=4)
 
 
 @pytest.fixture(scope="module")
 def executed(tmp_path_factory) -> tuple[nbformat.NotebookNode, float]:
-    """Regenerate, execute with nbconvert into a temporary copy, return (notebook, seconds)."""
+    """Execute a temporary copy of the committed notebook with nbconvert, return (notebook, seconds)."""
     _needs_data()
     workdir = tmp_path_factory.mktemp("notebook")
     source = workdir / "01_end_to_end.ipynb"
-    built = subprocess.run(
-        [sys.executable, str(BUILDER), "--output", str(source)], capture_output=True, text=True, check=False
-    )
-    assert built.returncode == 0, built.stderr[-2000:]
+    shutil.copyfile(NOTEBOOK, source)
 
     env = os.environ.copy()
     env.pop("FULL_RUN", None)

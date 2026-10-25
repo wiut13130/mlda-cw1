@@ -25,7 +25,6 @@ dependencies = [
 [project.scripts]
 mlda-download = "mlda.cli:download"
 mlda-train = "mlda.cli:train_all"
-mlda-zip = "mlda.cli:zip_submission"
 
 [dependency-groups]
 dev = [
@@ -37,8 +36,6 @@ dev = [
     "nbformat>=5.10",
     "nbclient>=0.10",
     "nbconvert>=7.16",
-    "python-docx>=1.1",
-    "pymupdf>=1.24",
 ]
 
 [build-system]

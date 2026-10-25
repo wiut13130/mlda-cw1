@@ -1,5 +1,5 @@
 # Convenience targets (Unix shells and Git Bash). Windows users can run the uv commands directly.
-.PHONY: sync lock export lint test test-all notebook app train download zip docker-build docker-run
+.PHONY: sync lock export lint test test-all notebook app train download docker-build docker-run
 
 sync:            ## create/update the virtual environment from uv.lock
 	uv sync --locked --all-groups
@@ -13,7 +13,7 @@ export:          ## export pinned requirements for pip users and for Streamlit C
 	uv export --format requirements-txt --no-dev --no-hashes --no-emit-project -o app/requirements.txt
 
 lint:
-	uv run ruff check src tests app report notebooks
+	uv run ruff check src tests app notebooks
 
 test:            ## fast unit and app smoke tests
 	uv run pytest -m "not slow"
@@ -32,9 +32,6 @@ notebook:
 
 app:
 	uv run streamlit run app/streamlit_app.py
-
-zip:             ## build the intranet submission archive MLDA.CW1.13130.zip
-	uv run mlda-zip
 
 docker-build:
 	docker build -t mlda-cw1 .

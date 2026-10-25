@@ -13,6 +13,7 @@ data/raw/MinesProdYearly.txt
 # local artefacts
 MLDA.CW1.*.zip
 .streamlit/secrets.toml
-report/~$*
+# the written report and its builder live outside the repository (practical part only)
+report/
 *.log
 !reports/logs/train_full.log

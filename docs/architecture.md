@@ -28,7 +28,6 @@ reports/metrics/           <name>.json test metrics, comparison.csv, thresholds.
 reports/cv/                <name>_cv_results.csv
 reports/predictions/       test_predictions.parquet and oof_predictions.parquet (y_true + float64 y_proba per model)
 reports/figures/           PNGs used by report and app
-report/                    MLDA_CW1_13130_report.docx (+ pdf), viva_prep.md, build_report.py
 notebooks/01_end_to_end.ipynb   executed notebook: Load -> EDA -> Prepare -> Train -> Evaluate
 src/mlda/
   config.py                PROJECT_ROOT, paths, RANDOM_STATE = 42, TARGET, URLS + SHA256, leakage drop-list
@@ -52,7 +51,7 @@ src/mlda/
   followup.py              checks run after the test scoring (python -m mlda.followup): capacity policies and the workload rule on the open-at-filing cohort,
                            open-report calibration, paired mine-year bootstrap, open-only refit, wider grids; none of them changes a choice
   pipeline.py              train_all(): the whole study, including the temporal study on 2010-2019 rows
-  cli.py                   mlda-download, mlda-train, mlda-zip (deliverables-only submission zip; --full for a repository snapshot)
+  cli.py                   mlda-download, mlda-train
 app/
   streamlit_app.py         entrypoint: sys.path shim, set_page_config, st.navigation, shared sidebar
   requirements.txt         runtime-only export for Cloud
@@ -63,7 +62,7 @@ tests/
   test_load_join.py test_schema.py test_cleaning.py test_features.py test_preprocessing.py test_split.py
   test_pipeline_fit_predict.py test_evaluation.py test_persistence.py test_artifacts.py
   test_app_smoke.py (AppTest over all pages)  test_notebook.py (slow: nbconvert --execute)
-docs/                      report_plan.md, architecture.md, dataset_research.md, data_profile.md
+docs/                      architecture.md, interfaces.md, dataset_research.md, data_profile.md, weekly_plan.md
 ```
 
 ## Tests mapped to the rubric
@@ -96,7 +95,7 @@ the inference page only; seaborn imported only where `st.pyplot` figures are bui
 | 9-15 Nov | TW9 imbalance: class_weight vs SMOTE in imblearn Pipeline (CV only), PR-AUC, threshold analysis; Evaluation dashboard |
 | 16-22 Nov | TW10 MLP candidate, calibration; notebook re-executed; figures regenerated |
 | 23-29 Nov | TW11 Dockerfile, CI docker build, notebook test, README run instructions; redeploy |
-| 30 Nov-4 Dec | TW12 final metric/figure sync, tag v1.0.0, mlda-zip; README polish |
+| 30 Nov-4 Dec | TW12 final metric/figure sync, tag v1.0.0; README polish |
 
 All code is produced in this session; the later weekly commits are real extension and polish commits, so the history is honest.
 
@@ -125,4 +124,4 @@ Always available: `uv run streamlit run app/streamlit_app.py` or `docker run -p 
 | Leakage | split first; all fitting inside Pipeline; FeatureEngineer in the Pipeline; tests for disjoint indices, duplicate rows across the split, |corr| ~ 1 features; test predictions built only from the held-out set |
 | Imbalance handled wrongly | SMOTE only inside imblearn Pipeline; compare with class_weight; report PR-AUC, TPR/TNR, threshold analysis |
 | Similarity to online solutions | non-Kaggle source, two-table join, own target and features, cost-based threshold, deployed app; related theses cited and differentiated |
-| Name leakage | `mlda-zip` asserts the name is absent from the report, the notebook (cells, outputs, metadata) and the paths; git identity uses the ID only |
+| Name leakage | the notebook tests check that the executed notebook carries no account name; git identity uses the ID only |

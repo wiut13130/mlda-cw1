@@ -1,8 +1,7 @@
 """Command-line entry points declared in pyproject.toml.
 
     uv run mlda-download   fetch and verify the MSHA source files
-    uv run mlda-train      rebuild processed data, models and report artefacts
-    uv run mlda-zip        build the intranet submission archive
+    uv run mlda-train      rebuild processed data, models, metrics and figures
 """
 
 from __future__ import annotations
@@ -40,15 +39,3 @@ def train_all() -> None:
     args = parser.parse_args()
     manifest = _train_all(quick=args.quick, models=args.models)
     print(f"finished in {manifest['total_seconds']} s; best model {manifest['best_model']}")
-
-
-def zip_submission() -> None:
-    """Build the submission archive, or say plainly that the builder does not exist yet.
-
-    ``mlda.submission`` is outside the module contracts of docs/interfaces.md (sections 1-11).
-    Until it is written, the command exits with a one-line message instead of a traceback.
-    """
-    from mlda.submission import main as _main
-
-    _configure_logging()
-    _main()

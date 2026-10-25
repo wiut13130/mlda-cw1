@@ -59,34 +59,3 @@ def test_download_passes_force_to_the_downloader(monkeypatch: pytest.MonkeyPatch
     cli.download()
     assert seen == [True]
     assert "accidents" in capsys.readouterr().out
-
-
-def test_zip_submission_passes_its_options_to_the_packer(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
-    from mlda import submission
-
-    calls: list[tuple] = []
-    monkeypatch.setattr(
-        submission, "build_zip", lambda out, forbid, full=False, bundle=False: calls.append((out, forbid, full, bundle))
-    )
-    monkeypatch.setattr(sys, "argv", ["mlda-zip", "--output-dir", str(tmp_path), "--forbid", "Jane", "--full", "--bundle"])
-    cli.zip_submission()
-    assert calls == [(tmp_path, ["Jane"], True, True)]
-
-
-def test_zip_submission_refuses_bundle_without_full(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(sys, "argv", ["mlda-zip", "--bundle"])
-    with pytest.raises(SystemExit) as stopped:
-        cli.zip_submission()
-    assert stopped.value.code == 2
-
-
-def test_zip_submission_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
-    from mlda import submission
-
-    calls: list[tuple] = []
-    monkeypatch.setattr(
-        submission, "build_zip", lambda out, forbid, full=False, bundle=False: calls.append((out, forbid, full, bundle))
-    )
-    monkeypatch.setattr(sys, "argv", ["mlda-zip"])
-    cli.zip_submission()
-    assert calls == [(None, None, False, False)]
