@@ -57,7 +57,7 @@ FALLBACK_TOLERANCE = (
     0.05  # prevalence check of the mine-grouped split when the 1 pp check cannot be met
 )
 # Levels that are 100 % one class by definition and known at filing, documented in
-# docs/data_profile.md section 9: amputation (923 of 925 rows are permanent disability, code 02).
+# decisions.json known_deterministic_levels: amputation (923 of 925 rows are permanent disability, code 02).
 DOCUMENTED_PURE_LEVELS: frozenset[tuple[str, str]] = frozenset({("NATURE_INJURY_CD", "100")})
 
 VARIANT_DESCRIPTIONS: dict[str, str] = {

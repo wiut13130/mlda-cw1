@@ -109,7 +109,7 @@ class LookupNatureBodypartCoal(_BinaryBaseline):
     """Cell lost-time rate of nature x body part x sector with coarser fall-backs.
 
     ``min_count`` is the smallest training cell accepted before falling back to the next
-    coarser table (1 reproduces the reference figures in docs/data_profile.md).
+    coarser table (1 reproduces the reference figures in docs/profile/decisions.json).
     """
 
     def __init__(self, min_count: int = 1) -> None:

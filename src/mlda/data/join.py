@@ -5,8 +5,8 @@ code. Each row receives the mine's stable attributes, the previous calendar year
 (hours, employees, subunit set) and the previous year's case history restricted to cases filed
 before the accident date. The previous year is used because at filing time the current year's
 quarterly employment reports are incomplete and the current year's cases would include the row
-itself. The contract for every step is docs/interfaces.md section 1; the expected counts are in
-docs/data_profile.md sections 2 and 3.
+itself. The filter sequence and the expected counts are in
+docs/profile/decisions.json (row_filter_sequence, join).
 
 Four columns go beyond the contract and exist only for the sensitivity runs (they are never model
 inputs): the lagged case counts rebuilt from cases that were already resolved at the accident
@@ -292,7 +292,7 @@ def _subunits_to_text(subunits: pd.Series) -> pd.Series:
 def build_base_table(accidents: pd.DataFrame, mines: pd.DataFrame, production: pd.DataFrame) -> pd.DataFrame:
     """Build the analytic base table from the three loaded extracts (pure; nothing is written).
 
-    Follows docs/interfaces.md section 1 step by step. Every raw accident column is kept
+    Follows the row_filter_sequence and join sections of decisions.json step by step. Every raw accident column is kept
     (the leakage columns are needed for EDA and label-validity checks and are dropped in
     `mlda.features`), plus the mine attributes and the derived columns listed in
     `mlda.data.schema.DERIVED_COLUMNS`.

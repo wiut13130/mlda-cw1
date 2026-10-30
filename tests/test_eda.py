@@ -1,4 +1,4 @@
-"""EDA helpers checked against numpy / scipy on synthetic frames built to docs/interfaces.md."""
+"""EDA helpers checked against numpy / scipy on synthetic frames built to the base-table contract."""
 
 from __future__ import annotations
 

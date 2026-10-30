@@ -103,7 +103,7 @@ LOW_MEMORY_VALUES = frozenset({"1", "true", "yes"})
 def low_memory_enabled(environ: Mapping[str, str] | None = None) -> bool:
     """True when MLDA_LOW_MEMORY is "1", "true" or "yes" (any case, surrounding spaces ignored).
 
-    The switch is for hosts with about 512 MB of RAM (the Render free plan). It is read once, when this
+    The switch is for hosts with about 512 MB of RAM (free container plans). It is read once, when this
     module is imported, because the caps below are module constants that the pages import.
     """
     value = (os.environ if environ is None else environ).get("MLDA_LOW_MEMORY", "")
@@ -421,7 +421,7 @@ FEATURE_INFO: dict[str, tuple[str, str]] = {
     "coords_missing": ("Derived", "1 when the mine coordinates are missing or invalid."),
 }
 
-# file, rows, columns, primary key, grain of the three pinned MSHA files (docs/data_profile.md section 0)
+# file, rows, columns, primary key, grain of the three pinned MSHA files (data/README.md)
 SOURCE_FACTS: tuple[tuple[str, str, int, int, str, str], ...] = (
     (
         "Accidents",

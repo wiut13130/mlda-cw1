@@ -1,8 +1,8 @@
 # Container for the Streamlit app (CW1, student ID 13130).
 # Build:  docker build -t mlda-cw1 .
 # Run:    docker run --rm -p 8501:8501 mlda-cw1
-# Hosts that assign the port (Render sets PORT) are served on it; without PORT the app listens on 8501.
-# Add -e MLDA_LOW_MEMORY=1 on a host with 512 MB of RAM (render.yaml sets it for Render).
+# Hosts that assign the port through PORT are served on it; without PORT the app listens on 8501.
+# Add -e MLDA_LOW_MEMORY=1 on a host with 512 MB of RAM.
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/

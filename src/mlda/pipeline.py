@@ -5,7 +5,7 @@ base table, apply the error rules, engineer features, hold out the grouped test 
 the exploratory tables and figures on the training rows, fit the baselines, tune each model
 of the zoo on the training rows with grouped cross-validation, choose every threshold on
 out-of-fold probabilities, score the held-out rows once, compare, test, draw and explain.
-Every artefact listed in docs/architecture.md and docs/interfaces.md section 11 is written
+Every artefact the notebook and the app read is written
 under the directories named in ``mlda.config`` (read at call time, so tests can redirect
 them). Test rows are only ever passed to ``predict_proba``; nothing is fitted on them.
 
@@ -1047,7 +1047,7 @@ def success_criteria(
     dirs: ArtefactDirs,
     sensitivity: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """S1-S7 of docs/data_profile.md section 8 for every model, evaluated on the held-out rows.
+    """S1-S7 of decisions.json (success_criteria) for every model, evaluated on the held-out rows.
 
     ``temporal`` supplies the per-sector Brier scores that S6 also checks for the models that
     were evaluated on the temporal split. ``sensitivity`` adds the same criteria for the split

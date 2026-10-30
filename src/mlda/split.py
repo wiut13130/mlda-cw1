@@ -2,7 +2,7 @@
 
 Rows from one mine-year (``group_id``) must never straddle train and test, because
 82 % of rows have a same-mine-year sibling whose outcome the model would otherwise
-absorb (docs/data_profile.md section 7). ``StratifiedGroupKFold`` keeps the class
+absorb (docs/profile/decisions.json, split). ``StratifiedGroupKFold`` keeps the class
 share of every fold within 1 pp of the full set while respecting the groups; fold 0
 is the held-out test set and the remaining folds are rebuilt on the training rows
 for GridSearchCV. Indices are row positions, saved to JSON so that every notebook

@@ -88,8 +88,8 @@ SOURCES: dict[str, Source] = {
 
 
 # ---------------------------------------------------------------------------
-# Modelling decisions fixed after data profiling (docs/data_profile.md,
-# docs/profile/decisions.json). Changing anything here changes the whole study.
+# Modelling decisions fixed after data profiling
+# (docs/profile/decisions.json). Changing anything here changes the whole study.
 # ---------------------------------------------------------------------------
 
 TARGET = "lost_time"

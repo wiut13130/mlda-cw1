@@ -12,7 +12,7 @@ Module 6COSC017C Machine Learning and Data Analytics, Coursework 1, student ID 1
 | Live app | Deployed at: [https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app](https://mlda-cw1-8han4medy3o7d8izzcywbm.streamlit.app) | see "Deployment" |
 | Repository | `https://github.com/wiut13130/mlda-cw1` (GitHub) | shared code in `src/mlda`, imported by the notebook and the app; see the note below |
 
-**Repository.** The code is hosted on GitHub (`https://github.com/wiut13130/mlda-cw1`), where the commit history, the CI runs and the source of every artefact can be checked. It holds the practical part of the coursework: the package, the notebook, the application, the data, the trained models, their results and the tests.
+**Repository.** The code is hosted on GitHub (`https://github.com/wiut13130/mlda-cw1`), where the commit history and the source of every artefact can be checked. It holds the practical part of the coursework: the package, the notebook, the application, the data, the trained models, their results and the tests.
 
 ## Data
 
@@ -47,7 +47,7 @@ uv run pytest -m "not slow"         # fast suite
 uv run pytest                       # also executes the notebook and the quick end-to-end runs
 ```
 
-Both `mlda-train` modes write into `data/processed`, `models` and `reports`, so a quick run replaces the committed full-run artefacts with smaller-grid results. `git restore data/processed models reports` brings the committed versions back. On Unix and Git Bash, `make sync`, `make test`, `make app` and the other targets in the `Makefile` wrap the same commands.
+Both `mlda-train` modes write into `data/processed`, `models` and `reports`, so a quick run replaces the committed full-run artefacts with smaller-grid results. `git restore data/processed models reports` brings the committed versions back.
 
 ### Route B: plain pip
 
@@ -64,7 +64,7 @@ streamlit run app/streamlit_app.py
 pytest -m "not slow" -k "not app_smoke"
 ```
 
-`pip install -e . --no-deps` installs the console scripts `mlda-download` and `mlda-train` into the virtual environment. `requirements.txt` (all groups) and `app/requirements.txt` (runtime only, read by Streamlit Community Cloud) are exports of `uv.lock`; CI fails if either drifts, and `make export` regenerates them. The last command above selects 382 of the 472 tests (`pytest --collect-only -m "not slow" -k "not app_smoke"`); the count was taken in the uv environment on 20 October 2026, and a fresh clone should be checked against it before it is quoted. The 73 Streamlit app smoke tests, which `-k "not app_smoke"` leaves out, run in the uv route (483 fast tests in total).
+`pip install -e . --no-deps` installs the console scripts `mlda-download` and `mlda-train` into the virtual environment. `requirements.txt` (all groups) and `app/requirements.txt` (runtime only, read by Streamlit Community Cloud) are exports of `uv.lock`, regenerated with `uv export --format requirements-txt --all-groups --no-hashes --no-emit-project -o requirements.txt` and `uv export --format requirements-txt --no-dev --no-hashes --no-emit-project -o app/requirements.txt`. The last command above selects 382 of the 472 tests (`pytest --collect-only -m "not slow" -k "not app_smoke"`); the count was taken in the uv environment on 20 October 2026, and a fresh clone should be checked against it before it is quoted. The 73 Streamlit app smoke tests, which `-k "not app_smoke"` leaves out, run in the uv route (483 fast tests in total).
 
 ### Route C: Docker
 
@@ -73,7 +73,7 @@ docker build -t mlda-cw1 .
 docker run --rm -p 8501:8501 mlda-cw1     # then open http://localhost:8501
 ```
 
-The image starts from `python:3.12-slim`, installs the locked runtime dependencies with uv, copies the committed artefacts the app serves and defines a health check on `/_stcore/health`. The container listens on the port in the `PORT` variable, which hosts such as Render set, and on 8501 when `PORT` is not set; the health check reads the same variable. On a host with 512 MB of RAM add `-e MLDA_LOW_MEMORY=1` (see "Deployment"). The CI job `docker` builds the image and polls the health endpoint on pushes to `main`. The image has not been built on the development machine, which has no Docker; the `CMD` was checked by starting Streamlit through `sh -c` with and without `PORT`.
+The image starts from `python:3.12-slim`, installs the locked runtime dependencies with uv, copies the committed artefacts the app serves and defines a health check on `/_stcore/health`. The container listens on the port in the `PORT` variable, which container hosts set, and on 8501 when `PORT` is not set; the health check reads the same variable. On a host with 512 MB of RAM add `-e MLDA_LOW_MEMORY=1` (see "Deployment"). The image has not been built on the development machine, which has no Docker; the `CMD` was checked by starting Streamlit through `sh -c` with and without `PORT`.
 
 ### Expected run times (8 cores)
 
@@ -116,8 +116,8 @@ tests/               pytest suite and 300-row fixtures
 data/                README.md (data card), raw/ (archives, codebooks, SNAPSHOT.json), processed/ (parquet, split indices)
 models/              eight tuned pipelines (.joblib) and manifest.json (versions, git SHA, data checksum)
 reports/             metrics/ (JSON, CSV), cv/ (search results), predictions/, figures/ (PNG)
-docs/                architecture, module interfaces, dataset research, data profile, weekly plan
-Dockerfile render.yaml   container image of the app; Render Blueprint (free web service, low-memory mode)
+docs/profile/decisions.json   decision log of the data profiling: filters, target, features, error rules, split, success criteria
+Dockerfile           container image of the app
 ```
 
 ## Method in brief
@@ -126,7 +126,7 @@ Dockerfile render.yaml   container image of the app; Render Blueprint (free web 
 - **Operating points and the workload rule.** The capacity threshold (0.211) is the lowest out-of-fold threshold with specificity 0.40 on all training rows. It flags 76.3 % of all test filings but would flag 90.0 % of the open reports, more than a review capacity of three in four, so the recommendation is the workload rule: review the top three in four of open-at-filing reports by score. The deployed cut-off, 0.376, is the 25th percentile of the out-of-fold scores of the open training reports, so no test row enters it; on the 11,290 open test reports it flags 74.3 % and finds 0.850 of the lost-time cases. At exactly the top 75 % of open reports by test score, recall is 0.855 and precision 0.812, level with the MLP (0.855) and above the lookup baseline (0.828) and random selection (0.75). The probabilities are calibrated to all filings and run 0.12 below the observed rate on open reports (mean predicted 0.592 against 0.712); the rule uses the ranking only. A paired mine-year bootstrap puts HGB 0.027 ahead of the lookup baseline in recall under the rule (95 % interval 0.021 to 0.033) and level with the MLP (0.000, interval -0.003 to 0.004). An HGB fitted on open-at-filing training rows alone reaches recall 0.877 under the rule, so a prospective trial should fit on open reports.
 - **Filters and target.** Accident years 2010 to 2025 and degree-of-injury codes 01 to 06. `lost_time` = 1 for fatality, permanent disability, days away, or days away and restricted activity (codes 01 to 04); 0 for restricted activity only or no days away (05, 06). N = 101,609, prevalence 48.6 %.
 - **Joins.** Left joins from the accident rows, each with `validate="many_to_one"` and an asserted row count: Mines on `MINE_ID` (100.0 % matched), mine-year production on `MINE_ID` and the previous calendar year (98.8 %), and counts of earlier cases filed before each accident.
-- **Cleaning.** Thirty error rules (E1 to E30) are documented in `docs/data_profile.md`; the 17 implemented in `mlda.cleaning` are logged with row counts in `reports/metrics/error_rules.csv`.
+- **Cleaning.** Thirty error rules (E1 to E30) are documented in `docs/profile/decisions.json`; the 17 implemented in `mlda.cleaning` are logged with row counts in `reports/metrics/error_rules.csv`.
 - **Features.** 52 inputs, 546 columns after the default one-hot preprocessor. The three Mines-snapshot flags (safety committee, Part 48 training, portable operation) are not inputs, because their value at the time of each accident cannot be established from a snapshot of the Mines file; the location and commodity fields stay, and the Section 103(i) status is dated to the accident (`status_103i_at_accident`). Columns that encode the outcome (`DAYS_LOST`, `DAYS_RESTRICT`, `RETURN_TO_WORK_DT`, `CLOSED_DOC_NO` and others) are excluded.
 - **Split.** `StratifiedGroupKFold` on mine-year groups (32,732 groups), because 82 % of rows share a mine-year with another row. One fold is the 20 % test set (20,320 rows); the 81,289 training rows are cross-validated with five grouped stratified folds. Imputers, scalers, encoders and models are fitted inside scikit-learn Pipelines on training rows only.
 - **Models.** Logistic regression, k-nearest neighbours, Gaussian naive Bayes, decision tree, random forest, histogram gradient boosting, RBF support vector machine and multi-layer perceptron. Seven are tuned with `GridSearchCV`; the random forest uses `RandomizedSearchCV`. Four reference rules give the baseline.
@@ -148,25 +148,15 @@ Success criteria, fixed before modelling and evaluated for `hist_gb` on the held
 
 S5 is missed by 0.003. The multi-layer perceptron misses it as well, with 0.777 at a 51.1 % flag rate and 0.769 among the top 50 % of test scores (the planned form of S5) against 0.770 for `hist_gb`, so no candidate passes all seven criteria. `hist_gb` stays the final model because the selection rule, cross-validated PR-AUC fixed before any test score was computed, ranks it first (0.838 against 0.831), and the choice was not revised after the test result. S3 was set for all filings and is met at the capacity threshold; under the workload rule recall on open reports is 0.850 (0.855 at exactly the top 75 % by test score), below that target. At cost ratios of 10:1 and above the model saves little against reviewing every case (4.6 % at 10:1), and at 20:1 and 30:1 its cost-optimal threshold costs 0.5 % and 0.3 % more than reviewing every case on the test rows, so its value lies in ranking cases under limited review capacity.
 
-## Tests and CI
+## Tests
 
 `pytest` is configured in `pyproject.toml` (`tests/`, 900-second timeout per test, marker `slow`). The 472 tests cover the loaders and joins (300-row fixtures plus counts on the real data), the schema, each error-correction rule on hand-built rows, IQR and Z-score flags, the feature formulas, leakage guards, every preprocessing option, train-only fitting, the grouped split (disjoint indices, prevalence within 1 percentage point, reproducibility), the model zoo and tuner, metrics against hand-computed confusion matrices, the threshold and cost model, persistence round trips, figure builders, the command-line parsers, the download checksums, the follow-up checks (the workload rule's cut-off, the open-cohort calibration bins, the paired bootstrap and the open-only refit, each on hand-built frames), and a Streamlit `AppTest` run over every page, including the `MINE_ID` validation of the inference page and a live search with the preprocessing chosen on the Preprocessing page and the caps of low-memory mode. Tests that need the extracted MSHA files or the committed artefacts skip themselves when these are absent, so run `mlda-download` first.
 
 Seventeen tests carry the `slow` marker: the ten notebook tests (check the committed notebook's headings and wording, execute a temporary copy within 15 minutes) and seven tests that train models through the quick pipeline. `-m "not slow"` leaves them out (455 tests remain). Lint is `uv run ruff check src tests app notebooks`.
 
-GitHub Actions (`.github/workflows/ci.yml`; push to `main`, pull requests, Monday 06:00 UTC, manual dispatch) runs five jobs:
-
-1. `test`: Ubuntu and Windows, `uv sync --locked --all-groups`, ruff, `mlda-download`, `pytest -m "not slow"`.
-2. `lock-and-exports`: `uv lock --check`, and `requirements.txt` and `app/requirements.txt` must equal fresh exports.
-3. `pip-fresh-venv`: Ubuntu and Windows, Python 3.12, plain pip from `requirements.txt`, import check, `pytest -m "not slow" -k "not app_smoke"`.
-4. `notebook`: `pytest -m slow` on Ubuntu (not on pull requests).
-5. `docker`: image build and health check (not on pull requests).
-
-The workflow runs on GitHub Actions on every push to `main`, on a weekly schedule and on demand; the Actions tab of the repository shows every run. Run the same checks by hand before a push: `uv run ruff check src tests app notebooks` and `uv run pytest -m "not slow"`.
-
 ## Commit history
 
-The commits dated 14 and 15 October 2026 were made in one two-day sprint. Each message names the teaching-week milestone of the brief whose content the commit adds, not the week in which it was written, so the commits labelled TW7, TW11 and TW12 on those dates (for example `1b32d5c`, `392da03`, `b884487` and `305d012`) delivered that work ahead of its milestone, and the labels are not in date order. No commit date has been changed, and none will be. From the week of 19 October each block of `docs/weekly_plan.md` is committed in the week it is done, with its real date, pushed so that the dates are visible on the remote, and tagged at its milestone (for example `tw8-batch-scoring`).
+The commits dated 14 and 15 October 2026 were made in one two-day sprint. Each message names the teaching-week milestone of the brief whose content the commit adds, not the week in which it was written, so the commits labelled TW7, TW11 and TW12 on those dates (for example `1b32d5c`, `392da03`, `b884487` and `305d012`) delivered that work ahead of its milestone, and the labels are not in date order. No commit date has been changed, and none will be. From the week of 19 October each block of work is committed in the week it is done, with its real date, pushed so that the dates are visible on the remote, and tagged at its milestone (for example `tw8-batch-scoring`).
 
 On 15 October 2026 the history was rewritten once so that every commit carries the student-ID author identity. The rewrite kept every file, message and date but changed the commit hashes. The manifests of the 20 October 2026 rerun (`models/manifest.json`, `reports/metrics/run_manifest.json`) record the commit current when each file was saved: `613d30e` for the first model fitted and `95c56ba` for the rest, both in the present history; the feature change committed in `95c56ba` was already in the working tree when the run started, and the run's own log is `reports/logs/train_full.log`.
 
@@ -184,20 +174,9 @@ How it was deployed:
 4. Deploy. Cloud installs from `app/requirements.txt`, the dependency file beside the entrypoint.
 5. The URL goes into the "Deployed at" line above.
 
-### Alternative route: Render free web service from the public Git URL
+### Low-memory mode
 
-Render builds the `Dockerfile` of this repository. The app reads `data/processed`, `models` and `reports`, so they must be committed, and the repository must be public.
-
-1. Copy the HTTPS clone URL of the public GitHub repository.
-2. In the Render dashboard choose New, Web Service, Public Git Repository, and paste the URL.
-3. Set the branch to `main`, the runtime to Docker and the instance type to Free. Choose the Frankfurt region, as `render.yaml` does.
-4. Under Environment add `MLDA_LOW_MEMORY` with the value `1`. Under Advanced set the health check path to `/_stcore/health` and switch auto-deploy off.
-5. Create the web service and wait for the first build, which installs the locked dependencies with uv.
-6. Copy the service URL into the "Deployed at" line above.
-
-The free instance has 512 MB of RAM. It spins down after 15 minutes without a request, and the next request starts it again in about one minute, so open the address a few minutes before marking and before the viva. `render.yaml` in the repository root records the same settings for a Render Blueprint (Render reads it when the repository is linked to a Render account); the steps above do not use it.
-
-`MLDA_LOW_MEMORY=1` (or `true` or `yes`) is read once in `app/_common.py`. It caps the sample of the Model training page at 5,000 rows (default 3,000; otherwise up to 20,000), tunes with 2-fold instead of 3-fold cross-validation (one worker in both modes), caps the Preprocessing sample at 5,000 rows (otherwise 10,000), keeps one fitted model and one design matrix in the cache (otherwise four and two), and shows a note on the Model training page. The saved models and the precomputed pages are the same in both modes. Resident memory of the server process, read with psutil on the development machine (Windows, Streamlit 1.65, `uv run streamlit run app/streamlit_app.py`, all seven pages opened in one session): 458 MB without the switch and 462 MB with it. The peak during one live random-forest search was 637 MB at 20,000 rows without the switch and 550 MB at 5,000 rows with it. These figures come from Windows and not from Render's Linux container. They show that the pages alone use close to the 512 MB of the free instance, and that a live search in low-memory mode can exceed it on this machine, so keep the local app ready (below) for a live search during the viva.
+`MLDA_LOW_MEMORY=1` (or `true` or `yes`) is read once in `app/_common.py`. It caps the sample of the Model training page at 5,000 rows (default 3,000; otherwise up to 20,000), tunes with 2-fold instead of 3-fold cross-validation (one worker in both modes), caps the Preprocessing sample at 5,000 rows (otherwise 10,000), keeps one fitted model and one design matrix in the cache (otherwise four and two), and shows a note on the Model training page. The saved models and the precomputed pages are the same in both modes. Resident memory of the server process, read with psutil on the development machine (Windows, Streamlit 1.65, `uv run streamlit run app/streamlit_app.py`, all seven pages opened in one session): 458 MB without the switch and 462 MB with it. The peak during one live random-forest search was 637 MB at 20,000 rows without the switch and 550 MB at 5,000 rows with it. These figures come from Windows and not from a Linux container. They show that the pages alone use close to 512 MB, and that a live search in low-memory mode can exceed it on this machine, so keep the local app ready (below) for a live search during the viva.
 
 
 A Cloud app sleeps after about 12 hours without a visit, so open it shortly before marking. Locally, `uv run streamlit run app/streamlit_app.py` or the Docker route serves the same app at http://localhost:8501.

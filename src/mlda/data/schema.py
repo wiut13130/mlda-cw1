@@ -70,7 +70,7 @@ VALID_DEGREE_CODES: tuple[str, ...] = (*POSITIVE_CODES, *NEGATIVE_CODES)
 
 
 class SchemaError(ValueError):
-    """Raised when the base table does not satisfy the contract in docs/interfaces.md."""
+    """Raised when the base table does not satisfy the base-table contract."""
 
 
 def validate_base(

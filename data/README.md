@@ -90,7 +90,7 @@ classification; 99.14 % of positives have `DAYS_LOST > 0` or `SCHEDULE_CHARGE > 
 | Prevalence by commodity | coal 63.04 % (n 41,461), metal/non-metal 38.62 % (n 60,148) |
 
 The label partly measures return-to-work practice (whether the operator offers restricted duty),
-so it is reported stratified by `COAL_METAL_IND`; see `docs/data_profile.md` section 1.
+so it is reported stratified by `COAL_METAL_IND`; see `label_drift` in `docs/profile/decisions.json`.
 
 ## 5. Row filters (applied in this order)
 
@@ -149,7 +149,7 @@ the full list is `drop_admin` in `docs/profile/decisions.json`.
 | `mine_year_features.parquet` | `MINE_ID` x `CALENDAR_YR`, 2009-2025, all mines | 226,182 | `hours`, `employees`, `subunits` (`|`-joined), `type`; the inference page looks up `(MINE_ID, year - 1)` here |
 | `mine_case_history.parquet` | one Accidents case, any degree code, 2009-2025 | 132,509 | `MINE_ID`, `CAL_YR`, `filing_date`, `DEGREE_INJURY_CD`, `return_to_work_dt`, `closed_date`; lets the inference page rebuild the filed-before counts for any accident date |
 
-Known limitations of the data itself (details in `docs/data_profile.md` section 9): Part 50 is
+Known limitations of the data itself (details in `target.label_validity` of `docs/profile/decisions.json`): Part 50 is
 operator self-reporting; the Mines table is a snapshot, so its dated attributes may post-date the
 accident; contractor hours are absent from the production file, so rates per 200,000 hours
 understate exposure at contractor-heavy mines; about 5 % of the 2025 fourth-quarter rows may still

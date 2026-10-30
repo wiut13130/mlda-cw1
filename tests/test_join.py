@@ -1,4 +1,4 @@
-"""Base-table contract (docs/interfaces.md section 1) on hand-built frames, plus the real-data counts."""
+"""Base-table contract on hand-built frames, plus the real-data counts."""
 
 from __future__ import annotations
 

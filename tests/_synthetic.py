@@ -1,7 +1,7 @@
 """Synthetic analytic base table for tests that must not depend on data/raw.
 
 ``synthetic_base`` builds a frame with every column of the base table described in
-docs/interfaces.md section 1: all 57 raw accident columns, the join outputs
+the base-table contract: all 57 raw accident columns, the join outputs
 (lost_time, filing_date, group_id, accident_group, mine attributes, previous-year
 production and case history, type_at_time) and the ``_m_mines`` indicator. Codes are
 realistic, placeholders are already NaN as ``mlda.data.load`` leaves them, several
@@ -95,7 +95,7 @@ def _type_from_subunits(subunits: frozenset[str]) -> str:
 
 
 def synthetic_base(n_rows: int = 400, random_state: int = RANDOM_STATE) -> pd.DataFrame:
-    """Seeded base table with ``n_rows`` rows following docs/interfaces.md section 1."""
+    """Seeded base table with ``n_rows`` rows following the base-table contract."""
     rng = np.random.default_rng(random_state)
     n_mines = max(8, n_rows // 40)
     mines = _mine_table(rng, n_mines)
@@ -234,7 +234,7 @@ def synthetic_base(n_rows: int = 400, random_state: int = RANDOM_STATE) -> pd.Da
             "NARRATIVE": "Synthetic narrative for testing.",
             "CLOSED_DOC_NO": np.where(rng.random(n_rows) < 0.5, document_no, None),
             "COAL_METAL_IND": mine["COAL_METAL_IND"].to_numpy(),
-            # Join outputs (docs/interfaces.md section 1).
+            # Join outputs.
             "lost_time": lost_time,
             "filing_date": filing_date,
             "group_id": mine["MINE_ID"].to_numpy() + "_" + year.astype(str),

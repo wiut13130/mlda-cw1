@@ -2,7 +2,7 @@
 
 The real-data tests skip when the raw extracts are absent. They guard the finding that
 NATURE_INJURY_CD = 100 (amputation, 925 rows) is 100 % lost-time: that level is documented in
-docs/data_profile.md section 9, so any *other* pure level, or a change to this one, fails here.
+decisions.json (known_deterministic_levels), so any *other* pure level, or a change to this one, fails here.
 """
 
 from __future__ import annotations
