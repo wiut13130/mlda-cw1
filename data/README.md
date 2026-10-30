@@ -1,20 +1,19 @@
 # Data card: MSHA accidents, mines and annual production (student ID 13130)
 
-Three open-data extracts published by the US Mine Safety and Health Administration (MSHA) are
-joined into one analytic table: one row per injured person on a Form 7000-1, 2010-2025, with the
-mine's attributes and its previous-year exposure and case history. This card records where the
-data came from, which exact version was analysed, how the tables fit together, how the target is
-defined and which columns are excluded as leakage. The numbers below agree with
-`docs/profile/decisions.json` (the strict filing-date counts were corrected there on the same
-day) and were reproduced by `mlda.data.join.load_base_table()` on 14 October 2026.
+The analytic table joins three open-data extracts from the US Mine Safety and Health
+Administration (MSHA). It has one row per injured person on a Form 7000-1 from 2010 to 2025,
+with the mine's attributes and its previous-year exposure and case history. The numbers below
+match `docs/profile/decisions.json`, where the strict filing-date counts were corrected on
+14 October 2026, and `mlda.data.join.load_base_table()` reproduced them on the same day.
 
 ## 1. Sources and snapshot
 
 Publisher: MSHA Open Government Data, https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp.
-All files were pulled on 2026-10-14 at 12:06:01 UTC; the three data archives are the versions
-MSHA published on Friday 9 October 2026 (MSHA refreshes them weekly, so the hashes pin the exact
-version analysed). The SHA-256 digests below are also recorded in `data/raw/SNAPSHOT.json` and
-in `mlda.config.SOURCES`; `uv run mlda-download` verifies them before extracting.
+All files were downloaded on 2026-10-14 at 12:06:01 UTC. The three data archives are the
+versions MSHA published on Friday 9 October 2026. MSHA refreshes them every week, so the hashes
+pin the exact version analysed. The SHA-256 digests below are also recorded in
+`data/raw/SNAPSHOT.json` and in `mlda.config.SOURCES`, and `uv run mlda-download` checks them
+before extracting.
 
 | File | Bytes | Last modified (server) | SHA-256 |
 |---|---|---|---|
@@ -27,17 +26,17 @@ in `mlda.config.SOURCES`; `uv run mlda-download` verifies them before extracting
 
 URLs: `https://arlweb.msha.gov/OpenGovernmentData/DataSets/<file>` for each file name above.
 
-Licence: the files are works of the United States federal government published as open
+Licence: the files are works of the United States federal government, published as open
 government data without a licence text. Under 17 U.S.C. 105 such works are not subject to
 copyright in the United States, so they may be copied, redistributed and analysed freely. The
-archives are committed to this repository as downloaded; the extracted `.txt` files are
+archives are committed to this repository as downloaded. The extracted `.txt` files are
 git-ignored and recreated by `uv run mlda-download`.
 
-Encoding: the files are `|`-delimited with double-quoted strings and a latin-1 byte range (a
-few Spanish narratives and some mojibake in free-text directions). They are read with
-`encoding="latin-1"`; no join key, code or numeric column contains a non-ASCII byte, so the
-choice is lossless for modelling. The placeholders `""`, `?`, `? `, `NO VALUE FOUND`, `No Value
-Found` and `NULL` are turned into missing values at load time (`mlda.data.load`).
+Encoding: the files are `|`-delimited, with double-quoted strings and bytes in the latin-1
+range (a few Spanish narratives and some mojibake in free-text directions). They are read with
+`encoding="latin-1"`. No join key, code or numeric column contains a non-ASCII byte, so this
+encoding loses nothing the models use. `mlda.data.load` turns the placeholders `""`, `?`, `? `,
+`NO VALUE FOUND`, `No Value Found` and `NULL` into missing values.
 
 ## 2. Table grain and keys
 
@@ -47,15 +46,15 @@ Found` and `NULL` are turned into missing values at load time (`mlda.data.load`)
 | `Mines.txt` | 92,060 x 59 | one mine, with its attributes as of the snapshot date | `MINE_ID` (7-digit zero-padded string) |
 | `MinesProdYearly.txt` | 658,922 x 11 | employee-hours and average employment for one mine, calendar year and subunit (Form 7000-2) | `MINE_ID`, `CALENDAR_YR`, `SUBUNIT_CD` |
 
-Header names match the Accidents and Mines codebooks exactly. The 2011 production codebook uses
-different names from the file header (`CALENDAR_YR` = CAL_YR, `ANNUAL_HRS` = ANNUAL_HOURS,
+The header names match the Accidents and Mines codebooks. The 2011 production codebook uses
+names that differ from the file header (`CALENDAR_YR` = CAL_YR, `ANNUAL_HRS` = ANNUAL_HOURS,
 `AVG_ANNUAL_EMPL` = AVG_EMPLOYEE_CNT, `C_M_IND` = COAL_METAL_IND, `CURR_MINE_NM` = MINE_NAME,
 `STATE_ABBR` = STATE, `SUBUNIT_DESC` = SUBUNIT); the file header names are used throughout.
 
 ## 3. Joins
 
-All joins are left joins from the filtered accident rows with `validate="many_to_one"` and an
-indicator column; the row count is asserted unchanged after each one.
+All joins are left joins from the filtered accident rows, with `validate="many_to_one"` and an
+indicator column. After each join the code asserts that the row count has not changed.
 
 | Join | Right table | Keys | Matched | Unmatched | Action |
 |---|---|---|---|---|---|
@@ -65,21 +64,25 @@ indicator column; the row count is asserted unchanged after each one.
 | J4 | previous-year subunit set (a column of J2) | as J2 | 100,403 | 1,206 | `type_at_time`: Underground if the mine-year has a production row for subunit 01 or 02 (hours may be zero), Facility if every subunit is in {30, 99, 17}, else Surface; fallback from the accident's own `SUBUNIT_CD` for the 1,206 rows without previous-year production. Underground 40,379, Surface 51,053, Facility 10,177 |
 | Lagged cases | the full Accidents file, all degree codes, 2009-2024 | `MINE_ID`, `CAL_YR - 1`, and filing date (`DOCUMENT_NO` positions 2-8) strictly before the row's `ACCIDENT_DT` | 100,403 rows (17,822 true zeros; 81,469 rows have at least one valid-code case, so `prev_lost_time_share` is missing on 20,140 rows, 19.82 %) | NaN where J2 is unmatched | `prev_incidents` (any code), `prev_valid_cases` (codes 01-06), `prev_lost_time_cases` (codes 01-04); sensitivity-only copies `*_resolved` also require the return-to-work date and the closing document, when present, to be earlier than `ACCIDENT_DT`; `prev_year_incomplete_at_filing` marks 1,643 forms filed by 15 January |
 
-Why the previous year: Form 7000-2 is filed quarterly, due 15 days after the quarter ends, so
-for the 25 % of accidents in the first quarter no part of the current year has been reported at
-filing, whereas the fourth quarter of the previous year is due by 15 January. Why filing date and
-not accident date for the lagged cases: 1.87 % of previous-year cases were filed after the row's
-accident date (11.7 % of rows with any prior case, 21.2 % of first-quarter rows), so counting by
-accident date would use information that did not exist when the form was filed.
+Production is taken from the previous year because Form 7000-2 is filed quarterly, 15 days
+after the quarter ends. For the 25 % of accidents in the first quarter, no part of the current
+year has been reported at filing, while the fourth quarter of the previous year is due by
+15 January.
+
+The lagged cases are counted by filing date, not accident date, because 1.87 % of previous-year
+cases were filed after the row's accident date (11.7 % of rows with any prior case, 21.2 % of
+first-quarter rows). Counting by accident date would use information that did not exist when
+the form was filed.
 
 ## 4. Target
 
 `lost_time` = 1 when `DEGREE_INJURY_CD` is 01 (fatality), 02 (permanent disability), 03 (days
 away from work only) or 04 (days away and restricted activity); 0 when it is 05 (restricted
-activity only) or 06 (no days away, no restrictions). Codes 01-04 are the indemnity trigger in
-workers' compensation (wage replacement starts when the worker is away), which is why 05 is a
-negative although it is part of MSHA's published lost-time rate. The label is MSHA's closed-case
-classification; 99.14 % of positives have `DAYS_LOST > 0` or `SCHEDULE_CHARGE > 0`.
+activity only) or 06 (no days away, no restrictions). Codes 01-04 trigger indemnity in workers'
+compensation, because wage replacement starts when the worker is away. That is why 05 counts
+as negative even though MSHA's published lost-time rate includes it. The label is MSHA's
+closed-case classification, and 99.14 % of positives have `DAYS_LOST > 0` or
+`SCHEDULE_CHARGE > 0`.
 
 | Quantity | Value |
 |---|---|
@@ -89,8 +92,9 @@ classification; 99.14 % of positives have `DAYS_LOST > 0` or `SCHEDULE_CHARGE > 
 | Prevalence | 48.585 % |
 | Prevalence by commodity | coal 63.04 % (n 41,461), metal/non-metal 38.62 % (n 60,148) |
 
-The label partly measures return-to-work practice (whether the operator offers restricted duty),
-so it is reported stratified by `COAL_METAL_IND`; see `label_drift` in `docs/profile/decisions.json`.
+The label partly measures return-to-work practice, that is, whether the operator offers
+restricted duty. It is therefore reported by `COAL_METAL_IND` (see `label_drift` in
+`docs/profile/decisions.json`).
 
 ## 5. Row filters (applied in this order)
 
@@ -106,15 +110,15 @@ so it is reported stratified by `COAL_METAL_IND`; see `label_drift` in `docs/pro
 | 7 | drop degree code 10 | 850 | 101,609 | all other cases including first aid (0 rows with days lost or restricted) |
 | 8 | drop missing degree code | 0 | 101,609 | all 910 missing codes are pre-2010 |
 
-Result: 101,609 rows, 16 calendar years, 8,303 mines, 32,732 mine-years (`group_id` =
-`MINE_ID_CAL_YR`, the grouping key of the train/test split), 98,693 same-day accident groups
-(`accident_group` = `MINE_ID_ACCIDENT_DT`, the multi-victim key; every same-day group lies inside
-one mine-year).
+The filtered table has 101,609 rows from 16 calendar years and 8,303 mines. They fall into
+32,732 mine-years (`group_id` = `MINE_ID_CAL_YR`, the grouping key of the train/test split) and
+98,693 same-day accident groups (`accident_group` = `MINE_ID_ACCIDENT_DT`, the multi-victim key).
+Every same-day group lies inside one mine-year.
 
 ## 6. Leakage drop-list
 
-These columns are present in the base table for EDA and label-validity checks but are never
-model inputs (`mlda.config.LEAKAGE_COLUMNS`, `MINES_CURRENT_STATE_COLUMNS`, and the same-year
+The base table keeps these columns for EDA and label-validity checks, but they are never model
+inputs (`mlda.config.LEAKAGE_COLUMNS`, `MINES_CURRENT_STATE_COLUMNS` and the same-year
 production columns).
 
 | Column(s) | Reason |
@@ -138,8 +142,8 @@ production columns).
 
 Identifier and description columns (`MINE_ID`, `CONTROLLER_*`, `OPERATOR_*`, `CONTRACTOR_ID`,
 `DOCUMENT_NO`, `CAL_YR`, `ACCIDENT_DT`, the description twins of every code, `EQUIP_MODEL_NO`,
-and the Mines name, office, county and SIC detail columns) are dropped at feature engineering;
-the full list is `drop_admin` in `docs/profile/decisions.json`.
+and the Mines name, office, county and SIC detail columns) are dropped at feature engineering.
+The full list is `drop_admin` in `docs/profile/decisions.json`.
 
 ## 7. Processed artefacts (`data/processed/`, written by `load_base_table()`)
 
@@ -149,8 +153,12 @@ the full list is `drop_admin` in `docs/profile/decisions.json`.
 | `mine_year_features.parquet` | `MINE_ID` x `CALENDAR_YR`, 2009-2025, all mines | 226,182 | `hours`, `employees`, `subunits` (`|`-joined), `type`; the inference page looks up `(MINE_ID, year - 1)` here |
 | `mine_case_history.parquet` | one Accidents case, any degree code, 2009-2025 | 132,509 | `MINE_ID`, `CAL_YR`, `filing_date`, `DEGREE_INJURY_CD`, `return_to_work_dt`, `closed_date`; lets the inference page rebuild the filed-before counts for any accident date |
 
-Known limitations of the data itself (details in `target.label_validity` of `docs/profile/decisions.json`): Part 50 is
-operator self-reporting; the Mines table is a snapshot, so its dated attributes may post-date the
-accident; contractor hours are absent from the production file, so rates per 200,000 hours
-understate exposure at contractor-heavy mines; about 5 % of the 2025 fourth-quarter rows may still
-be re-coded by MSHA after the snapshot.
+## 8. Known limitations of the data
+
+Details are in `target.label_validity` of `docs/profile/decisions.json`.
+
+- Part 50 reports are filed by the operators themselves.
+- The Mines table is a snapshot, so its dated attributes may post-date the accident.
+- The production file has no contractor hours, so rates per 200,000 hours understate exposure
+  at mines that rely heavily on contractors.
+- MSHA may still re-code about 5 % of the 2025 fourth-quarter rows after the snapshot.
